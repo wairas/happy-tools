@@ -39,8 +39,9 @@ def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors
     output_dict = {}
     ids = load_sampleids(ids_filename)
     for pixel_selector in pixel_selectors:
-        # Create the filename for the CSV and JSON files
+        print("Generating data for: %s" % pixel_selector.__class__.__name__)
 
+        # Create the filename for the CSV and JSON files
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
 
         columns_created = False
@@ -115,7 +116,7 @@ def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors
         json.dump(output_dict, f, indent=2)
 
 
-def generate(data_dir, metadata_dir, sample_ids, output_dir):
+def generate(data_dir, metadata_dir, sample_ids, output_dir, metadata_values, targets):
     """
     Generates the CSV output.
 
@@ -127,41 +128,29 @@ def generate(data_dir, metadata_dir, sample_ids, output_dir):
     :type sample_ids: str
     :param output_dir: the directory to store the output in
     :type output_dir: str
+    :param metadata_values: the names of the meta-data values to add to the output
+    :type metadata_values: list
+    :param targets: the list of names of targets to generate data for
+    :type targets: list
     """
-    experiment_dict = {}
-    experiment_dict["per_image"] = {}
-    experiment_dict["per_image"]["meta_data"] = ["sample_id", "r_x", "x0", "x1", "y0",
-                                                 "y1"]  # x0,x1,y0,y0 -> if cropped from original image
-    # experiment_dict["per_image"]["targets"]=["bnf","nitrogen"]
-    experiment_dict["per_pixel"] = {}
-    experiment_dict["per_pixel"]["meta_data"] = ["sample_id", "r_x", "x", "y", "type", "object"]
-    experiment_dict["per_pixel"]["targets"] = ["THCA"]
-
-
-    # Initialize the spectra reader object for reading .mat files
-    mat_reader = MatReader(data_dir,
-                           metadata_dir, simple_filename_func, "normcube",
-                           wavelengths_struct="lambda")
-
-    crit1 = Criteria("in", key="type", value=[2, 3], spectra_reader=mat_reader)
-
-    ##crit = crit1 = Criteria("in", key="type", value=pixel_type_filter, spectra_reader=spectra_reader)
-    # crit2 = Criteria("matches", key="r_x", value="X", spectra_reader=mat_reader)
-    # crit = CriteriaGroup(criteria_list=[crit1,crit2])
-    crit = crit1
-    pixel_selectors = [AveragedGridSelector(mat_reader, 32, crit, 4), AveragedGridSelector(mat_reader, 4, crit, 4),
-                       AveragedGridSelector(mat_reader, 4, crit, 2), ColumnWisePixelSelector(mat_reader, 32, crit, 4)]
-
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
         print(f"Folder '{output_dir}' created successfully!")
     else:
         print(f"Folder '{output_dir}' already exists.")
 
-    # Call loop_jsons() function with the reader object
+    # Initialize the spectra reader object for reading .mat files
+    mat_reader = MatReader(data_dir,
+                           metadata_dir, simple_filename_func, "normcube",
+                           wavelengths_struct="lambda")
+
+    crit = Criteria("in", key="type", value=[2, 3], spectra_reader=mat_reader)
+    pixel_selectors = [AveragedGridSelector(mat_reader, 32, crit, 4), AveragedGridSelector(mat_reader, 4, crit, 4),
+                       AveragedGridSelector(mat_reader, 4, crit, 2), ColumnWisePixelSelector(mat_reader, 32, crit, 4)]
+
+    # process files
     load_global_jsons(sample_ids, output_dir, mat_reader, pixel_selectors,
-                      experiment_dict["per_pixel"]["meta_data"],
-                      experiment_dict["per_pixel"]["targets"])
+                      metadata_values, targets)
 
 
 def main(args=None):
@@ -179,8 +168,11 @@ def main(args=None):
     parser.add_argument("-m", "--metadata_dir", metavar="DIR", help="the directory with the meta-data JSON files", required=True)
     parser.add_argument("-s", "--sample_ids", metavar="FILE", help="the JSON file with the array of sample IDs to process", required=True)
     parser.add_argument("-o", "--output_dir", metavar="DIR", help="the directory to store the results in", required=True)
+    parser.add_argument("-M", "--metadata_values", nargs="*", help="the meta-data values to add to the output", required=False)
+    parser.add_argument("-T", "--targets", nargs="+", help="the target values to generate data for", required=True)
     parsed = parser.parse_args(args=args)
-    generate(parsed.data_dir, parsed.metadata_dir, parsed.sample_ids, parsed.output_dir)
+    generate(parsed.data_dir, parsed.metadata_dir, parsed.sample_ids, parsed.output_dir,
+             parsed.metadata_values, parsed.targets)
 
 
 def sys_main() -> int:
