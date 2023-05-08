@@ -19,7 +19,7 @@ class ColumnWisePixelSelector(PixelSelector):
             # find some random pixels in the column and average
             if x is None:
                 print("!!NONE")
-            column_pixels=[]
+            column_pixels = []
             all_ys = list(range(self.reader.height))
             random.shuffle(all_ys)
             
@@ -28,11 +28,11 @@ class ColumnWisePixelSelector(PixelSelector):
                 if self.criteria.check(x, num):
                     column_pixels.append(self.reader.get_spectrum(x, num))
                 if len(column_pixels) == self.c:
-                    enough=True
+                    enough = True
                     break
             if not enough:
                 break
-            pixel_value = np.mean(column_pixels, axis =0)
+            pixel_value = np.mean(column_pixels, axis=0)
             pixels.append((x, y, pixel_value))
             if len(pixels) == self.n:
                 break

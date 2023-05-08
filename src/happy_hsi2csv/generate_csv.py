@@ -34,27 +34,31 @@ def simple_filename_func(base_dir, sample_id):
 
 
 def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors, meta_data_keys, target_keys):
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
-
     output_dict = {}
-    ids = load_sampleids(ids_filename)
+    sample_ids = load_sampleids(ids_filename)
+
+    print("# pixel selectors: %d" % len(pixel_selectors))
+    print("# sample IDs: %d" % len(sample_ids))
+
     for pixel_selector in pixel_selectors:
-        print("Generating data for: %s" % pixel_selector.__class__.__name__)
+        print("\nGenerating data using: %s" % pixel_selector.to_dict())
 
         # Create the filename for the CSV and JSON files
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
 
         columns_created = False
+        column_names = []
+        wn = []
+        z_data = []
         output_df = pd.DataFrame()
-        for id in ids:
-            print(id)
-            spectra_reader.load_data(id)
+        for sample_id in sample_ids:
+            print(sample_id)
+            spectra_reader.load_data(sample_id)
 
-            selectedp = pixel_selector.select_pixels()
+            selected_pixels = pixel_selector.select_pixels()
 
             wn = spectra_reader.get_wavelengths()
-            for ind, (x, y, z_data) in enumerate(selectedp):
+            for ind, (x, y, z_data) in enumerate(selected_pixels):
                 # If pixel type is valid and z data is not zero, add row to output dataframe
                 if not np.all(z_data == 0):
                     if not columns_created:
@@ -73,6 +77,7 @@ def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors
                     })
 
                     # Add the row to the output dataframe
+                    # TODO use concat
                     output_df = output_df.append(row_values, ignore_index=True)
 
         # Write the multi-target output CSV file

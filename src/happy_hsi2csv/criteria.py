@@ -13,7 +13,7 @@ class Criteria:
         return {
             'class': self.__class__.__name__,
             'operation': self.operation,
-            'value' : self.value,
+            'value': self.value,
             'key': self.key
         }
 
@@ -48,7 +48,7 @@ class CriteriaGroup:
             'class': self.__class__.__name__,
         }
         if self.criteria_list:
-            json_dict["criteria_list"]=[criteria.to_dict() for criteria in self.criteria_list ]
+            json_dict["criteria_list"] = [criteria.to_dict() for criteria in self.criteria_list ]
         return json_dict
         
     def check(self, x, y):
