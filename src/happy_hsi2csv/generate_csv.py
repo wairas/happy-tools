@@ -27,6 +27,7 @@ def load_sampleids(filename):
     return data
 
 
+# TODO turn into command-line option
 def simple_filename_func(base_dir, sample_id):
     base_id, sub_dir, _ = sample_id.split("__")
     return os.path.join(base_dir, sub_dir, "normcubes", f"{base_id}.mat")
@@ -133,17 +134,20 @@ def generate(data_dir, metadata_dir, sample_ids, output_dir, metadata_values, ta
         print(f"Folder '{output_dir}' already exists.")
 
     # Initialize the spectra reader object for reading .mat files
+    # TODO turn reader into command-line option
     mat_reader = MatReader(data_dir,
                            metadata_dir, simple_filename_func, "normcube",
                            wavelengths_struct="lambda")
 
+    # TODO turn into command-line options
     crit = Criteria("in", key="type", value=[2, 3], spectra_reader=mat_reader)
+
+    # TODO turn into command-line options
     pixel_selectors = [AveragedGridSelector(mat_reader, 32, crit, 4), AveragedGridSelector(mat_reader, 4, crit, 4),
                        AveragedGridSelector(mat_reader, 4, crit, 2), ColumnWisePixelSelector(mat_reader, 32, crit, 4)]
 
     # process files
-    load_global_jsons(sample_ids, output_dir, mat_reader, pixel_selectors,
-                      metadata_values, targets)
+    load_global_jsons(sample_ids, output_dir, mat_reader, pixel_selectors, metadata_values, targets)
 
 
 def main(args=None):
