@@ -1,5 +1,6 @@
 from .json_reader import JsonReader
 
+
 class SpectraReader:
     def __init__(self, base_dir, json_dir, filename_func):
         self.base_dir = base_dir
@@ -17,6 +18,7 @@ class SpectraReader:
             'base_dir': self.base_dir,
             'json_dir': self.json_dir
         }
+
     def load_data(self, sample_id):
         self.sample_id = sample_id
         self.load_jsons(sample_id)

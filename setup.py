@@ -30,6 +30,7 @@ setup(
         "numpy==1.21.6",
         "pandas==1.3.5",
         "scipy==1.7.3",
+        "spectral==0.23.1",
     ],
     package_dir={
         '': 'src'

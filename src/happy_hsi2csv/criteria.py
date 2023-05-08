@@ -1,6 +1,7 @@
 import re
 import numpy as np
 
+
 class Criteria:
     def __init__(self, operation, value=None, key=None, spectra_reader=None):
         self.operation = operation
@@ -37,6 +38,7 @@ class Criteria:
         else:
             raise ValueError(f"Unsupported operation: {self.operation}")
 
+
 class CriteriaGroup:
     def __init__(self, criteria_list=None):
         self.criteria_list = criteria_list or []
@@ -47,7 +49,7 @@ class CriteriaGroup:
         }
         if self.criteria_list:
             json_dict["criteria_list"]=[criteria.to_dict() for criteria in self.criteria_list ]
-        return(json_dict)
+        return json_dict
         
     def check(self, x, y):
         return all(criteria.check(x, y) for criteria in self.criteria_list)

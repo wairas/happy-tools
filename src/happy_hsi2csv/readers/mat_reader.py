@@ -1,5 +1,7 @@
 from .spectra_reader import SpectraReader
 import scipy.io as sio
+import numpy as np
+
 
 class MatReader(SpectraReader):
     def __init__(self, base_dir, json_dir, filename_func, struct_name, wavelengths_struct=None):
@@ -16,26 +18,20 @@ class MatReader(SpectraReader):
         self.data = self.mat_file[self.struct_name]
         if self.wavelengths_struct_name:
             self.wavelengths = self.mat_file[self.wavelengths_struct_name]
-            #print("shape")
-            #print(self.wavelengths.shape)
         else:
-            arr = self.get_spectrum(0,0) # get a pixel
+            arr = self.get_spectrum(0, 0)   # get a pixel
             self.wavelengths = np.arange(arr.size)
         self.height, self.width, _ = self.data.shape
-        #print("shape")
-        #print(self.data.shape)
-        #print(self.height)
-        #print(self.width)
         super().load_data(sample_id)
         
     def set_base_dir(self, base_dir):
         self.base_dir = base_dir
         
     def get_numpy(self):
-        return(self.data)
+        return self.data
     
     def get_numpy_of(self, sname):
-        return(self.mat_file[sname])
+        return self.mat_file[sname]
         
     def get_wavelengths(self):
         return self.wavelengths.flatten()

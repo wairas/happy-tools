@@ -1,6 +1,7 @@
 import os
 import json
 
+
 class JsonReader:
     def __init__(self, json_dir, sample_id):
         self.json_dir = json_dir
@@ -24,16 +25,16 @@ class JsonReader:
             y = str(y)
             if y in self.pixel_dict[x]:
                 if key in self.pixel_dict[x][y]:
-                    return (self.pixel_dict[x][y][key])
-        return(self.get_meta_global_data(key))
+                    return self.pixel_dict[x][y][key]
+        return self.get_meta_global_data(key)
         
     def get_meta_global_data(self, key):
         if key in self.global_dict:
             return(self.global_dict[key])
         elif key in self.global_dict["meta_data"]:
-            return(self.global_dict["meta_data"][key])
+            return self.global_dict["meta_data"][key]
         else:
-            return(None)
+            return None
     
     def load_pixel_json(self):
         pixel_json = self.load_json(self.sample_id+'_pixels.json')

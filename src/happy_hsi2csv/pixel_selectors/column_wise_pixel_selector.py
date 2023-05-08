@@ -2,6 +2,7 @@ from .pixel_selector import PixelSelector
 import random
 import numpy as np
 
+
 class ColumnWisePixelSelector(PixelSelector):
     def __init__(self, reader, n, criteria, c):
         super().__init__(reader, n, criteria)
@@ -14,12 +15,8 @@ class ColumnWisePixelSelector(PixelSelector):
         
     def select_pixels(self):
         pixels = []
-        width = self.reader.width
-        height = self.reader.height
-        #print(self.width)
-        #print(self.height)
         for x, y in self._get_candidate_pixels():
-            #find some random pixels in the column and average
+            # find some random pixels in the column and average
             if x is None:
                 print("!!NONE")
             column_pixels=[]
