@@ -144,10 +144,10 @@ def generate(data_dir, metadata_dir, sample_ids, output_dir, metadata_values, ta
                            metadata_dir, simple_filename_func, "normcube",
                            wavelengths_struct="lambda")
 
-    # TODO turn into command-line options
+    # TODO turn into command-line options (json file? from_dict(...))
     crit = Criteria("in", key="type", value=[2, 3], spectra_reader=mat_reader)
 
-    # TODO turn into command-line options
+    # TODO turn into command-line options (json file? from_dict(...))
     pixel_selectors = [AveragedGridSelector(mat_reader, 32, crit, 4), AveragedGridSelector(mat_reader, 4, crit, 4),
                        AveragedGridSelector(mat_reader, 4, crit, 2), ColumnWisePixelSelector(mat_reader, 32, crit, 4)]
 
