@@ -47,10 +47,6 @@ def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors
         columns_created = False
         output_df = pd.DataFrame()
         for id in ids:
-            # if filename.endswith("_global.json"):
-            # Load the global json
-            # print(filename)
-            # id = filename[:-len("_global.json")]
             print(id)
             spectra_reader.load_data(id)
 
@@ -91,9 +87,6 @@ def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors
             output_dict[target] = {}
         output_dict[target][filename] = pixel_selector.to_dict()
         output_df.to_csv(output_file, index=False, columns=column_names)
-        # output_file = os.path.join(output_path, filename)
-        # output_dict[filename] = pixel_selector.to_dict()
-        # output_df.to_csv(output_file, index=False, columns=column_names)
 
         for target in target_keys:
             # make columns
