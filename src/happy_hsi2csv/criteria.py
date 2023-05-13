@@ -5,7 +5,7 @@ from happy_hsi2csv.core import ConfigurableObject
 
 class Criteria(ConfigurableObject):
 
-    def __init__(self, operation, value=None, key=None, spectra_reader=None):
+    def __init__(self, operation=None, value=None, key=None, spectra_reader=None):
         self.operation = operation
         self.value = value
         self.key = key
