@@ -1,16 +1,21 @@
 import numpy as np
-from .pixel_selector import PixelSelector
+from happy_hsi2csv.pixel_selectors.pixel_selector import PixelSelector
 
 
 class AveragedGridSelector(PixelSelector):
-    def __init__(self, reader, n, criteria, grid_size):
-        super().__init__(reader, n, criteria)
+
+    def __init__(self, reader=None, n=None, criteria=None, grid_size=None):
+        super().__init__(reader=reader, n=n, criteria=criteria)
         self.grid_size = grid_size
 
     def to_dict(self):
-        data = super().to_dict()
-        data['grid_size'] = self.grid_size
-        return data
+        d = super().to_dict()
+        d['grid_size'] = self.grid_size
+        return d
+
+    def from_dict(self, d):
+        super().from_dict(d)
+        self.grid_size = d['grid_size']
 
     def select_pixels(self):
         pixels = []

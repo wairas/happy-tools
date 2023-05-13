@@ -1,11 +1,19 @@
-from spectra_reader import SpectraReader
 import spectral.io.envi as envi
+from happy_hsi2csv.readers.spectra_reader import SpectraReader
 
 
 class EnviReader(SpectraReader):
 
-    def __init__(self, base_dir, filename_func):
-        super().__init__(base_dir, filename_func)
+    def get_numpy(self, x, y):
+        # TODO implement?
+        return None
+
+    def get_wavelengths(self):
+        # TODO implement?
+        return None
+
+    def __init__(self, base_dir=None, filename_func=None):
+        super().__init__(base_dir=base_dir, filename_func=filename_func)
 
     def load_data(self, sample_id):
         filename = self.filename_func(self.base_dir, sample_id)

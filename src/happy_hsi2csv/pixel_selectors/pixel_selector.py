@@ -1,8 +1,11 @@
 import random
+from happy_hsi2csv.core import ConfigurableObject
+from happy_hsi2csv.readers.spectra_reader import SpectraReader
+from happy_hsi2csv.criteria import Criteria
 
 
-class PixelSelector:
-    def __init__(self, reader, n, criteria):
+class PixelSelector(ConfigurableObject):
+    def __init__(self, reader=None, n=None, criteria=None):
         self.reader = reader
         self.n = n
         self.criteria = criteria
@@ -11,12 +14,23 @@ class PixelSelector:
         return self.n
     
     def to_dict(self):
-        return {
-            'class': self.__class__.__name__,
-            'n': self.n,
-            'reader': self.reader.to_dict(),
-            'criteria': self.criteria.to_dict()
-        }
+        d = super().to_dict()
+        d['n'] = self.n
+        d['reader'] = self.reader.to_dict()
+        d['criteria'] = self.criteria.to_dict()
+        return d
+
+    def from_dict(self, d):
+        """
+        Initializes parameters from the dictionary.
+
+        :param d: the dictionary with the parameters to use
+        :type d: dict
+        """
+        super().from_dict(d)
+        self.n = d["n"]
+        self.reader = SpectraReader.create_from_dict(d["reader"])
+        self.criteria = Criteria.create_from_dict(d["criteria"])
 
     def _get_candidate_pixels(self):
         # This is a generator function that yields candidate pixels

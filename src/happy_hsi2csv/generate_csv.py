@@ -7,10 +7,11 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from criteria import Criteria
-from pixel_selectors.averaged_grid_pixel_selector import AveragedGridSelector
-from pixel_selectors.column_wise_pixel_selector import ColumnWisePixelSelector
-from readers.mat_reader import MatReader
+from happy_hsi2csv.core import get_classname
+from happy_hsi2csv.criteria import Criteria
+from happy_hsi2csv.pixel_selectors.averaged_grid_pixel_selector import AveragedGridSelector
+from happy_hsi2csv.pixel_selectors.column_wise_pixel_selector import ColumnWisePixelSelector
+from happy_hsi2csv.readers.mat_reader import MatReader
 
 
 def load_sampleids(filename):
@@ -41,7 +42,7 @@ def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors
     print("# sample IDs: %d" % len(sample_ids))
 
     for pixel_selector in pixel_selectors:
-        print("\nGenerating data using: %s" % pixel_selector.to_dict())
+        print("\nGenerating data using: %s" % get_classname(pixel_selector))
 
         # Create the filename for the CSV and JSON files
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')

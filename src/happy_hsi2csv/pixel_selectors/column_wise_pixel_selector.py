@@ -1,17 +1,22 @@
-from .pixel_selector import PixelSelector
 import random
 import numpy as np
+from happy_hsi2csv.pixel_selectors.pixel_selector import PixelSelector
 
 
 class ColumnWisePixelSelector(PixelSelector):
-    def __init__(self, reader, n, criteria, c):
-        super().__init__(reader, n, criteria)
+
+    def __init__(self, reader=None, n=None, criteria=None, c=None):
+        super().__init__(reader=reader, n=n, criteria=criteria)
         self.c = c
 
     def to_dict(self):
-        data = super().to_dict()
-        data['c'] = self.c
-        return data
+        d = super().to_dict()
+        d['c'] = self.c
+        return d
+
+    def from_dict(self, d):
+        super().from_dict(d)
+        self.c = d['c']
         
     def select_pixels(self):
         pixels = []

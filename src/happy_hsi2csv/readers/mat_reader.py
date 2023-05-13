@@ -1,11 +1,12 @@
-from .spectra_reader import SpectraReader
 import scipy.io as sio
 import numpy as np
+from happy_hsi2csv.readers.spectra_reader import SpectraReader
 
 
 class MatReader(SpectraReader):
-    def __init__(self, base_dir, json_dir, filename_func, struct_name, wavelengths_struct=None):
-        super().__init__(base_dir, json_dir, filename_func)
+
+    def __init__(self, base_dir=None, json_dir=None, filename_func=None, struct_name=None, wavelengths_struct=None):
+        super().__init__(base_dir=base_dir, json_dir=json_dir, filename_func=filename_func)
         self.struct_name = struct_name
         self.wavelengths_struct_name = wavelengths_struct
         self.wavelengths = None
@@ -28,6 +29,7 @@ class MatReader(SpectraReader):
         self.base_dir = base_dir
         
     def get_numpy(self):
+        # TODO x/y parameters???
         return self.data
     
     def get_numpy_of(self, sname):
@@ -40,3 +42,14 @@ class MatReader(SpectraReader):
         if self.data is None:
             raise ValueError("Spectral data not loaded. Call load_data() first.")
         return self.data[y, x, :]
+
+    def to_dict(self):
+        d = super().to_dict()
+        d['struct_name'] = self.struct_name
+        d['wavelengths_struct_name'] = self.wavelengths_struct_name
+        return d
+
+    def from_dict(self, d):
+        super().from_dict(d)
+        self.struct_name = d['struct_name']
+        self.wavelengths_struct_name = d['wavelengths_struct_name']

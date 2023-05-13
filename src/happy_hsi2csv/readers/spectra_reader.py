@@ -1,8 +1,10 @@
-from .json_reader import JsonReader
+from happy_hsi2csv.core import ConfigurableObject, get_func, get_funcname
+from happy_hsi2csv.readers.json_reader import JsonReader
 
 
-class SpectraReader:
-    def __init__(self, base_dir, json_dir, filename_func):
+class SpectraReader(ConfigurableObject):
+
+    def __init__(self, base_dir=None, json_dir=None, filename_func=None):
         self.base_dir = base_dir
         self.filename_func = filename_func
         self.data = None
@@ -13,11 +15,20 @@ class SpectraReader:
         self.height = None
         
     def to_dict(self):
-        return{
-            'class': self.__class__.__name__,
-            'base_dir': self.base_dir,
-            'json_dir': self.json_dir
-        }
+        d = super().to_dict()
+        d['base_dir'] = self.base_dir
+        d['json_dir'] = self.json_dir
+        if self.filename_func is not None:
+            d['filename_func'] = self.filename_func.__module__ + "." + self.filename_func.__name__
+        return d
+
+    def from_dict(self, d):
+        super().from_dict(d)
+        self.base_dir = d['base_dir']
+        self.json_dir = d['json_dir']
+        self.filename_func = None
+        if "filename_func" in d:
+            self.filename_func = get_func(d["filename_func"])
 
     def load_data(self, sample_id):
         self.sample_id = sample_id

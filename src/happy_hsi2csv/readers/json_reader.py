@@ -3,6 +3,7 @@ import json
 
 
 class JsonReader:
+
     def __init__(self, json_dir, sample_id):
         self.json_dir = json_dir
         self.global_dict = {}

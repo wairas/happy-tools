@@ -1,8 +1,10 @@
 import re
 import numpy as np
+from happy_hsi2csv.core import ConfigurableObject
 
 
-class Criteria:
+class Criteria(ConfigurableObject):
+
     def __init__(self, operation, value=None, key=None, spectra_reader=None):
         self.operation = operation
         self.value = value
@@ -10,12 +12,16 @@ class Criteria:
         self.spectra_reader = spectra_reader
         
     def to_dict(self):
-        return {
-            'class': self.__class__.__name__,
-            'operation': self.operation,
-            'value': self.value,
-            'key': self.key
-        }
+        d = super().to_dict()
+        d['operation'] = self.operation
+        d['value'] = self.value
+        d['key'] = self.key
+        return d
+
+    def from_dict(self, d):
+        self.operation = d['operation']
+        self.value = d['value']
+        self.key = d['key']
 
     def check(self, x, y):
         z_data = self.spectra_reader.get_spectrum(x, y)
@@ -39,18 +45,22 @@ class Criteria:
             raise ValueError(f"Unsupported operation: {self.operation}")
 
 
-class CriteriaGroup:
+class CriteriaGroup(ConfigurableObject):
+
     def __init__(self, criteria_list=None):
         self.criteria_list = criteria_list or []
 
     def to_dict(self):
-        json_dict = {
-            'class': self.__class__.__name__,
-        }
+        d = super().to_dict()
         if self.criteria_list:
-            json_dict["criteria_list"] = [criteria.to_dict() for criteria in self.criteria_list ]
-        return json_dict
-        
+            d["criteria_list"] = [criteria.to_dict() for criteria in self.criteria_list ]
+        return d
+
+    def from_dict(self, d):
+        super().from_dict()
+        if "criteria_list" in d:
+            self.criteria_list = [Criteria.from_dict(x) for x in d["criteria_list"]]
+
     def check(self, x, y):
         return all(criteria.check(x, y) for criteria in self.criteria_list)
 
