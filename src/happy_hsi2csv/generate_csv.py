@@ -9,6 +9,7 @@ import pandas as pd
 
 from happy_hsi2csv.core import get_classname
 from happy_hsi2csv.criteria import Criteria
+from happy_hsi2csv.filenames import simple_filename_func
 from happy_hsi2csv.pixel_selectors.averaged_grid_pixel_selector import AveragedGridSelector
 from happy_hsi2csv.pixel_selectors.column_wise_pixel_selector import ColumnWisePixelSelector
 from happy_hsi2csv.readers.mat_reader import MatReader
@@ -26,12 +27,6 @@ def load_sampleids(filename):
     with open(filename) as f:
         data = json.load(f)
     return data
-
-
-# TODO turn into command-line option
-def simple_filename_func(base_dir, sample_id):
-    base_id, sub_dir, _ = sample_id.split("__")
-    return os.path.join(base_dir, sub_dir, "normcubes", f"{base_id}.mat")
 
 
 def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors, meta_data_keys, target_keys):
