@@ -115,3 +115,5 @@ class ConfigurableObject:
         else:
             d = json.load(f)
             return cls.create_from_dict(d)
+
+

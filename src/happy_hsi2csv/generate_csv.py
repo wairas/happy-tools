@@ -8,25 +8,11 @@ import numpy as np
 import pandas as pd
 
 from happy_hsi2csv.core import get_classname
+from happy_hsi2csv.io import simple_filename_func, load_sampleids
 from happy_hsi2csv.criteria import Criteria
-from happy_hsi2csv.filenames import simple_filename_func
 from happy_hsi2csv.pixel_selectors.averaged_grid_pixel_selector import AveragedGridSelector
 from happy_hsi2csv.pixel_selectors.column_wise_pixel_selector import ColumnWisePixelSelector
 from happy_hsi2csv.readers.mat_reader import MatReader
-
-
-def load_sampleids(filename):
-    """
-    Loads the JSON array with the sample IDs to process.
-
-    :param filename: the JSON file to load (must contain an array)
-    :type filename: str
-    :return: the list
-    :rtype: list
-    """
-    with open(filename) as f:
-        data = json.load(f)
-    return data
 
 
 def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors, meta_data_keys, target_keys):
