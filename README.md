@@ -1,12 +1,14 @@
-# happy-hsi-to-csv
-Turns hyper-spectral data into CSV files.
+# happy-tools
+Python tools for dealing with hyper-spectral images.
 
 ## Command-line
 
+### HSI to CSV
+
 ```
-usage: h2c-generate-csv [-h] -d DIR -m DIR -s FILE -o DIR
-                        [-M [METADATA_VALUES [METADATA_VALUES ...]]] -T
-                        TARGETS [TARGETS ...]
+usage: happy-hsi2csv [-h] -d DIR -m DIR -s FILE -o DIR
+                     [-M [METADATA_VALUES [METADATA_VALUES ...]]] -T
+                     TARGETS [TARGETS ...]
 
 Generates CSV files from hyper-spectral images.
 

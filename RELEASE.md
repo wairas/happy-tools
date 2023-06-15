@@ -26,7 +26,7 @@ Steps:
 
 * start new release (version: `vX.Y.Z`)
 * enter release notes, i.e., significant changes since last release
-* upload `happy-hsi-to-csv-X.Y.Z.tar.gz` previously generated with `setyp.py`
+* upload `happy-tools-X.Y.Z.tar.gz` previously generated with `setyp.py`
 * publish
 
 

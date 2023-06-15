@@ -146,7 +146,7 @@ def main(args=None):
     """
     parser = argparse.ArgumentParser(
         description="Generates CSV files from hyper-spectral images.",
-        prog="h2c-generate-csv",
+        prog="happy-hsi2csv",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-d", "--data_dir", metavar="DIR", help="the directory with the hyper-spectral data files", required=True)
     parser.add_argument("-m", "--metadata_dir", metavar="DIR", help="the directory with the meta-data JSON files", required=True)

@@ -13,12 +13,12 @@ def _read(f):
 
 
 setup(
-    name="happy-hsi-to-csv",
-    description="Library for the Happy project that turns hyper-spectral data into CSV.",
+    name="happy-tools",
+    description="Tools for dealing with hyper-spectral images.",
     long_description=(
         _read('DESCRIPTION.rst') + b'\n' +
         _read('CHANGES.rst')).decode('utf-8'),
-    url="https://github.com/wairas/happy-hsi-to-csv",
+    url="https://github.com/wairas/happy-tools",
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
@@ -38,7 +38,7 @@ setup(
     packages=find_namespace_packages(where='src'),
     entry_points={
         "console_scripts": [
-            "h2c-generate-csv=happy_hsi2csv.generate_csv:sys_main",
+            "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
         ]
     },
     version="0.0.1",
