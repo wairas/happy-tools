@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from happy_hsi2csv.pixel_selectors.pixel_selector import PixelSelector
+from happy.pixel_selectors.pixel_selector import PixelSelector
 
 
 class ColumnWisePixelSelector(PixelSelector):

@@ -1,5 +1,5 @@
-from happy_hsi2csv.core import ConfigurableObject, get_func, get_funcname
-from happy_hsi2csv.readers.json_reader import JsonReader
+from happy.core import ConfigurableObject, get_func, get_funcname
+from happy.readers.json_reader import JsonReader
 
 
 class SpectraReader(ConfigurableObject):

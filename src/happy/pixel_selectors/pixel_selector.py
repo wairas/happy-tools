@@ -1,7 +1,7 @@
 import random
-from happy_hsi2csv.core import ConfigurableObject
-from happy_hsi2csv.readers.spectra_reader import SpectraReader
-from happy_hsi2csv.criteria import Criteria
+from happy.core import ConfigurableObject
+from happy.readers.spectra_reader import SpectraReader
+from happy.criteria import Criteria
 
 
 class PixelSelector(ConfigurableObject):

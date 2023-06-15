@@ -1,6 +1,6 @@
 import re
 import numpy as np
-from happy_hsi2csv.core import ConfigurableObject
+from happy.core import ConfigurableObject
 
 
 class Criteria(ConfigurableObject):

@@ -7,12 +7,12 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from happy_hsi2csv.core import get_classname
-from happy_hsi2csv.io import simple_filename_func, load_sampleids
-from happy_hsi2csv.criteria import Criteria
-from happy_hsi2csv.pixel_selectors.averaged_grid_pixel_selector import AveragedGridSelector
-from happy_hsi2csv.pixel_selectors.column_wise_pixel_selector import ColumnWisePixelSelector
-from happy_hsi2csv.readers.mat_reader import MatReader
+from happy.core import get_classname
+from happy.io import simple_filename_func, load_sampleids
+from happy.criteria import Criteria
+from happy.pixel_selectors.averaged_grid_pixel_selector import AveragedGridSelector
+from happy.pixel_selectors.column_wise_pixel_selector import ColumnWisePixelSelector
+from happy.readers.mat_reader import MatReader
 
 
 def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors, meta_data_keys, target_keys):

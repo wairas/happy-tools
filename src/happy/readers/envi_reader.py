@@ -1,5 +1,5 @@
 import spectral.io.envi as envi
-from happy_hsi2csv.readers.spectra_reader import SpectraReader
+from happy.readers.spectra_reader import SpectraReader
 
 
 class EnviReader(SpectraReader):
