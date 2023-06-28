@@ -1,6 +1,12 @@
 # happy-tools
 Python tools for dealing with hyper-spectral images.
 
+## Installation
+
+```
+pip install git+https://github.com/wairas/happy-tools.git
+```
+
 ## Command-line
 
 ### HSI to CSV
