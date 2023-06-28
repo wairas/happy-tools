@@ -1,110 +1,139 @@
-import sys
 import argparse
+import traceback
 import numpy as np
 import spectral.io.envi as envi
 import tkinter as tk
 from PIL import ImageTk, Image
 import random
 
-# Parse command-line arguments
-parser = argparse.ArgumentParser(description='Display ENVI file in false color.')
-parser.add_argument('filename', type=str, help='Path to the ENVI file')
-args = parser.parse_args()
 
-# Check if the filename was provided as a command line argument
-if not args.filename:
-    print("Please provide the filename as a command line argument.")
-    sys.exit(1)
+class Viewer(tk.Tk):
+    def __init__(self):
+        super().__init__()
 
-filename = args.filename
+        self.title("ENVI False Color")
 
-# Load ENVI file data
-data = envi.open(filename).load()
+        # Create a frame for controls
+        self.controls_frame = tk.Frame(self)
+        self.controls_frame.pack(side=tk.LEFT, padx=10, pady=10)
 
-# Create a Tkinter window
-window = tk.Tk()
-window.title("ENVI False Color")
+        # Create scales for selecting the wavelengths
+        # 1. red
+        self.red_label = tk.Label(self.controls_frame, text="Red Wavelength:")
+        self.red_label.pack(anchor=tk.W)
+        self.red_scale = tk.Scale(self.controls_frame, from_=0, to=255, orient=tk.HORIZONTAL)
+        self.red_scale.pack(anchor=tk.W)
+        # 2. green
+        self.green_label = tk.Label(self.controls_frame, text="Green Wavelength:")
+        self.green_label.pack(anchor=tk.W)
+        self.green_scale = tk.Scale(self.controls_frame, from_=0, to=255, orient=tk.HORIZONTAL)
+        self.green_scale.pack(anchor=tk.W)
+        # 3. blue
+        self.blue_label = tk.Label(self.controls_frame, text="Blue Wavelength:")
+        self.blue_label.pack(anchor=tk.W)
+        self.blue_scale = tk.Scale(self.controls_frame, from_=0, to=255, orient=tk.HORIZONTAL)
+        self.blue_scale.pack(anchor=tk.W)
 
-# Create a frame for controls
-controls_frame = tk.Frame(window)
-controls_frame.pack(side=tk.LEFT, padx=10, pady=10)
+        # buttons
+        self.button_frame = tk.Frame(self.controls_frame)
+        self.button_frame.pack(anchor=tk.W, pady=10)
 
-image_label = None
+        self.random_button = tk.Button(self.button_frame, text="Random", command=self.select_random_wavelengths)
+        self.random_button.pack(side=tk.LEFT, padx=5)
+
+        self.update_button = tk.Button(self.button_frame, text="Update", command=self.update_image)
+        self.update_button.pack(side=tk.LEFT, padx=5)
+
+        # initialize members
+        self.image_label = None
+        self.data = None
+        self.photo = None
+
+    def update_image(self):
+        """
+        Generates a false color image from the loaded data and displays the image.
+        """
+        # Get the selected wavelengths
+        red_wavelength = int(self.red_scale.get())
+        green_wavelength = int(self.green_scale.get())
+        blue_wavelength = int(self.blue_scale.get())
+
+        # Get the corresponding channels from the data
+        red_channel = self.data[:, :, red_wavelength]
+        green_channel = self.data[:, :, green_wavelength]
+        blue_channel = self.data[:, :, blue_wavelength]
+
+        # Normalize the channels
+        red_channel = (red_channel - np.min(red_channel)) / (np.max(red_channel) - np.min(red_channel))
+        green_channel = (green_channel - np.min(green_channel)) / (np.max(green_channel) - np.min(green_channel))
+        blue_channel = (blue_channel - np.min(blue_channel)) / (np.max(blue_channel) - np.min(blue_channel))
+
+        # Create the false color image
+        false_color_image = np.dstack((red_channel, green_channel, blue_channel))
+
+        # Convert the image array to PIL Image format
+        image = Image.fromarray((false_color_image * 255).astype(np.uint8))
+
+        self.photo = ImageTk.PhotoImage(image)
+        if self.image_label is None:
+            self.image_label = tk.Label(self, image=self.photo)
+            self.image_label.pack(padx=10, pady=10)
+        else:
+            self.image_label.configure(image=self.photo)
+
+        self.image_label.image = self.photo
+
+    def select_random_wavelengths(self):
+        """
+        Randomly selects wavelengths.
+        """
+        num_bands = self.data.shape[2]
+        red_wavelength = random.randint(0, num_bands - 1)
+        green_wavelength = random.randint(0, num_bands - 1)
+        blue_wavelength = random.randint(0, num_bands - 1)
+
+        # Set the selected wavelengths in the scales
+        self.red_scale.set(red_wavelength)
+        self.green_scale.set(green_wavelength)
+        self.blue_scale.set(blue_wavelength)
+
+    def load_file(self, filename):
+        self.data = envi.open(filename).load()
+        self.update_image()
 
 
-# Function to update the false color image
-def update_image():
-    global image_label, photo
-    # Get the selected wavelengths
-    red_wavelength = int(red_scale.get())
-    green_wavelength = int(green_scale.get())
-    blue_wavelength = int(blue_scale.get())
+def main(args=None):
+    """
+    The main method for parsing command-line arguments.
 
-    # Get the corresponding channels from the data
-    red_channel = data[:, :, red_wavelength]
-    green_channel = data[:, :, green_wavelength]
-    blue_channel = data[:, :, blue_wavelength]
-
-    # Normalize the channels
-    red_channel = (red_channel - np.min(red_channel)) / (np.max(red_channel) - np.min(red_channel))
-    green_channel = (green_channel - np.min(green_channel)) / (np.max(green_channel) - np.min(green_channel))
-    blue_channel = (blue_channel - np.min(blue_channel)) / (np.max(blue_channel) - np.min(blue_channel))
-
-    # Create the false color image
-    false_color_image = np.dstack((red_channel, green_channel, blue_channel))
-
-    # Convert the image array to PIL Image format
-    image = Image.fromarray((false_color_image * 255).astype(np.uint8))
-
-    photo = ImageTk.PhotoImage(image)
-    if image_label is None:
-        image_label = tk.Label(window, image=photo)
-        image_label.pack(padx=10, pady=10)
-    else:
-        image_label.configure(image=photo)
-
-    image_label.image = photo
+    :param args: the commandline arguments, uses sys.argv if not supplied
+    :type args: list
+    """
+    parser = argparse.ArgumentParser(
+        description="Display ENVI file in false color.",
+        prog="happy-viewer",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('filename', type=str, help='Path to the ENVI file')
+    parsed = parser.parse_args(args=args)
+    app = Viewer()
+    app.load_file(parsed.filename)
+    app.mainloop()
 
 
-# Function to select random wavelengths
-def select_random_wavelengths():
-    num_bands = data.shape[2]
-    red_wavelength = random.randint(0, num_bands - 1)
-    green_wavelength = random.randint(0, num_bands - 1)
-    blue_wavelength = random.randint(0, num_bands - 1)
+def sys_main() -> int:
+    """
+    Runs the main function using the system cli arguments, and
+    returns a system error code.
 
-    # Set the selected wavelengths in the scales
-    red_scale.set(red_wavelength)
-    green_scale.set(green_wavelength)
-    blue_scale.set(blue_wavelength)
+    :return: 0 for success, 1 for failure.
+    """
+    try:
+        main()
+        return 0
+    except Exception:
+        print(traceback.format_exc())
+        return 1
 
 
-# Create scales for selecting the wavelengths
-red_label = tk.Label(controls_frame, text="Red Wavelength:")
-red_label.pack(anchor=tk.W)
-red_scale = tk.Scale(controls_frame, from_=0, to=data.shape[2] - 1, orient=tk.HORIZONTAL)
-red_scale.pack(anchor=tk.W)
-
-green_label = tk.Label(controls_frame, text="Green Wavelength:")
-green_label.pack(anchor=tk.W)
-green_scale = tk.Scale(controls_frame, from_=0, to=data.shape[2] - 1, orient=tk.HORIZONTAL)
-green_scale.pack(anchor=tk.W)
-
-blue_label = tk.Label(controls_frame, text="Blue Wavelength:")
-blue_label.pack(anchor=tk.W)
-blue_scale = tk.Scale(controls_frame, from_=0, to=data.shape[2] - 1, orient=tk.HORIZONTAL)
-blue_scale.pack(anchor=tk.W)
-
-button_frame = tk.Frame(controls_frame)
-button_frame.pack(anchor=tk.W, pady=10)
-
-random_button = tk.Button(button_frame, text="Random", command=select_random_wavelengths)
-random_button.pack(side=tk.LEFT, padx=5)
-update_button = tk.Button(button_frame, text="Update", command=update_image)
-update_button.pack(side=tk.LEFT, padx=5)
-
-# Create an initial false color image
-update_image()
-
-# Start the Tkinter event loop
-window.mainloop()
+if __name__ == '__main__':
+    main()

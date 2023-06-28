@@ -40,6 +40,7 @@ setup(
     entry_points={
         "console_scripts": [
             "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
+            "happy-viewer=happy.view_envi:sys_main",
         ]
     },
     version="0.0.1",
