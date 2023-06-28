@@ -36,6 +36,9 @@ setup(
     package_dir={
         '': 'src'
     },
+    package_data={
+        "src": ["*.png"],
+    },
     packages=find_namespace_packages(where='src'),
     entry_points={
         "console_scripts": [
