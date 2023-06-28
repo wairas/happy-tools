@@ -31,3 +31,22 @@ optional arguments:
   -T TARGETS [TARGETS ...], --targets TARGETS [TARGETS ...]
                         the target values to generate data for (default: None)
 ```
+
+### ENVI Viewer
+
+```
+usage: happy-viewer [-h] [-r INT] [-g INT] [-b INT] [filename]
+
+Display ENVI file in false color.
+
+positional arguments:
+  filename             Path to the ENVI file (default: None)
+
+optional arguments:
+  -h, --help           show this help message and exit
+  -r INT, --red INT    the wave length to use for the red channel (default: 0)
+  -g INT, --green INT  the wave length to use for the green channel (default:
+                       0)
+  -b INT, --blue INT   the wave length to use for the blue channel (default:
+                       0)
+```
