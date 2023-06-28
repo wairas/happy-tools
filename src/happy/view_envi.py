@@ -1,10 +1,12 @@
 import argparse
-import traceback
 import numpy as np
+import os
+import random
 import spectral.io.envi as envi
 import tkinter as tk
+import traceback
 from PIL import ImageTk, Image
-import random
+from tkinter import filedialog as fd
 
 
 class Viewer(tk.Tk):
@@ -38,6 +40,9 @@ class Viewer(tk.Tk):
         self.button_frame = tk.Frame(self.controls_frame)
         self.button_frame.pack(anchor=tk.W, pady=10)
 
+        self.open_button = tk.Button(self.button_frame, text="Open...", command=self.open_file)
+        self.open_button.pack(side=tk.LEFT, padx=5)
+
         self.random_button = tk.Button(self.button_frame, text="Random", command=self.select_random_wavelengths)
         self.random_button.pack(side=tk.LEFT, padx=5)
 
@@ -48,6 +53,24 @@ class Viewer(tk.Tk):
         self.image_label = None
         self.data = None
         self.photo = None
+        self.last_dir = "."
+
+    def open_file(self):
+        """
+        Allows the user to select an ENVI file.
+        """
+        filetypes = (
+            ('ENVI files', '*.hdr'),
+            ('All files', '*.*')
+        )
+
+        filename = fd.askopenfilename(
+            title='Open an ENVI file',
+            initialdir=self.last_dir,
+            filetypes=filetypes)
+
+        if filename is not None:
+            self.load_file(filename)
 
     def update_image(self):
         """
@@ -97,6 +120,28 @@ class Viewer(tk.Tk):
         self.green_scale.set(green_wavelength)
         self.blue_scale.set(blue_wavelength)
 
+    def set_wavelengths(self, r, g, b):
+        """
+        Sets the wavelengths to use.
+
+        :param r: the red channel
+        :type r: int
+        :param g: the green channel
+        :type g: int
+        :param b: the blue channel
+        :type b: int
+        """
+        # adjust "to" if necessary
+        if self.red_scale.cget("to") < r:
+            self.red_scale.configure(to=r)
+        if self.green_scale.cget("to") < g:
+            self.green_scale.configure(to=g)
+        if self.blue_scale.cget("to") < b:
+            self.blue_scale.configure(to=b)
+        self.red_scale.set(r)
+        self.green_scale.set(g)
+        self.blue_scale.set(b)
+
     def load_file(self, filename):
         """
         Loads the specified ENVI file and displays it.
@@ -104,7 +149,11 @@ class Viewer(tk.Tk):
         :param filename: the ENVI file to load
         :type filename: str
         """
+        self.last_dir = os.path.dirname(filename)
         self.data = envi.open(filename).load()
+        self.red_scale.configure(to=self.data.shape[2] - 1)
+        self.green_scale.configure(to=self.data.shape[2] - 1)
+        self.blue_scale.configure(to=self.data.shape[2] - 1)
         self.update_image()
 
 
@@ -119,10 +168,15 @@ def main(args=None):
         description="Display ENVI file in false color.",
         prog="happy-viewer",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('filename', type=str, help='Path to the ENVI file')
+    parser.add_argument('filename', nargs="?", type=str, help='Path to the ENVI file')
+    parser.add_argument("-r", "--red", metavar="INT", help="the wave length to use for the red channel", default=0, type=int, required=False)
+    parser.add_argument("-g", "--green", metavar="INT", help="the wave length to use for the green channel", default=0, type=int, required=False)
+    parser.add_argument("-b", "--blue", metavar="INT", help="the wave length to use for the blue channel", default=0, type=int, required=False)
     parsed = parser.parse_args(args=args)
     app = Viewer()
-    app.load_file(parsed.filename)
+    app.set_wavelengths(parsed.red, parsed.green, parsed.blue)
+    if parsed.filename is not None:
+        app.load_file(parsed.filename)
     app.mainloop()
 
 
