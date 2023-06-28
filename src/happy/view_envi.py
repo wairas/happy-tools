@@ -9,11 +9,22 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 
 
+def app_dir():
+    """
+    Returns the SBD dir.
+
+    :return: the directory:
+    :rtype: str
+    """
+    return os.path.dirname(__file__)
+
+
 class Viewer(tk.Tk):
     def __init__(self):
         super().__init__()
 
         self.title("ENVI False Color")
+        self.iconphoto(False, tk.PhotoImage(file=app_dir() + '/logo.png'))
 
         # Create a frame for controls
         self.controls_frame = tk.Frame(self)
