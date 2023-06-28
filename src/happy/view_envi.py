@@ -98,6 +98,12 @@ class Viewer(tk.Tk):
         self.blue_scale.set(blue_wavelength)
 
     def load_file(self, filename):
+        """
+        Loads the specified ENVI file and displays it.
+
+        :param filename: the ENVI file to load
+        :type filename: str
+        """
         self.data = envi.open(filename).load()
         self.update_image()
 
