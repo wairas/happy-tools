@@ -31,6 +31,7 @@ setup(
         "pandas==1.3.5",
         "scipy==1.7.3",
         "spectral==0.23.1",
+        "pillow==9.5.0",
     ],
     package_dir={
         '': 'src'
