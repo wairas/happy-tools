@@ -37,7 +37,7 @@ setup(
         '': 'src'
     },
     package_data={
-        "src": ["*.png"],
+        "happy": ["*.png"],
     },
     packages=find_namespace_packages(where='src'),
     entry_points={
