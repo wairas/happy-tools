@@ -62,34 +62,6 @@
                 </child>
               </object>
             </child>
-            <child>
-              <object class="tk.Menuitem.Submenu" id="submenu1">
-                <property name="label" translatable="yes">Options</property>
-                <property name="tearoff">false</property>
-                <child>
-                  <object class="tk.Menuitem.Checkbutton" id="checkbutton_autodetect" named="True">
-                    <property name="command" type="command" cbtype="simple">on_autodetect_click</property>
-                    <property name="indicatoron">true</property>
-                    <property name="label" translatable="yes">Auto-detect channels</property>
-                    <property name="offvalue">False</property>
-                    <property name="onvalue">True</property>
-                    <property name="underline">0</property>
-                    <property name="variable">boolean:state_autodetect</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Checkbutton" id="checkbutton_noaspectratio" named="True">
-                    <property name="command" type="command" cbtype="simple">on_noaspectratio_click</property>
-                    <property name="indicatoron">true</property>
-                    <property name="label" translatable="yes">Ignore aspect-ratio</property>
-                    <property name="offvalue">True</property>
-                    <property name="onvalue">False</property>
-                    <property name="underline">0</property>
-                    <property name="variable">boolean:state_noaspectratio</property>
-                  </object>
-                </child>
-              </object>
-            </child>
           </object>
         </child>
       </object>
@@ -163,6 +135,52 @@
                                 <property name="height">10</property>
                                 <property name="width">50</property>
                                 <layout manager="pack">
+                                  <property name="side">top</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Notebook.Tab" id="tab_options" named="True">
+                        <property name="text" translatable="yes">Options</property>
+                        <child>
+                          <object class="ttk.Frame" id="frame_options" named="True">
+                            <property name="height">200</property>
+                            <property name="width">200</property>
+                            <layout manager="pack">
+                              <property name="side">top</property>
+                            </layout>
+                            <child>
+                              <object class="ttk.Checkbutton" id="checkbutton_autodetect_channels" named="True">
+                                <property name="command" type="command" cbtype="simple">on_autodetect_channels_click</property>
+                                <property name="offvalue">False</property>
+                                <property name="onvalue">True</property>
+                                <property name="text" translatable="yes">Auto-detect channels</property>
+                                <property name="underline">0</property>
+                                <property name="variable">boolean:state_autodetect_channels</property>
+                                <layout manager="pack">
+                                  <property name="anchor">nw</property>
+                                  <property name="padx">10</property>
+                                  <property name="pady">10</property>
+                                  <property name="side">top</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="ttk.Checkbutton" id="checkbutton_keep_aspectratio" named="True">
+                                <property name="command" type="command" cbtype="simple">on_keep_aspectratio_click</property>
+                                <property name="offvalue">False</property>
+                                <property name="onvalue">True</property>
+                                <property name="text" translatable="yes">Keep aspect ratio</property>
+                                <property name="underline">0</property>
+                                <property name="variable">boolean:state_keep_aspectratio</property>
+                                <layout manager="pack">
+                                  <property name="anchor">nw</property>
+                                  <property name="padx">10</property>
+                                  <property name="pady">5</property>
                                   <property name="side">top</property>
                                 </layout>
                               </object>

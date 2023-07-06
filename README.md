@@ -41,18 +41,27 @@ optional arguments:
 ### ENVI Viewer
 
 ```
-usage: happy-viewer [-h] [-r INT] [-g INT] [-b INT] [filename]
+usage: happy-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE] [-r INT] [-g INT]
+                    [-b INT] [-a] [-k]
 
-Display ENVI file in false color.
-
-positional arguments:
-  filename             Path to the ENVI file (default: None)
+ENVI Viewer.
 
 optional arguments:
-  -h, --help           show this help message and exit
-  -r INT, --red INT    the wave length to use for the red channel (default: 0)
-  -g INT, --green INT  the wave length to use for the green channel (default:
-                       0)
-  -b INT, --blue INT   the wave length to use for the blue channel (default:
-                       0)
+  -h, --help            show this help message and exit
+  -s SCAN, --scan SCAN  Path to the scan file (ENVI format) (default: None)
+  -f BLACK_REFERENCE, --black_reference BLACK_REFERENCE
+                        Path to the black reference file (ENVI format)
+                        (default: None)
+  -r INT, --red INT     the wave length to use for the red channel (default:
+                        0)
+  -g INT, --green INT   the wave length to use for the green channel (default:
+                        0)
+  -b INT, --blue INT    the wave length to use for the blue channel (default:
+                        0)
+  -a, --autodetect_channels
+                        whether to determine the channels from the meta-data
+                        (overrides the manually specified channels) (default:
+                        False)
+  -k, --keep_aspectratio
+                        whether to keep the aspect ratio (default: False)
 ```

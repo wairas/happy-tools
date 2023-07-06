@@ -43,8 +43,8 @@ class ViewerApp:
         self.frame_image = builder.get_object("frame_image", master)
         self.scrollbarhelper_info = builder.get_object("scrollbarhelper_info", master)
         self.label_dims = builder.get_object("label_dims", master)
-        self.checkbutton_autodetect = builder.get_object("checkbutton_autodetect", master)
-        self.checkbutton_noaspectratio = builder.get_object("checkbutton_noaspectratio", master)
+        self.checkbutton_autodetect_channels = builder.get_object("checkbutton_autodetect_channels", master)
+        self.checkbutton_keep_aspectratio = builder.get_object("checkbutton_keep_aspectratio", master)
         self.text_info = builder.get_object("text_info", master)
         self.image_label = builder.get_object("label_image", master)
 
@@ -56,8 +56,8 @@ class ViewerApp:
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
 
         # init some vars
-        self.autodetect = False
-        self.aspectratio = True
+        self.autodetect_channels = False
+        self.keep_aspectratio = False
         self.last_blackref_dir = "."
         self.last_scan_dir = "."
         self.last_image_dir = "."
@@ -129,6 +129,7 @@ class ViewerApp:
         :param filename: the scan to load
         :type filename: str
         """
+        print("Loading scan: %s" % filename)
         img = envi.open(filename)
         self.data_scan = img.load()
         self.current_scan = filename
@@ -141,7 +142,7 @@ class ViewerApp:
         self.label_dims.configure(text=DIMENSIONS % self.data_scan.shape)
 
         # set r/g/b from default bands?
-        if self.autodetect:
+        if self.autodetect_channels:
             try:
                 metadata = img.metadata
                 if "default bands" in metadata:
@@ -162,6 +163,7 @@ class ViewerApp:
         :param filename: the black reference to load
         :type filename: str
         """
+        print("Loading black reference: %s" % filename)
         data = envi.open(filename).load()
         if data.shape != self.data_scan.shape:
             messagebox.showerror(
@@ -220,9 +222,11 @@ class ViewerApp:
         return data
 
     def get_scaled_image(self, available_width, available_height):
+        if available_width < 1:
+            return None
         if self.display_image is not None:
             # keep aspect ratio?
-            if self.aspectratio:
+            if self.keep_aspectratio:
                 available_aspect = available_width / available_height
                 img_width = self.data_norm.shape[1]
                 img_height = self.data_norm.shape[0]
@@ -255,14 +259,12 @@ class ViewerApp:
         """
         if self.data_scan is None:
             return
-        if self.data_norm is None:
-            norm = self.data_scan
-        else:
-            norm = self.data_norm
 
-        red_band = norm[:, :, int(self.red_scale.get())]
-        green_band = norm[:, :, int(self.green_scale.get())]
-        blue_band = norm[:, :, int(self.blue_scale.get())]
+        self.calc_norm_data()
+
+        red_band = self.data_norm[:, :, int(self.red_scale.get())]
+        green_band = self.data_norm[:, :, int(self.green_scale.get())]
+        blue_band = self.data_norm[:, :, int(self.blue_scale.get())]
 
         norm_red = self.normalize_data(red_band)
         norm_green = self.normalize_data(green_band)
@@ -291,6 +293,28 @@ class ViewerApp:
         """
         self.update_image()
         self.update_info()
+
+    def set_keep_aspectratio(self, value):
+        """
+        Sets whether to keep the aspect ratio or not.
+
+        :param value: whether to keep
+        :type value: bool
+        """
+        self.keep_aspectratio = value
+        if value != self.state_keep_aspectratio.get():
+            self.checkbutton_keep_aspectratio.invoke()
+
+    def set_autodetect_channels(self, value):
+        """
+        Sets whether to auto-detect the channels from the meta-data or use the manually supplied ones.
+
+        :param value: whether to auto-detect
+        :type value: bool
+        """
+        self.autodetect_channels = value
+        if value != self.state_autodetect_channels.get():
+            self.checkbutton_autodetect_channels.invoke()
 
     def on_file_clear_blackref(self, event=None):
         self.data_blackref = None
@@ -326,7 +350,7 @@ class ViewerApp:
         """
         if self.data_norm is None:
             return
-        if self.aspectratio:
+        if self.keep_aspectratio:
             image = self.get_scaled_image(self.data_norm.shape[1], self.data_norm.shape[0])
         else:
             image = self.get_scaled_image(self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
@@ -341,11 +365,11 @@ class ViewerApp:
     def on_file_close_click(self, event=None):
         self.mainwindow.quit()
 
-    def on_autodetect_click(self):
-        self.autodetect = self.state_autodetect.get()
+    def on_autodetect_channels_click(self):
+        self.autodetect_channels = self.state_autodetect_channels.get()
 
-    def on_noaspectratio_click(self):
-        self.aspectratio = self.state_noaspectratio.get()
+    def on_keep_aspectratio_click(self):
+        self.keep_aspectratio = self.state_keep_aspectratio.get()
         self.update_image()
 
     def on_scale_r_changed(self, event):
@@ -380,9 +404,16 @@ def main(args=None):
     parser.add_argument("-r", "--red", metavar="INT", help="the wave length to use for the red channel", default=0, type=int, required=False)
     parser.add_argument("-g", "--green", metavar="INT", help="the wave length to use for the green channel", default=0, type=int, required=False)
     parser.add_argument("-b", "--blue", metavar="INT", help="the wave length to use for the blue channel", default=0, type=int, required=False)
+    parser.add_argument("-a", "--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False)
+    parser.add_argument("-k", "--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False)
     parsed = parser.parse_args(args=args)
     app = ViewerApp()
-    app.set_wavelengths(parsed.red, parsed.green, parsed.blue)
+    if parsed.autodetect_channels:
+        app.set_autodetect_channels(True)
+    else:
+        app.set_autodetect_channels(False)
+        app.set_wavelengths(parsed.red, parsed.green, parsed.blue)
+    app.set_keep_aspectratio(parsed.keep_aspectratio)
     if parsed.scan is not None:
         app.load_scan(parsed.scan)
         if parsed.black_reference is not None:
