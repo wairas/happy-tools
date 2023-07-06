@@ -1,0 +1,349 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface version="1.3">
+  <object class="tk.Toplevel" id="toplevel" named="True">
+    <property name="geometry">1024x768</property>
+    <property name="resizable">both</property>
+    <property name="title" translatable="yes">ENVI Viewer</property>
+    <child>
+      <object class="pygubu.builder.widgets.toplevelmenu" id="toplevelmenu" named="True">
+        <child>
+          <object class="tk.Menu" id="menu" named="True">
+            <property name="tearoff">true</property>
+            <child>
+              <object class="tk.Menuitem.Submenu" id="submenu4">
+                <property name="label" translatable="yes">File</property>
+                <property name="tearoff">false</property>
+                <property name="underline">0</property>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_file_open_scan" named="True">
+                    <property name="accelerator">Ctrl+O</property>
+                    <property name="command" type="command" cbtype="simple">on_file_open_scan_click</property>
+                    <property name="label" translatable="yes">Open scan...</property>
+                    <property name="underline">5</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_file_clear_blackref" named="True">
+                    <property name="accelerator">Ctrl+N</property>
+                    <property name="command" type="command" cbtype="simple">on_file_clear_blackref</property>
+                    <property name="label" translatable="yes">Clear black reference</property>
+                    <property name="underline">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_file_open_blackref" named="True">
+                    <property name="accelerator">Ctrl+B</property>
+                    <property name="command" type="command" cbtype="simple">on_file_open_blackref</property>
+                    <property name="label" translatable="yes">Open black reference...</property>
+                    <property name="underline">5</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator4" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_file_exportimage" named="True">
+                    <property name="accelerator">Ctrl+E</property>
+                    <property name="command" type="command" cbtype="simple">on_file_exportimage_click</property>
+                    <property name="label" translatable="yes">Export image...</property>
+                    <property name="underline">7</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator3" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_file_close" named="True">
+                    <property name="accelerator">Alt+X</property>
+                    <property name="command" type="command" cbtype="simple">on_file_close_click</property>
+                    <property name="label" translatable="yes">Close</property>
+                    <property name="underline">0</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="tk.Menuitem.Submenu" id="submenu1">
+                <property name="label" translatable="yes">Options</property>
+                <property name="tearoff">false</property>
+                <child>
+                  <object class="tk.Menuitem.Checkbutton" id="checkbutton_autodetect" named="True">
+                    <property name="command" type="command" cbtype="simple">on_autodetect_click</property>
+                    <property name="indicatoron">true</property>
+                    <property name="label" translatable="yes">Auto-detect channels</property>
+                    <property name="offvalue">False</property>
+                    <property name="onvalue">True</property>
+                    <property name="underline">0</property>
+                    <property name="variable">boolean:state_autodetect</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Checkbutton" id="checkbutton_noaspectratio" named="True">
+                    <property name="command" type="command" cbtype="simple">on_noaspectratio_click</property>
+                    <property name="indicatoron">true</property>
+                    <property name="label" translatable="yes">Ignore aspect-ratio</property>
+                    <property name="offvalue">True</property>
+                    <property name="onvalue">False</property>
+                    <property name="underline">0</property>
+                    <property name="variable">boolean:state_noaspectratio</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="frame6">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="expand">true</property>
+          <property name="fill">both</property>
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="ttk.Panedwindow" id="panedwindow2">
+            <property name="height">200</property>
+            <property name="orient">vertical</property>
+            <property name="width">200</property>
+            <layout manager="pack">
+              <property name="expand">true</property>
+              <property name="fill">both</property>
+              <property name="side">top</property>
+            </layout>
+            <child>
+              <object class="ttk.Panedwindow.Pane" id="pane1">
+                <property name="weight">1</property>
+                <child>
+                  <object class="ttk.Notebook" id="notebook" named="True">
+                    <property name="height">200</property>
+                    <property name="width">200</property>
+                    <layout manager="pack">
+                      <property name="expand">true</property>
+                      <property name="fill">both</property>
+                      <property name="side">top</property>
+                    </layout>
+                    <child>
+                      <object class="ttk.Notebook.Tab" id="tab_image" named="True">
+                        <property name="text" translatable="yes">Image</property>
+                        <child>
+                          <object class="ttk.Frame" id="frame_image" named="True">
+                            <layout manager="pack">
+                              <property name="side">top</property>
+                            </layout>
+                            <child>
+                              <object class="ttk.Label" id="label_image" named="True">
+                                <property name="takefocus">false</property>
+                                <layout manager="pack">
+                                  <property name="anchor">nw</property>
+                                  <property name="padx">5</property>
+                                  <property name="pady">5</property>
+                                  <property name="side">top</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Notebook.Tab" id="tab_info" named="True">
+                        <property name="text" translatable="yes">Info</property>
+                        <child>
+                          <object class="pygubu.builder.widgets.scrollbarhelper" id="scrollbarhelper_info" named="True">
+                            <property name="scrolltype">both</property>
+                            <property name="usemousewheel">false</property>
+                            <layout manager="pack">
+                              <property name="side">top</property>
+                            </layout>
+                            <child>
+                              <object class="tk.Text" id="text_info" named="True">
+                                <property name="height">10</property>
+                                <property name="width">50</property>
+                                <layout manager="pack">
+                                  <property name="side">top</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Panedwindow.Pane" id="pane2">
+                <property name="weight">0</property>
+                <child>
+                  <object class="ttk.Frame" id="frame9">
+                    <property name="height">50</property>
+                    <property name="width">200</property>
+                    <layout manager="pack">
+                      <property name="expand">false</property>
+                      <property name="fill">y</property>
+                      <property name="side">top</property>
+                    </layout>
+                    <child>
+                      <object class="ttk.Label" id="label_dims" named="True">
+                        <property name="padding">5</property>
+                        <property name="text" translatable="yes">H: -, W: -, C: -</property>
+                        <layout manager="pack">
+                          <property name="anchor">n</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Separator" id="separator6">
+                        <property name="orient">vertical</property>
+                        <layout manager="pack">
+                          <property name="expand">false</property>
+                          <property name="fill">y</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Label" id="label_r" named="True">
+                        <property name="padding">5</property>
+                        <property name="text" translatable="yes">Red</property>
+                        <property name="underline">0</property>
+                        <layout manager="pack">
+                          <property name="anchor">n</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Scale" id="scale_r" named="True">
+                        <property name="command" type="command" cbtype="scale">on_scale_r_changed</property>
+                        <property name="from_">0</property>
+                        <property name="to">255</property>
+                        <property name="variable">int:state_scale_r</property>
+                        <layout manager="pack">
+                          <property name="padx">5</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Label" id="label_r_value" named="True">
+                        <property name="text" translatable="yes">0</property>
+                        <property name="width">4</property>
+                        <layout manager="pack">
+                          <property name="padx">5</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Separator" id="separator1">
+                        <property name="orient">vertical</property>
+                        <layout manager="pack">
+                          <property name="expand">false</property>
+                          <property name="fill">y</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Label" id="label_g" named="True">
+                        <property name="padding">5</property>
+                        <property name="text" translatable="yes">Green</property>
+                        <property name="underline">0</property>
+                        <layout manager="pack">
+                          <property name="anchor">n</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Scale" id="scale_g" named="True">
+                        <property name="command" type="command" cbtype="scale">on_scale_g_changed</property>
+                        <property name="compound">top</property>
+                        <property name="from_">0</property>
+                        <property name="to">255</property>
+                        <property name="variable">int:state_scale_g</property>
+                        <layout manager="pack">
+                          <property name="padx">5</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Label" id="label_g_value" named="True">
+                        <property name="text" translatable="yes">0</property>
+                        <property name="width">4</property>
+                        <layout manager="pack">
+                          <property name="padx">5</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Separator" id="separator2">
+                        <property name="orient">vertical</property>
+                        <layout manager="pack">
+                          <property name="expand">false</property>
+                          <property name="fill">y</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Label" id="label_b" named="True">
+                        <property name="padding">5</property>
+                        <property name="text" translatable="yes">Blue</property>
+                        <property name="underline">0</property>
+                        <layout manager="pack">
+                          <property name="anchor">n</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Scale" id="scale_b" named="True">
+                        <property name="command" type="command" cbtype="scale">on_scale_b_changed</property>
+                        <property name="compound">top</property>
+                        <property name="from_">0</property>
+                        <property name="to">255</property>
+                        <property name="variable">int:state_scale_b</property>
+                        <layout manager="pack">
+                          <property name="padx">5</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Label" id="label_b_value" named="True">
+                        <property name="text" translatable="yes">0</property>
+                        <property name="width">4</property>
+                        <layout manager="pack">
+                          <property name="padx">5</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

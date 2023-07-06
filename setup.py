@@ -32,6 +32,7 @@ setup(
         "scipy==1.7.3",
         "spectral==0.23.1",
         "pillow==9.5.0",
+        "pygubu==0.31",
     ],
     package_dir={
         '': 'src'
@@ -43,7 +44,7 @@ setup(
     entry_points={
         "console_scripts": [
             "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
-            "happy-viewer=happy.view_envi:sys_main",
+            "happy-viewer=happy.viewer.viewer:sys_main",
         ]
     },
     version="0.0.1",
