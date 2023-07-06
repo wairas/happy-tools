@@ -1,3 +1,4 @@
 include DESCRIPTION.rst
 include CHANGES.rst
 recursive-include src *.png
+recursive-include src *.ui
