@@ -51,7 +51,9 @@ class ViewerApp:
         # accelerators are just strings, we need to bind them to actual methods
         self.mainwindow.bind("<Control-o>", self.on_file_open_scan_click)
         self.mainwindow.bind("<Control-n>", self.on_file_clear_blackref)
-        self.mainwindow.bind("<Control-b>", self.on_file_open_blackref)
+        self.mainwindow.bind("<Control-r>", self.on_file_open_blackref)
+        self.mainwindow.bind("<Control-N>", self.on_file_clear_whiteref)  # upper case N implies Shift key!
+        self.mainwindow.bind("<Control-R>", self.on_file_open_whiteref)   # upper case R implies Shift key!
         self.mainwindow.bind("<Control-e>", self.on_file_exportimage_click)
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
 
@@ -59,18 +61,31 @@ class ViewerApp:
         self.autodetect_channels = False
         self.keep_aspectratio = False
         self.last_blackref_dir = "."
+        self.last_whiteref_dir = "."
         self.last_scan_dir = "."
         self.last_image_dir = "."
         self.data_scan = None
         self.data_blackref = None
+        self.data_whiteref = None
         self.data_norm = None
         self.current_scan = None
         self.current_blackref = None
+        self.current_whiteref = None
         self.photo_scan = None
         self.display_image = None
 
     def run(self):
         self.mainwindow.mainloop()
+
+    def log(self, msg):
+        """
+        Prints message on stdout.
+
+        :param msg: the message to log
+        :type msg: str
+        """
+        if msg != "":
+            print(msg)
 
     def open_envi_file(self, title, initial_dir):
         """
@@ -122,14 +137,16 @@ class ViewerApp:
 
         return filename
 
-    def load_scan(self, filename):
+    def load_scan(self, filename, do_update=False):
         """
         Loads the specified ENVI scan file and displays it.
 
         :param filename: the scan to load
         :type filename: str
+        :param do_update: whether to update the display
+        :type do_update: bool
         """
-        print("Loading scan: %s" % filename)
+        self.log("Loading scan: %s" % filename)
         img = envi.open(filename)
         self.data_scan = img.load()
         self.current_scan = filename
@@ -153,17 +170,19 @@ class ViewerApp:
             except:
                 pass
 
-        self.calc_norm_data()
-        self.update()
+        if do_update:
+            self.update()
 
-    def load_blackref(self, filename):
+    def load_blackref(self, filename, do_update=True):
         """
         Loads the specified ENVI black reference file and updates the display.
 
         :param filename: the black reference to load
         :type filename: str
+        :param do_update: whether to update the display
+        :type do_update: bool
         """
-        print("Loading black reference: %s" % filename)
+        self.log("Loading black reference: %s" % filename)
         data = envi.open(filename).load()
         if data.shape != self.data_scan.shape:
             messagebox.showerror(
@@ -175,18 +194,47 @@ class ViewerApp:
         self.data_blackref = data
         self.current_blackref = filename
 
-        self.calc_norm_data()
-        self.update()
+        if do_update:
+            self.update()
+
+    def load_whiteref(self, filename, do_update=True):
+        """
+        Loads the specified ENVI white reference file and updates the display.
+
+        :param filename: the white reference to load
+        :type filename: str
+        :param do_update: whether to update the display
+        :type do_update: bool
+        """
+        self.log("Loading white reference: %s" % filename)
+        data = envi.open(filename).load()
+        if data.shape != self.data_scan.shape:
+            messagebox.showerror(
+                "Error",
+                "White reference data should have the same shape as the scan data!\n"
+                + "scan:" + str(self.data_scan.shape) + " != whiteref:" + str(data.shape))
+            return
+
+        self.data_whiteref = data
+        self.current_whiteref = filename
+
+        if do_update:
+            self.update()
 
     def calc_norm_data(self):
-        # subtract black reference
+        """
+        Calculates the normalized data.
+        """
+        self.data_norm = None
         if self.data_scan is not None:
+            self.log("Calculating...")
+            self.data_norm = self.data_scan
+            # subtract black reference
             if self.data_blackref is not None:
-                self.data_norm = self.data_scan - self.data_blackref
-            else:
-                self.data_norm = self.data_scan
-        else:
-            self.data_norm = None
+                self.data_norm = self.data_norm - self.data_blackref
+            # divide by white reference
+            if self.data_whiteref is not None:
+                self.data_norm = self.data_norm / self.data_whiteref
 
     def set_wavelengths(self, r, g, b):
         """
@@ -211,6 +259,12 @@ class ViewerApp:
         self.blue_scale.set(b)
 
     def normalize_data(self, data):
+        """
+        Normalizes data.
+
+        :param data: the data to normalize
+        :return: the normalized data
+        """
         min_value = np.min(data)
         max_value = np.max(data)
         data_range = max_value - min_value
@@ -222,6 +276,15 @@ class ViewerApp:
         return data
 
     def get_scaled_image(self, available_width, available_height):
+        """
+        Computes the scaled image and returns it.
+
+        :param available_width: the width to scale to, skips calculation if 0 or less
+        :type available_width: int
+        :param available_height: the height to scale to
+        :type available_height: int
+        :return: the scaled image
+        """
         if available_width < 1:
             return None
         if self.display_image is not None:
@@ -248,6 +311,9 @@ class ViewerApp:
             return None
 
     def resize_image_label(self):
+        """
+        Computes the scaled image and updates the GUI.
+        """
         image = self.get_scaled_image(self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
         if image is not None:
             self.photo_scan = ImageTk.PhotoImage(image=image)
@@ -274,16 +340,32 @@ class ViewerApp:
         self.display_image = (rgb_image * 255).astype(np.uint8)
 
         self.resize_image_label()
+        self.log("")
 
     def update_info(self):
         """
         Updates the information.
         """
         info = ""
-        if self.current_scan is not None:
-            info += "Scan:\n" + self.current_scan + "\n" + str(self.data_scan.shape)
-        if self.current_blackref is not None:
-            info += "\n\nBlack reference:\n" + self.current_blackref + "\n" + str(self.data_blackref.shape)
+        # scan
+        info += "Scan:\n"
+        if self.current_scan is None:
+            info += "-none-"
+        else:
+            info += self.current_scan + "\n" + str(self.data_scan.shape)
+        # black
+        info += "\n\nBlack reference:\n"
+        if self.current_blackref is None:
+            info += "-none-"
+        else:
+            info += self.current_blackref + "\n" + str(self.data_blackref.shape)
+        # white
+        info += "\n\nWhite reference:\n"
+        if self.current_whiteref is None:
+            info += "-none-"
+        else:
+            info += self.current_whiteref + "\n" + str(self.data_whiteref.shape)
+        # update
         self.text_info.delete(1.0, tk.END)
         self.text_info.insert(tk.END, info)
 
@@ -316,9 +398,21 @@ class ViewerApp:
         if value != self.state_autodetect_channels.get():
             self.checkbutton_autodetect_channels.invoke()
 
+    def on_file_open_scan_click(self, event=None):
+        """
+        Allows the user to select a black reference ENVI file.
+        """
+        filename = self.open_envi_file('Open scan', self.last_scan_dir)
+
+        if filename is not None:
+            self.last_scan_dir = os.path.dirname(filename)
+            self.load_scan(filename)
+
     def on_file_clear_blackref(self, event=None):
-        self.data_blackref = None
-        self.update()
+        if self.data_blackref is not None:
+            self.data_blackref = None
+            self.current_blackref = None
+            self.update()
 
     def on_file_open_blackref(self, event=None):
         """
@@ -334,15 +428,25 @@ class ViewerApp:
             self.last_blackref_dir = os.path.dirname(filename)
             self.load_blackref(filename)
 
-    def on_file_open_scan_click(self, event=None):
+    def on_file_clear_whiteref(self, event=None):
+        if self.data_whiteref is not None:
+            self.data_whiteref = None
+            self.current_whiteref = None
+            self.update()
+
+    def on_file_open_whiteref(self, event=None):
         """
-        Allows the user to select a black reference ENVI file.
+        Allows the user to select a white reference ENVI file.
         """
-        filename = self.open_envi_file('Open scan', self.last_scan_dir)
+        if self.data_scan is None:
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+
+        filename = self.open_envi_file('Open white reference', self.last_whiteref_dir)
 
         if filename is not None:
-            self.last_scan_dir = os.path.dirname(filename)
-            self.load_scan(filename)
+            self.last_whiteref_dir = os.path.dirname(filename)
+            self.load_whiteref(filename)
 
     def on_file_exportimage_click(self, event=None):
         """
@@ -401,6 +505,7 @@ def main(args=None):
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-s', '--scan', type=str, help='Path to the scan file (ENVI format)', required=False)
     parser.add_argument('-f', '--black_reference', type=str, help='Path to the black reference file (ENVI format)', required=False)
+    parser.add_argument('-w', '--white_reference', type=str, help='Path to the white reference file (ENVI format)', required=False)
     parser.add_argument("-r", "--red", metavar="INT", help="the wave length to use for the red channel", default=0, type=int, required=False)
     parser.add_argument("-g", "--green", metavar="INT", help="the wave length to use for the green channel", default=0, type=int, required=False)
     parser.add_argument("-b", "--blue", metavar="INT", help="the wave length to use for the blue channel", default=0, type=int, required=False)
@@ -415,9 +520,12 @@ def main(args=None):
         app.set_wavelengths(parsed.red, parsed.green, parsed.blue)
     app.set_keep_aspectratio(parsed.keep_aspectratio)
     if parsed.scan is not None:
-        app.load_scan(parsed.scan)
+        app.load_scan(parsed.scan, do_update=False)
         if parsed.black_reference is not None:
-            app.load_blackref(parsed.black_reference)
+            app.load_blackref(parsed.black_reference, do_update=False)
+        if parsed.white_reference is not None:
+            app.load_whiteref(parsed.white_reference, do_update=False)
+        app.update()
     app.run()
 
 

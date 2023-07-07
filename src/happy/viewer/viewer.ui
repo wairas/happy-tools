@@ -23,6 +23,9 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Separator" id="separator5" />
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_file_clear_blackref" named="True">
                     <property name="accelerator">Ctrl+N</property>
                     <property name="command" type="command" cbtype="simple">on_file_clear_blackref</property>
@@ -32,7 +35,7 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_blackref" named="True">
-                    <property name="accelerator">Ctrl+B</property>
+                    <property name="accelerator">Ctrl+R</property>
                     <property name="command" type="command" cbtype="simple">on_file_open_blackref</property>
                     <property name="label" translatable="yes">Open black reference...</property>
                     <property name="underline">5</property>
@@ -40,6 +43,25 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Separator" id="separator4" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_file_clear_whiteref" named="True">
+                    <property name="accelerator">Ctrl+Shift+N</property>
+                    <property name="command" type="command" cbtype="simple">on_file_clear_whiteref</property>
+                    <property name="label" translatable="yes">Clear white reference</property>
+                    <property name="underline">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_file_open_whiteref" named="True">
+                    <property name="accelerator">Ctrl+Shift+R</property>
+                    <property name="command" type="command" cbtype="simple">on_file_open_whiteref</property>
+                    <property name="label" translatable="yes">Open white reference...</property>
+                    <property name="underline">5</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator7" />
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_exportimage" named="True">
