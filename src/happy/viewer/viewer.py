@@ -7,6 +7,7 @@ import pathlib
 import pygubu
 import traceback
 import tkinter as tk
+import tkinter.ttk as ttk
 from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
@@ -28,6 +29,10 @@ class ViewerApp:
         builder.connect_callbacks(self)
         self.mainwindow.iconphoto(False, tk.PhotoImage(file=str(PROJECT_PATH) + '/../logo.png'))
         self.mainwindow.bind("<Configure>", self.on_window_resize)
+
+        # setting theme
+        style = ttk.Style(self.mainwindow)
+        style.theme_use('clam')
 
         # attach variables to app itself
         builder.import_variables(self)
