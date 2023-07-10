@@ -155,6 +155,7 @@ class ViewerApp:
         img = envi.open(filename)
         self.data_scan = img.load()
         self.current_scan = filename
+        self.reset_norm_data()
 
         # configure scales
         num_bands = self.data_scan.shape[2]
@@ -169,9 +170,8 @@ class ViewerApp:
                 metadata = img.metadata
                 if "default bands" in metadata:
                     bands = [int(x) for x in metadata["default bands"]]
-                    self.red_scale.set(bands[0])
-                    self.green_scale.set(bands[1])
-                    self.blue_scale.set(bands[2])
+                    r, g, b = bands
+                    self.set_wavelengths(r, g, b)
             except:
                 pass
 
@@ -198,6 +198,7 @@ class ViewerApp:
 
         self.data_blackref = data
         self.current_blackref = filename
+        self.reset_norm_data()
 
         if do_update:
             self.update()
@@ -222,15 +223,23 @@ class ViewerApp:
 
         self.data_whiteref = data
         self.current_whiteref = filename
+        self.reset_norm_data()
 
         if do_update:
             self.update()
+
+    def reset_norm_data(self):
+        """
+        Resets the normalized data, forcing a recalculation.
+        """
+        self.data_norm = None
 
     def calc_norm_data(self):
         """
         Calculates the normalized data.
         """
-        self.data_norm = None
+        if self.data_norm is not None:
+            return
         if self.data_scan is not None:
             self.log("Calculating...")
             self.data_norm = self.data_scan
@@ -259,6 +268,7 @@ class ViewerApp:
             self.green_scale.configure(to=g)
         if self.blue_scale.cget("to") < b:
             self.blue_scale.configure(to=b)
+        self.log("Setting RGB: r=%d, g=%d, b=%d" % (r, g, b))
         self.red_scale.set(r)
         self.green_scale.set(g)
         self.blue_scale.set(b)
@@ -417,6 +427,7 @@ class ViewerApp:
         if self.data_blackref is not None:
             self.data_blackref = None
             self.current_blackref = None
+            self.reset_norm_data()
             self.update()
 
     def on_file_open_blackref(self, event=None):
@@ -437,6 +448,7 @@ class ViewerApp:
         if self.data_whiteref is not None:
             self.data_whiteref = None
             self.current_whiteref = None
+            self.reset_norm_data()
             self.update()
 
     def on_file_open_whiteref(self, event=None):
