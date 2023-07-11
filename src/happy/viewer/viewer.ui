@@ -90,6 +90,13 @@
                 <property name="tearoff">false</property>
                 <property name="underline">0</property>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_tools_clear_annotations" named="True">
+                    <property name="accelerator">Ctrl+Shift+A</property>
+                    <property name="command" type="command" cbtype="simple">on_tools_clear_annotations_click</property>
+                    <property name="label" translatable="yes">Clear annotations</property>
+                  </object>
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_tools_sam" named="True">
                     <property name="accelerator">Ctrl+S</property>
                     <property name="command" type="command" cbtype="simple">on_tools_sam_click</property>
@@ -160,19 +167,32 @@
                       <object class="ttk.Notebook.Tab" id="tab_info" named="True">
                         <property name="text" translatable="yes">Info</property>
                         <child>
-                          <object class="pygubu.builder.widgets.scrollbarhelper" id="scrollbarhelper_info" named="True">
-                            <property name="scrolltype">both</property>
-                            <property name="usemousewheel">false</property>
+                          <object class="ttk.Frame" id="frame4">
+                            <property name="height">200</property>
+                            <property name="width">200</property>
                             <layout manager="pack">
                               <property name="side">top</property>
                             </layout>
                             <child>
-                              <object class="tk.Text" id="text_info" named="True">
-                                <property name="height">10</property>
-                                <property name="width">50</property>
+                              <object class="pygubu.builder.widgets.scrollbarhelper" id="scrollbarhelper_info" named="True">
+                                <property name="scrolltype">both</property>
+                                <property name="usemousewheel">false</property>
                                 <layout manager="pack">
+                                  <property name="expand">true</property>
+                                  <property name="fill">both</property>
+                                  <property name="padx">10</property>
+                                  <property name="pady">10</property>
                                   <property name="side">top</property>
                                 </layout>
+                                <child>
+                                  <object class="tk.Text" id="text_info" named="True">
+                                    <property name="height">10</property>
+                                    <property name="width">50</property>
+                                    <layout manager="pack">
+                                      <property name="side">top</property>
+                                    </layout>
+                                  </object>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -214,13 +234,14 @@
                                         <property name="offvalue">0</property>
                                         <property name="onvalue">1</property>
                                         <property name="text" translatable="yes">Auto-detect channels</property>
-                                        <property name="underline">0</property>
                                         <property name="variable">int:state_autodetect_channels</property>
-                                        <layout manager="pack">
-                                          <property name="anchor">nw</property>
+                                        <layout manager="grid">
+                                          <property name="column">0</property>
+                                          <property name="columnspan">2</property>
                                           <property name="padx">10</property>
                                           <property name="pady">10</property>
-                                          <property name="side">top</property>
+                                          <property name="row">0</property>
+                                          <property name="sticky">w</property>
                                         </layout>
                                       </object>
                                     </child>
@@ -230,13 +251,38 @@
                                         <property name="offvalue">0</property>
                                         <property name="onvalue">1</property>
                                         <property name="text" translatable="yes">Keep aspect ratio</property>
-                                        <property name="underline">0</property>
                                         <property name="variable">int:state_keep_aspectratio</property>
-                                        <layout manager="pack">
-                                          <property name="anchor">nw</property>
+                                        <layout manager="grid">
+                                          <property name="column">0</property>
+                                          <property name="columnspan">2</property>
                                           <property name="padx">10</property>
-                                          <property name="pady">5</property>
-                                          <property name="side">top</property>
+                                          <property name="pady">10</property>
+                                          <property name="row">1</property>
+                                          <property name="sticky">w</property>
+                                        </layout>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="ttk.Label" id="label_annotation_color" named="True">
+                                        <property name="text" translatable="yes">Annotation color</property>
+                                        <layout manager="grid">
+                                          <property name="padx">10</property>
+                                          <property name="pady">10</property>
+                                          <property name="row">2</property>
+                                          <property name="sticky">w</property>
+                                        </layout>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="ttk.Entry" id="entry_annotation_color" named="True">
+                                        <property name="text" translatable="yes">#ff0000</property>
+                                        <property name="textvariable">string:state_annotation_color</property>
+                                        <layout manager="grid">
+                                          <property name="column">1</property>
+                                          <property name="padx">10</property>
+                                          <property name="pady">10</property>
+                                          <property name="row">2</property>
+                                          <property name="sticky">ew</property>
                                         </layout>
                                       </object>
                                     </child>
@@ -514,6 +560,54 @@
                                     </child>
                                   </object>
                                 </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Notebook.Tab" id="tab_log" named="True">
+                        <property name="text" translatable="yes">Log</property>
+                        <child>
+                          <object class="ttk.Frame" id="frame_log" named="True">
+                            <property name="height">200</property>
+                            <property name="width">200</property>
+                            <layout manager="pack">
+                              <property name="side">top</property>
+                            </layout>
+                            <child>
+                              <object class="pygubu.builder.widgets.scrollbarhelper" id="scrollbarHelper_log" named="True">
+                                <property name="scrolltype">both</property>
+                                <property name="usemousewheel">false</property>
+                                <layout manager="pack">
+                                  <property name="expand">true</property>
+                                  <property name="fill">both</property>
+                                  <property name="padx">10</property>
+                                  <property name="pady">10</property>
+                                  <property name="side">top</property>
+                                </layout>
+                                <child>
+                                  <object class="tk.Text" id="text_log" named="True">
+                                    <property name="height">10</property>
+                                    <property name="width">50</property>
+                                    <layout manager="pack">
+                                      <property name="side">top</property>
+                                    </layout>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="ttk.Button" id="button_log_clear" named="True">
+                                <property name="command" type="command" cbtype="simple">on_button_log_clear_click</property>
+                                <property name="text" translatable="yes">Clear</property>
+                                <layout manager="pack">
+                                  <property name="anchor">se</property>
+                                  <property name="padx">10</property>
+                                  <property name="pady">10</property>
+                                  <property name="side">bottom</property>
+                                </layout>
                               </object>
                             </child>
                           </object>

@@ -13,7 +13,7 @@ import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageDraw
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
@@ -58,20 +58,16 @@ class ViewerApp:
         builder.import_variables(self)
 
         # reference components
-        self.red_scale = builder.get_object("scale_r", master)
-        self.green_scale = builder.get_object("scale_g", master)
-        self.blue_scale = builder.get_object("scale_b", master)
-        self.red_scale_value = builder.get_object("label_r_value", master)
-        self.green_scale_value = builder.get_object("label_g_value", master)
-        self.blue_scale_value = builder.get_object("label_b_value", master)
         self.notebook = builder.get_object("notebook", master)
+        # image
         self.frame_image = builder.get_object("frame_image", master)
-        self.scrollbarhelper_info = builder.get_object("scrollbarhelper_info", master)
-        self.label_dims = builder.get_object("label_dims", master)
+        self.image_label = builder.get_object("label_image", master)
+        # info
+        self.text_info = builder.get_object("text_info", master)
+        # options
         self.checkbutton_autodetect_channels = builder.get_object("checkbutton_autodetect_channels", master)
         self.checkbutton_keep_aspectratio = builder.get_object("checkbutton_keep_aspectratio", master)
-        self.text_info = builder.get_object("text_info", master)
-        self.image_label = builder.get_object("label_image", master)
+        self.entry_annotation_color = builder.get_object("entry_annotation_color", master)
         self.entry_redis_host = builder.get_object("entry_redis_host", master)
         self.entry_redis_port = builder.get_object("entry_redis_port", master)
         self.entry_redis_in = builder.get_object("entry_redis_in", master)
@@ -82,11 +78,22 @@ class ViewerApp:
         self.entry_min_obj_size = builder.get_object("entry_min_obj_size", master)
         self.label_redis_connection = builder.get_object("label_redis_connection", master)
         self.button_sam_connect = builder.get_object("button_sam_connect", master)
+        # log
+        self.text_log = builder.get_object("text_log", master)
+        # statusbar
+        self.label_dims = builder.get_object("label_dims", master)
+        self.red_scale = builder.get_object("scale_r", master)
+        self.green_scale = builder.get_object("scale_g", master)
+        self.blue_scale = builder.get_object("scale_b", master)
+        self.red_scale_value = builder.get_object("label_r_value", master)
+        self.green_scale_value = builder.get_object("label_g_value", master)
+        self.blue_scale_value = builder.get_object("label_b_value", master)
         self.label_r_value = builder.get_object("label_r_value", master)
         self.label_g_value = builder.get_object("label_g_value", master)
         self.label_b_value = builder.get_object("label_b_value", master)
 
         # accelerators are just strings, we need to bind them to actual methods
+        # https://tkinterexamples.com/events/keyboard/
         self.mainwindow.bind("<Control-o>", self.on_file_open_scan_click)
         self.mainwindow.bind("<Control-n>", self.on_file_clear_blackref)
         self.mainwindow.bind("<Control-r>", self.on_file_open_blackref)
@@ -94,6 +101,7 @@ class ViewerApp:
         self.mainwindow.bind("<Control-R>", self.on_file_open_whiteref)   # upper case R implies Shift key!
         self.mainwindow.bind("<Control-e>", self.on_file_exportimage_click)
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
+        self.mainwindow.bind("<Control-A>", self.on_tools_clear_annotations_click)
         self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
 
         # mouse events
@@ -123,6 +131,9 @@ class ViewerApp:
         self.redis_pubsub = None
         self.redis_thread = None
         self.sam_points = []
+        self.contours = []
+        self.image_sam_points = None
+        self.image_contours = None
 
     def run(self):
         self.mainwindow.mainloop()
@@ -136,6 +147,8 @@ class ViewerApp:
         """
         if msg != "":
             print(msg)
+            if hasattr(self, "text_log") and (self.text_log is not None):
+                self.text_log.insert(tk.END, "\n" + msg)
 
     def open_envi_file(self, title, initial_dir):
         """
@@ -365,10 +378,26 @@ class ViewerApp:
                 actual_height = available_height
 
             image = Image.fromarray(self.display_image)
+            #image = image.convert("RGBA")
             image = image.resize((actual_width, actual_height), Image.LANCZOS)
             return image
         else:
             return None
+
+    def get_current_image_dims(self):
+        """
+        Returns the current dimensions for the image.
+
+        :return: the dimensions as tuple (w,h) or None if not available
+        :rtype: tuple
+        """
+        if self.data_norm is None:
+            return None
+        if self.keep_aspectratio:
+            result = (self.data_norm.shape[1], self.data_norm.shape[0])
+        else:
+            result = (self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
+        return result
 
     def get_current_image(self):
         """
@@ -376,13 +405,10 @@ class ViewerApp:
 
         :return: the image, None if none present
         """
-        if self.data_norm is None:
+        dims = self.get_current_image_dims()
+        if dims is None:
             return None
-        if self.keep_aspectratio:
-            result = self.get_scaled_image(self.data_norm.shape[1], self.data_norm.shape[0])
-        else:
-            result = self.get_scaled_image(self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
-        return result
+        return self.get_scaled_image(dims[0], dims[1])
 
     def resize_image_label(self):
         """
@@ -390,8 +416,49 @@ class ViewerApp:
         """
         image = self.get_scaled_image(self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
         if image is not None:
+            self.update_sam_points()
+            self.update_contours()
+            if self.image_sam_points is not None:
+                image.paste(self.image_sam_points, (0, 0), self.image_sam_points)
+            if self.image_contours is not None:
+                image.paste(self.image_contours, (0, 0), self.image_contours)
             self.photo_scan = ImageTk.PhotoImage(image=image)
             self.image_label.config(image=self.photo_scan)
+
+    def update_sam_points(self):
+        """
+        Generates a new overlay image for contours.
+        """
+        self.image_sam_points = None
+        dims = self.get_current_image_dims()
+        if dims is None:
+            return
+        image = Image.new("RGBA", dims, color=None)
+        draw = ImageDraw.Draw(image)
+        marker_size = int(self.entry_marker_size.get())
+        for point in self.sam_points:
+            point_a = (point[0]*dims[0], point[1]*dims[1])
+            bbox = [point_a[0] - marker_size // 2, point_a[1] - marker_size // 2, point_a[0] + marker_size // 2, point_a[1] + marker_size // 2]
+            draw.ellipse(bbox, outline=self.entry_marker_color.get())
+        self.image_sam_points = image
+
+    def update_contours(self):
+        """
+        Generates a new overlay image for contours.
+        """
+        self.image_contours = None
+        dims = self.get_current_image_dims()
+        if dims is None:
+            return
+        image = Image.new("RGBA", dims, color=None)
+        draw = ImageDraw.Draw(image)
+        for contours in self.contours:
+            for contour in contours:
+                contour_a = []
+                for coord in contour:
+                    contour_a.append((coord[0]*dims[0], coord[1]*dims[1]))
+                draw.polygon(contour_a, outline=self.entry_annotation_color.get())
+        self.image_contours = image
 
     def update_image(self):
         """
@@ -592,10 +659,17 @@ class ViewerApp:
     def on_image_click(self, event=None):
         # no modifier -> add
         if event.state == 16:
-            self.sam_points.append((event.x, event.y))
+            x = event.x / self.image_label.winfo_width()
+            y = event.y / self.image_label.winfo_height()
+            point = (x, y)
+            self.sam_points.append(point)
+            self.log("SAM point added: %s" % str(point))
         # ctrl -> clear
         elif event.state == 20:
             self.sam_points = []
+            self.log("SAM points cleared")
+        # update image
+        self.update_image()
 
     def on_label_r_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
@@ -624,6 +698,12 @@ class ViewerApp:
         if new_channel is not None:
             self.blue_scale.set(new_channel)
 
+    def on_tools_clear_annotations_click(self, event=None):
+        self.contours = []
+        self.sam_points = []
+        self.update_image()
+        self.log("Annotations/SAM points cleared")
+
     def on_tools_sam_click(self, event=None):
         if self.redis_connection is None:
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
@@ -643,14 +723,16 @@ class ViewerApp:
         content = buf.getvalue()
 
         # collected points
-        self.log("Sending point(s) to SAM: %s" % str(self.sam_points))
+        points = [(int(x * self.image_label.winfo_width()), int(y * self.image_label.winfo_height()))
+                  for x, y in self.sam_points]
+        self.log("Sending point(s) to SAM: %s" % str(points))
         prompt = {
             "points": [
                 {
                     "x": item[0],
                     "y": item[1],
                     "label": 1
-                } for item in self.sam_points
+                } for item in points
             ]
         }
 
@@ -670,13 +752,27 @@ class ViewerApp:
         def anon_handler(message):
             self.log("SAM data received")
             d = json.loads(message['data'].decode())
-            # contours
-            # TODO
-            print(d)
+            # mask
+            png_data = base64.decodebytes(d["mask"].encode())
+            mask = Image.open(io.BytesIO(png_data))
+            width, height = mask.size
+            # contours to normalized contours
+            contours_n = []
+            contours = d["contours"]
+            for contour in contours:
+                points_n = []
+                for coords in contour:
+                    points_n.append((coords[0] / width, coords[1] / height))
+                contours_n.append(points_n)
+            self.log("# contours: %d" % len(contours_n))
+            self.contours.append(contours_n)
             # stop/close pubsub
             self.redis_thread.stop()
             self.redis_pubsub.close()
             self.redis_pubsub = None
+            # update contours/image
+            self.update_contours()
+            self.update_image()
 
         # subscribe and start listening
         self.redis_pubsub.psubscribe(**{self.state_redis_out.get(): anon_handler})
@@ -706,6 +802,9 @@ class ViewerApp:
                 traceback.print_exc()
                 self.label_redis_connection.configure(text="Failed to connect")
                 self.redis_connection = None
+
+    def on_button_log_clear_click(self, event=None):
+        self.text_log.delete(1.0, tk.END)
 
 
 def main(args=None):
