@@ -42,10 +42,13 @@ optional arguments:
 
 ```
 usage: happy-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE] [-w WHITE_REFERENCE]
-                    [-r INT] [-g INT] [-b INT] [-a] [-k] [--redis_host HOST]
-                    [--redis_port PORT] [--redis_pw PASSWORD]
-                    [--redis_in CHANNEL] [--redis_out CHANNEL]
-                    [--redis_connect]
+                    [-r INT] [-g INT] [-b INT] [--autodetect_channels]
+                    [--keep_aspectratio] [--annotation_color HEXCOLOR]
+                    [--redis_host HOST] [--redis_port PORT]
+                    [--redis_pw PASSWORD] [--redis_in CHANNEL]
+                    [--redis_out CHANNEL] [--redis_connect]
+                    [--sam_marker_size INT] [--sam_marker_color HEXCOLOR]
+                    [--sam_min_obj_size INT]
 
 ENVI Hyper-spectral Image Viewer. Offers contour detection using SAM (Segment-
 Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-
@@ -66,12 +69,14 @@ optional arguments:
                         0)
   -b INT, --blue INT    the wave length to use for the blue channel (default:
                         0)
-  -a, --autodetect_channels
+  --autodetect_channels
                         whether to determine the channels from the meta-data
                         (overrides the manually specified channels) (default:
                         False)
-  -k, --keep_aspectratio
-                        whether to keep the aspect ratio (default: False)
+  --keep_aspectratio    whether to keep the aspect ratio (default: False)
+  --annotation_color HEXCOLOR
+                        the color to use for the annotations like contours
+                        (hex color) (default: #ff0000)
   --redis_host HOST     The Redis host to connect to (IP or hostname)
                         (default: localhost)
   --redis_port PORT     The port the Redis server is listening on (default:
@@ -84,4 +89,12 @@ optional arguments:
                         (default: sam_out)
   --redis_connect       whether to immediately connect to the Redis host
                         (default: False)
+  --sam_marker_size INT
+                        The size in pixels for the SAM points (default: 7)
+  --sam_marker_color HEXCOLOR
+                        the color to use for the SAM points (hex color)
+                        (default: #ff0000)
+  --sam_min_obj_size INT
+                        The minimum size that SAM contours need to have (<= 0
+                        for no minimum) (default: -1)
 ```

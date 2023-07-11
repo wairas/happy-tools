@@ -43,12 +43,12 @@ class ViewerApp:
         # attach variables to app itself
         self.state_keep_aspectratio = None
         self.state_autodetect_channels = None
+        self.state_annotation_color = None
         self.state_redis_host = None
         self.state_redis_port = None
         self.state_redis_pw = None
         self.state_redis_in = None
         self.state_redis_out = None
-        self.state_timeout = None
         self.state_marker_size = None
         self.state_marker_color = None
         self.state_min_obj_size = None
@@ -72,7 +72,6 @@ class ViewerApp:
         self.entry_redis_port = builder.get_object("entry_redis_port", master)
         self.entry_redis_in = builder.get_object("entry_redis_in", master)
         self.entry_redis_out = builder.get_object("entry_redis_out", master)
-        self.entry_timeout = builder.get_object("entry_timeout", master)
         self.entry_marker_size = builder.get_object("entry_marker_size", master)
         self.entry_marker_color = builder.get_object("entry_marker_color", master)
         self.entry_min_obj_size = builder.get_object("entry_min_obj_size", master)
@@ -537,6 +536,16 @@ class ViewerApp:
         self.autodetect_channels = value
         self.state_autodetect_channels.set(1 if value else 0)
 
+    def set_annotation_color(self, color):
+        """
+        Sets the color to use for the annotations like contours.
+
+        :param color: the hex color to use (eg #ff0000)
+        :type color: str
+        """
+        self.log("Setting annotation color: %s" % color)
+        self.state_annotation_color.set(color)
+
     def set_redis_connection(self, host, port, pw, send, receive):
         """
         Sets the redis connection parameters.
@@ -560,6 +569,24 @@ class ViewerApp:
         self.state_redis_pw.set(pw)
         self.state_redis_in.set(send)
         self.state_redis_out.set(receive)
+
+    def set_sam_options(self, marker_size, marker_color, min_obj_size):
+        """
+        Sets the options for SAM.
+
+        :param marker_size: the size of the marker
+        :type marker_size: int
+        :param marker_color: the color of the markers (hex color, eg #ff0000)
+        :type marker_color: str
+        :param min_obj_size: the minimum size (with and height) the contours objects must have (<= 0 is unbounded)
+        :type min_obj_size: int
+        """
+        if min_obj_size < -1:
+            min_obj_size = -1
+        self.log("Setting SAM options: marker_size=%d marker_color=%s min_obj_size=%d" % (marker_size, marker_color, min_obj_size))
+        self.state_marker_size.set(marker_size)
+        self.state_marker_color.set(marker_color)
+        self.state_min_obj_size.set(min_obj_size)
 
     def on_file_open_scan_click(self, event=None):
         """
@@ -824,14 +851,18 @@ def main(args=None):
     parser.add_argument("-r", "--red", metavar="INT", help="the wave length to use for the red channel", default=0, type=int, required=False)
     parser.add_argument("-g", "--green", metavar="INT", help="the wave length to use for the green channel", default=0, type=int, required=False)
     parser.add_argument("-b", "--blue", metavar="INT", help="the wave length to use for the blue channel", default=0, type=int, required=False)
-    parser.add_argument("-a", "--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False)
-    parser.add_argument("-k", "--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False)
+    parser.add_argument("--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False)
+    parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False)
+    parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default="#ff0000", required=False)
     parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default="localhost", required=False)
     parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=6379, required=False)
     parser.add_argument("--redis_pw", metavar="PASSWORD", type=str, help="The password to use with the Redis server", default=None, required=False)
     parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on", default="sam_in", required=False)
     parser.add_argument("--redis_out", metavar="CHANNEL", type=str, help="The channel that SAM is broadcasting the detections on", default="sam_out", required=False)
     parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host", required=False)
+    parser.add_argument("--sam_marker_size", metavar="INT", help="The size in pixels for the SAM points", default=7, type=int, required=False)
+    parser.add_argument("--sam_marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)", default="#ff0000", required=False)
+    parser.add_argument("--sam_min_obj_size", metavar="INT", help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=-1, type=int, required=False)
     parsed = parser.parse_args(args=args)
     app = ViewerApp()
     if parsed.autodetect_channels:
@@ -840,7 +871,9 @@ def main(args=None):
         app.set_autodetect_channels(False)
         app.set_wavelengths(parsed.red, parsed.green, parsed.blue)
     app.set_keep_aspectratio(parsed.keep_aspectratio)
+    app.set_annotation_color(parsed.annotation_color)
     app.set_redis_connection(parsed.redis_host, parsed.redis_port, parsed.redis_pw, parsed.redis_in, parsed.redis_out)
+    app.set_sam_options(parsed.sam_marker_size, parsed.sam_marker_color, parsed.sam_min_obj_size)
     if parsed.redis_connect:
         app.button_sam_connect.invoke()
     if parsed.scan is not None:
