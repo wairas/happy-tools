@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 import argparse
+import base64
 import spectral.io.envi as envi
+import io
+import json
 import numpy as np
 import os
 import pathlib
@@ -9,9 +12,11 @@ import redis
 import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
+
 from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
+from ttkSimpleDialog import ttkSimpleDialog
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -76,6 +81,9 @@ class ViewerApp:
         self.entry_min_obj_size = builder.get_object("entry_min_obj_size", master)
         self.label_redis_connection = builder.get_object("label_redis_connection", master)
         self.button_sam_connect = builder.get_object("button_sam_connect", master)
+        self.label_r_value = builder.get_object("label_r_value", master)
+        self.label_g_value = builder.get_object("label_g_value", master)
+        self.label_b_value = builder.get_object("label_b_value", master)
 
         # accelerators are just strings, we need to bind them to actual methods
         self.mainwindow.bind("<Control-o>", self.on_file_open_scan_click)
@@ -90,6 +98,9 @@ class ViewerApp:
         # mouse events
         # https://tkinterexamples.com/events/mouse/
         self.image_label.bind("<Button-1>", self.on_image_click)
+        self.label_r_value.bind("<Button-1>", self.on_label_r_click)
+        self.label_g_value.bind("<Button-1>", self.on_label_g_click)
+        self.label_b_value.bind("<Button-1>", self.on_label_b_click)
 
         # init some vars
         self.autodetect_channels = False
@@ -108,6 +119,9 @@ class ViewerApp:
         self.photo_scan = None
         self.display_image = None
         self.redis_connection = None
+        self.redis_pubsub = None
+        self.redis_thread = None
+        self.sam_points = []
 
     def run(self):
         self.mainwindow.mainloop()
@@ -355,6 +369,20 @@ class ViewerApp:
         else:
             return None
 
+    def get_current_image(self):
+        """
+        Returns the current image.
+
+        :return: the image, None if none present
+        """
+        if self.data_norm is None:
+            return None
+        if self.keep_aspectratio:
+            result = self.get_scaled_image(self.data_norm.shape[1], self.data_norm.shape[0])
+        else:
+            result = self.get_scaled_image(self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
+        return result
+
     def resize_image_label(self):
         """
         Computes the scaled image and updates the GUI.
@@ -556,14 +584,96 @@ class ViewerApp:
         self.resize_image_label()
 
     def on_image_click(self, event=None):
-        # TODO collect locations for SAM
-        pass
+        # no modifier -> add
+        if event.state == 16:
+            self.sam_points.append((event.x, event.y))
+        # ctrl -> clear
+        elif event.state == 20:
+            self.sam_points = []
+
+    def on_label_r_click(self, event=None):
+        new_channel = ttkSimpleDialog.askinteger(
+            title="Red channel",
+            prompt="Please enter the channel to use as Red:",
+            initialvalue=self.state_scale_r.get(),
+            parent=self.mainwindow)
+        if new_channel is not None:
+            self.red_scale.set(new_channel)
+
+    def on_label_g_click(self, event=None):
+        new_channel = ttkSimpleDialog.askinteger(
+            title="Green channel",
+            prompt="Please enter the channel to use as Green:",
+            initialvalue=self.state_scale_g.get(),
+            parent=self.mainwindow)
+        if new_channel is not None:
+            self.green_scale.set(new_channel)
+
+    def on_label_b_click(self, event=None):
+        new_channel = ttkSimpleDialog.askinteger(
+            title="Blue channel",
+            prompt="Please enter the channel to use as Blue:",
+            initialvalue=self.state_scale_b.get(),
+            parent=self.mainwindow)
+        if new_channel is not None:
+            self.blue_scale.set(new_channel)
 
     def on_tools_sam_click(self, event=None):
         if self.redis_connection is None:
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
             return
-        # TODO communicate with SAM
+        if len(self.sam_points) == 0:
+            messagebox.showerror("Error", "No prompt points for SAM collected!")
+            return
+
+        # image
+        img = self.get_current_image()
+        if img is None:
+            messagebox.showerror("Error", "No image available!")
+            return
+        buf = io.BytesIO()
+        img.save(buf, format='JPEG')
+        content = buf.getvalue()
+
+        # collected points
+        self.log("Sending point(s) to SAM: %s" % str(self.sam_points))
+        prompt = {
+            "points": [
+                {
+                    "x": item[0],
+                    "y": item[1],
+                    "label": 1
+                } for item in self.sam_points
+            ]
+        }
+
+        # create message and send
+        d = {
+            "image": base64.encodebytes(content).decode("ascii"),
+            "prompt": prompt,
+        }
+        self.redis_connection.publish(self.state_redis_in.get(), json.dumps(d))
+
+        # empty points
+        self.sam_points = []
+
+        self.redis_pubsub = self.redis_connection.pubsub()
+
+        # handler for listening/outputting
+        def anon_handler(message):
+            self.log("SAM data received")
+            d = json.loads(message['data'].decode())
+            # contours
+            # TODO
+            print(d)
+            # stop/close pubsub
+            self.redis_thread.stop()
+            self.redis_pubsub.close()
+            self.redis_pubsub = None
+
+        # subscribe and start listening
+        self.redis_pubsub.psubscribe(**{self.state_redis_out.get(): anon_handler})
+        self.redis_thread = self.redis_pubsub.run_in_thread(sleep_time=0.001)
 
     def on_button_sam_connect_click(self, event=None):
         if self.redis_connection is not None:
