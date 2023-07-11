@@ -621,6 +621,7 @@ class ViewerApp:
     def on_tools_sam_click(self, event=None):
         if self.redis_connection is None:
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
+            self.notebook.select(2)
             return
         if len(self.sam_points) == 0:
             messagebox.showerror("Error", "No prompt points for SAM collected!")
