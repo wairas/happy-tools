@@ -45,6 +45,7 @@ class ViewerApp:
         self.state_autodetect_channels = None
         self.state_redis_host = None
         self.state_redis_port = None
+        self.state_redis_pw = None
         self.state_redis_in = None
         self.state_redis_out = None
         self.state_timeout = None
@@ -469,22 +470,27 @@ class ViewerApp:
         self.autodetect_channels = value
         self.state_autodetect_channels.set(1 if value else 0)
 
-    def set_redis_connection(self, host, port, send, receive):
+    def set_redis_connection(self, host, port, pw, send, receive):
         """
         Sets the redis connection parameters.
         
         :param host: the redis host
-        :type host: str 
+        :type host: str
         :param port: the redis port
         :type port: int
+        :param pw: the password to use, ignored if None or empty string
+        :type pw: str
         :param send: the channel to send the images to
         :type send: str
         :param receive: the channel to receive the annotations from
         :type receive: str 
         """
+        if pw is None:
+            pw = ""
         self.log("Setting Redis connection: host=%s port=%d in=%s out%s" % (host, port, send, receive))
         self.state_redis_host.set(host)
         self.state_redis_port.set(port)
+        self.state_redis_pw.set(pw)
         self.state_redis_in.set(send)
         self.state_redis_out.set(receive)
 
@@ -688,7 +694,10 @@ class ViewerApp:
                 pass
         else:
             self.log("Connecting Redis...")
-            self.redis_connection = redis.Redis(host=self.state_redis_host.get(), port=self.state_redis_port.get())
+            pw = self.state_redis_pw.get()
+            if pw == "":
+                pw = None
+            self.redis_connection = redis.Redis(host=self.state_redis_host.get(), port=self.state_redis_port.get(), password=pw)
             try:
                 self.redis_connection.ping()
                 self.label_redis_connection.configure(text="Connected")
@@ -720,6 +729,7 @@ def main(args=None):
     parser.add_argument("-k", "--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False)
     parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default="localhost", required=False)
     parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=6379, required=False)
+    parser.add_argument("--redis_pw", metavar="PASSWORD", type=str, help="The password to use with the Redis server", default=None, required=False)
     parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on", default="sam_in", required=False)
     parser.add_argument("--redis_out", metavar="CHANNEL", type=str, help="The channel that SAM is broadcasting the detections on", default="sam_out", required=False)
     parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host", required=False)
@@ -731,7 +741,7 @@ def main(args=None):
         app.set_autodetect_channels(False)
         app.set_wavelengths(parsed.red, parsed.green, parsed.blue)
     app.set_keep_aspectratio(parsed.keep_aspectratio)
-    app.set_redis_connection(parsed.redis_host, parsed.redis_port, parsed.redis_in, parsed.redis_out)
+    app.set_redis_connection(parsed.redis_host, parsed.redis_port, parsed.redis_pw, parsed.redis_in, parsed.redis_out)
     if parsed.redis_connect:
         app.button_sam_connect.invoke()
     if parsed.scan is not None:
