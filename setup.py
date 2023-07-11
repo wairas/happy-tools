@@ -34,7 +34,7 @@ setup(
         "pillow==9.5.0",
         "pygubu==0.31",
         "redis",
-        "opex",
+        "ttkSimpleDialog==1.2.1",
     ],
     package_dir={
         '': 'src'
