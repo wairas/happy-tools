@@ -33,6 +33,7 @@ setup(
         "spectral==0.23.1",
         "pillow==9.5.0",
         "pygubu==0.31",
+        "redis",
     ],
     package_dir={
         '': 'src'

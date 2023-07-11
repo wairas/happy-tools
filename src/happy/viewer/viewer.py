@@ -5,6 +5,7 @@ import numpy as np
 import os
 import pathlib
 import pygubu
+import redis
 import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -35,6 +36,19 @@ class ViewerApp:
         style.theme_use('clam')
 
         # attach variables to app itself
+        self.state_keep_aspectratio = None
+        self.state_autodetect_channels = None
+        self.state_redis_host = None
+        self.state_redis_port = None
+        self.state_redis_in = None
+        self.state_redis_out = None
+        self.state_timeout = None
+        self.state_marker_size = None
+        self.state_marker_color = None
+        self.state_min_obj_size = None
+        self.state_scale_r = None
+        self.state_scale_g = None
+        self.state_scale_b = None
         builder.import_variables(self)
 
         # reference components
@@ -52,6 +66,16 @@ class ViewerApp:
         self.checkbutton_keep_aspectratio = builder.get_object("checkbutton_keep_aspectratio", master)
         self.text_info = builder.get_object("text_info", master)
         self.image_label = builder.get_object("label_image", master)
+        self.entry_redis_host = builder.get_object("entry_redis_host", master)
+        self.entry_redis_port = builder.get_object("entry_redis_port", master)
+        self.entry_redis_in = builder.get_object("entry_redis_in", master)
+        self.entry_redis_out = builder.get_object("entry_redis_out", master)
+        self.entry_timeout = builder.get_object("entry_timeout", master)
+        self.entry_marker_size = builder.get_object("entry_marker_size", master)
+        self.entry_marker_color = builder.get_object("entry_marker_color", master)
+        self.entry_min_obj_size = builder.get_object("entry_min_obj_size", master)
+        self.label_redis_connection = builder.get_object("label_redis_connection", master)
+        self.button_sam_connect = builder.get_object("button_sam_connect", master)
 
         # accelerators are just strings, we need to bind them to actual methods
         self.mainwindow.bind("<Control-o>", self.on_file_open_scan_click)
@@ -61,6 +85,11 @@ class ViewerApp:
         self.mainwindow.bind("<Control-R>", self.on_file_open_whiteref)   # upper case R implies Shift key!
         self.mainwindow.bind("<Control-e>", self.on_file_exportimage_click)
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
+        self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
+
+        # mouse events
+        # https://tkinterexamples.com/events/mouse/
+        self.image_label.bind("<Button-1>", self.on_image_click)
 
         # init some vars
         self.autodetect_channels = False
@@ -78,6 +107,7 @@ class ViewerApp:
         self.current_whiteref = None
         self.photo_scan = None
         self.display_image = None
+        self.redis_connection = None
 
     def run(self):
         self.mainwindow.mainloop()
@@ -399,8 +429,7 @@ class ViewerApp:
         :type value: bool
         """
         self.keep_aspectratio = value
-        if value != self.state_keep_aspectratio.get():
-            self.checkbutton_keep_aspectratio.invoke()
+        self.state_keep_aspectratio.set(1 if value else 0)
 
     def set_autodetect_channels(self, value):
         """
@@ -410,8 +439,26 @@ class ViewerApp:
         :type value: bool
         """
         self.autodetect_channels = value
-        if value != self.state_autodetect_channels.get():
-            self.checkbutton_autodetect_channels.invoke()
+        self.state_autodetect_channels.set(1 if value else 0)
+
+    def set_redis_connection(self, host, port, send, receive):
+        """
+        Sets the redis connection parameters.
+        
+        :param host: the redis host
+        :type host: str 
+        :param port: the redis port
+        :type port: int
+        :param send: the channel to send the images to
+        :type send: str
+        :param receive: the channel to receive the annotations from
+        :type receive: str 
+        """
+        self.log("Setting Redis connection: host=%s port=%d in=%s out%s" % (host, port, send, receive))
+        self.state_redis_host.set(host)
+        self.state_redis_port.set(port)
+        self.state_redis_in.set(send)
+        self.state_redis_out.set(receive)
 
     def on_file_open_scan_click(self, event=None):
         """
@@ -508,6 +555,38 @@ class ViewerApp:
     def on_window_resize(self, event):
         self.resize_image_label()
 
+    def on_image_click(self, event=None):
+        # TODO collect locations for SAM
+        pass
+
+    def on_tools_sam_click(self, event=None):
+        if self.redis_connection is None:
+            messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
+            return
+        # TODO communicate with SAM
+
+    def on_button_sam_connect_click(self, event=None):
+        if self.redis_connection is not None:
+            self.log("Disconnecting Redis...")
+            self.button_sam_connect.configure(text="Connect")
+            try:
+                self.redis_connection.close()
+                self.redis_connection = None
+                self.label_redis_connection.configure(text="Disconnected")
+            except:
+                pass
+        else:
+            self.log("Connecting Redis...")
+            self.redis_connection = redis.Redis(host=self.state_redis_host.get(), port=self.state_redis_port.get())
+            try:
+                self.redis_connection.ping()
+                self.label_redis_connection.configure(text="Connected")
+                self.button_sam_connect.configure(text="Disconnect")
+            except:
+                traceback.print_exc()
+                self.label_redis_connection.configure(text="Failed to connect")
+                self.redis_connection = None
+
 
 def main(args=None):
     """
@@ -520,14 +599,19 @@ def main(args=None):
         description="ENVI Viewer.",
         prog="happy-viewer",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-s', '--scan', type=str, help='Path to the scan file (ENVI format)', required=False)
-    parser.add_argument('-f', '--black_reference', type=str, help='Path to the black reference file (ENVI format)', required=False)
-    parser.add_argument('-w', '--white_reference', type=str, help='Path to the white reference file (ENVI format)', required=False)
+    parser.add_argument("-s", "--scan", type=str, help="Path to the scan file (ENVI format)", required=False)
+    parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)", required=False)
+    parser.add_argument("-w", "--white_reference", type=str, help="Path to the white reference file (ENVI format)", required=False)
     parser.add_argument("-r", "--red", metavar="INT", help="the wave length to use for the red channel", default=0, type=int, required=False)
     parser.add_argument("-g", "--green", metavar="INT", help="the wave length to use for the green channel", default=0, type=int, required=False)
     parser.add_argument("-b", "--blue", metavar="INT", help="the wave length to use for the blue channel", default=0, type=int, required=False)
     parser.add_argument("-a", "--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False)
     parser.add_argument("-k", "--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False)
+    parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default="localhost", required=False)
+    parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=6379, required=False)
+    parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on", default="sam_in", required=False)
+    parser.add_argument("--redis_out", metavar="CHANNEL", type=str, help="The channel that SAM is broadcasting the detections on", default="sam_out", required=False)
+    parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host", required=False)
     parsed = parser.parse_args(args=args)
     app = ViewerApp()
     if parsed.autodetect_channels:
@@ -536,6 +620,9 @@ def main(args=None):
         app.set_autodetect_channels(False)
         app.set_wavelengths(parsed.red, parsed.green, parsed.blue)
     app.set_keep_aspectratio(parsed.keep_aspectratio)
+    app.set_redis_connection(parsed.redis_host, parsed.redis_port, parsed.redis_in, parsed.redis_out)
+    if parsed.redis_connect:
+        app.button_sam_connect.invoke()
     if parsed.scan is not None:
         app.load_scan(parsed.scan, do_update=False)
         if parsed.black_reference is not None:
