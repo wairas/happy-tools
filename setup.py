@@ -34,6 +34,7 @@ setup(
         "pillow==9.5.0",
         "pygubu==0.31",
         "redis",
+        "opex",
     ],
     package_dir={
         '': 'src'
