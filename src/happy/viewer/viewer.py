@@ -686,7 +686,7 @@ class ViewerApp:
         else:
             dims = self.get_image_label_dims()
         if dims is None:
-            return None
+            return
         dims = self.fit_image_into_dims(dims[0], dims[1])
         image = self.get_scaled_image(dims[0], dims[1])
         if image is None:
