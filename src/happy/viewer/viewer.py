@@ -9,6 +9,7 @@ import os
 import pathlib
 import pygubu
 import redis
+import sys
 import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -785,12 +786,32 @@ class ViewerApp:
             # contours to normalized contours
             contours_n = []
             contours = d["contours"]
+            min_obj_size = self.state_min_obj_size.get()
+            discarded = 0
             for contour in contours:
                 points_n = []
+                minx = sys.maxsize
+                maxx = 0
+                miny = sys.maxsize
+                maxy = 0
                 for coords in contour:
-                    points_n.append((coords[0] / width, coords[1] / height))
-                contours_n.append(points_n)
+                    x, y = coords
+                    minx = min(minx, x)
+                    maxx = max(maxx, x)
+                    miny = min(miny, y)
+                    maxy = max(maxy, y)
+                    points_n.append((x / width, y / height))
+                # minimum size?
+                keep = (min_obj_size <= 0)
+                if (min_obj_size > 0) and (maxx - minx + 1 > min_obj_size) and (maxy - miny + 1 > min_obj_size):
+                    keep = True
+                if keep:
+                    contours_n.append(points_n)
+                else:
+                    discarded += 1
             self.log("# contours: %d" % len(contours_n))
+            if discarded > 0:
+                self.log("# contours too small (< %d): %d" % (min_obj_size, discarded))
             self.contours.append(contours_n)
             # stop/close pubsub
             self.redis_thread.stop()
