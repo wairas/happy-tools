@@ -377,7 +377,6 @@ class ViewerApp:
                 actual_height = available_height
 
             image = Image.fromarray(self.display_image)
-            #image = image.convert("RGBA")
             image = image.resize((actual_width, actual_height), Image.LANCZOS)
             return image
         else:
