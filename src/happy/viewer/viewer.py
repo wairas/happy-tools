@@ -56,6 +56,7 @@ class ViewerApp:
         self.state_scale_r = None
         self.state_scale_g = None
         self.state_scale_b = None
+        self.state_export_with_annotations = None
         builder.import_variables(self)
 
         # reference components
@@ -132,8 +133,6 @@ class ViewerApp:
         self.redis_thread = None
         self.sam_points = []
         self.contours = []
-        self.image_sam_points = None
-        self.image_contours = None
 
     def run(self):
         self.mainwindow.mainloop()
@@ -348,37 +347,76 @@ class ViewerApp:
             data = (data - min_value) / data_range
         return data
 
-    def get_scaled_image(self, available_width, available_height):
+    def get_data_dims(self):
         """
-        Computes the scaled image and returns it.
+        Returns the dimensions of the loaded data.
+
+        :return: the tuple (w,h) of the data, None if no data
+        :rtype: tuple
+        """
+        if self.data_norm is None:
+            return None
+        else:
+            return self.data_norm.shape[1], self.data_norm.shape[0]
+
+    def get_image_label_dims(self):
+        """
+        Returns the dimensions of the image label displaying the data.
+
+        :return: the tuple (w,h) of the image label, None if no data
+        :rtype: tuple
+        """
+        if self.data_norm is None:
+            return None
+        else:
+            return self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10
+
+    def fit_image_into_dims(self, available_width, available_height):
+        """
+        Fits the image into the specified available dimensions and returns the calculated dimensions.
 
         :param available_width: the width to scale to, skips calculation if 0 or less
         :type available_width: int
         :param available_height: the height to scale to
         :type available_height: int
-        :return: the scaled image
+        :return: the scaled dimensions (w,h), None if invalid width/height
+        :rtype: tuple
         """
         if available_width < 1:
             return None
-        if self.display_image is not None:
-            # keep aspect ratio?
-            if self.keep_aspectratio:
-                available_aspect = available_width / available_height
-                img_width = self.data_norm.shape[1]
-                img_height = self.data_norm.shape[0]
-                img_aspect = img_width / img_height
-                if img_aspect > available_aspect:
-                    scale = img_width / available_width
-                else:
-                    scale = img_height / available_height
-                actual_width = int(img_width / scale)
-                actual_height = int(img_height / scale)
-            else:
-                actual_width = available_width
-                actual_height = available_height
+        if available_height < 1:
+            return None
 
+        # keep aspect ratio?
+        if self.keep_aspectratio:
+            available_aspect = available_width / available_height
+            img_width, img_height = self.get_data_dims()
+            img_aspect = img_width / img_height
+            if img_aspect > available_aspect:
+                scale = img_width / available_width
+            else:
+                scale = img_height / available_height
+            actual_width = int(img_width / scale)
+            actual_height = int(img_height / scale)
+        else:
+            actual_width = available_width
+            actual_height = available_height
+
+        return actual_width, actual_height
+
+    def get_scaled_image(self, width, height):
+        """
+        Computes the scaled image and returns it.
+
+        :param width: the width to scale to
+        :type width: int
+        :param height: the height to scale to
+        :type height: int
+        :return: the scaled image
+        """
+        if self.display_image is not None:
             image = Image.fromarray(self.display_image)
-            image = image.resize((actual_width, actual_height), Image.LANCZOS)
+            image = image.resize((width, height), Image.LANCZOS)
             return image
         else:
             return None
@@ -398,66 +436,65 @@ class ViewerApp:
             result = (self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
         return result
 
-    def get_current_image(self):
-        """
-        Returns the current image.
-
-        :return: the image, None if none present
-        """
-        dims = self.get_current_image_dims()
-        if dims is None:
-            return None
-        return self.get_scaled_image(dims[0], dims[1])
-
     def resize_image_label(self):
         """
         Computes the scaled image and updates the GUI.
         """
-        image = self.get_scaled_image(self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
+        dims = self.get_image_label_dims()
+        if dims is None:
+            return
+        dims = self.fit_image_into_dims(dims[0], dims[1])
+        if dims is None:
+            return
+        image = self.get_scaled_image(dims[0], dims[1])
         if image is not None:
-            self.update_sam_points()
-            self.update_contours()
-            if self.image_sam_points is not None:
-                image.paste(self.image_sam_points, (0, 0), self.image_sam_points)
-            if self.image_contours is not None:
-                image.paste(self.image_contours, (0, 0), self.image_contours)
+            image_sam_points = self.calc_sam_points_overlay(dims[0], dims[1])
+            if image_sam_points is not None:
+                image.paste(image_sam_points, (0, 0), image_sam_points)
+            image_contours = self.calc_contours_overlay(dims[0], dims[1])
+            if image_contours is not None:
+                image.paste(image_contours, (0, 0), image_contours)
             self.photo_scan = ImageTk.PhotoImage(image=image)
             self.image_label.config(image=self.photo_scan)
 
-    def update_sam_points(self):
+    def calc_sam_points_overlay(self, width, height):
         """
-        Generates a new overlay image for contours.
+        Generates a new overlay image for contours and returns it.
+
+        :param width: the width to use
+        :type width: int
+        :param height: the height to use
+        :type height: int
+        :return: the generated overlay
         """
-        self.image_sam_points = None
-        dims = self.get_current_image_dims()
-        if dims is None:
-            return
-        image = Image.new("RGBA", dims, color=None)
+        image = Image.new("RGBA", (width, height), color=None)
         draw = ImageDraw.Draw(image)
         marker_size = int(self.entry_marker_size.get())
         for point in self.sam_points:
-            point_a = (point[0]*dims[0], point[1]*dims[1])
+            point_a = (point[0]*width, point[1]*height)
             bbox = [point_a[0] - marker_size // 2, point_a[1] - marker_size // 2, point_a[0] + marker_size // 2, point_a[1] + marker_size // 2]
             draw.ellipse(bbox, outline=self.entry_marker_color.get())
-        self.image_sam_points = image
+        return image
 
-    def update_contours(self):
+    def calc_contours_overlay(self, width, height):
         """
-        Generates a new overlay image for contours.
+        Generates a new overlay image for contours and returns it.
+
+        :param width: the width to use
+        :type width: int
+        :param height: the height to use
+        :type height: int
+        :return: the generated overlay
         """
-        self.image_contours = None
-        dims = self.get_current_image_dims()
-        if dims is None:
-            return
-        image = Image.new("RGBA", dims, color=None)
+        image = Image.new("RGBA", (width, height), color=None)
         draw = ImageDraw.Draw(image)
         for contours in self.contours:
             for contour in contours:
                 contour_a = []
                 for coord in contour:
-                    contour_a.append((coord[0]*dims[0], coord[1]*dims[1]))
+                    contour_a.append((coord[0]*width, coord[1]*height))
                 draw.polygon(contour_a, outline=self.entry_annotation_color.get())
-        self.image_contours = image
+        return image
 
     def update_image(self):
         """
@@ -644,14 +681,25 @@ class ViewerApp:
         """
         Allows the user to select a PNG file for saving the false color RGB to.
         """
-        if self.data_norm is None:
-            return
         if self.keep_aspectratio:
-            image = self.get_scaled_image(self.data_norm.shape[1], self.data_norm.shape[0])
+            dims = self.get_data_dims()
         else:
-            image = self.get_scaled_image(self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
+            dims = self.get_image_label_dims()
+        if dims is None:
+            return None
+        dims = self.fit_image_into_dims(dims[0], dims[1])
+        image = self.get_scaled_image(dims[0], dims[1])
         if image is None:
             return
+
+        # include annotations?
+        if self.state_export_with_annotations.get() == 1:
+            image_sam_points = self.calc_sam_points_overlay(dims[0], dims[1])
+            if image_sam_points is not None:
+                image.paste(image_sam_points, (0, 0), image_sam_points)
+            image_contours = self.calc_contours_overlay(dims[0], dims[1])
+            if image_contours is not None:
+                image.paste(image_contours, (0, 0), image_contours)
 
         filename = self.save_image_file('Save image', self.last_image_dir)
         if filename is not None:
@@ -741,7 +789,15 @@ class ViewerApp:
             return
 
         # image
-        img = self.get_current_image()
+        dims = self.get_image_label_dims()
+        if dims is None:
+            messagebox.showerror("Error", "No image available!")
+            return
+        dims = self.fit_image_into_dims(dims[0], dims[1])
+        if dims is None:
+            messagebox.showerror("Error", "No image available!")
+            return
+        img = self.get_scaled_image(dims[0], dims[1])
         if img is None:
             messagebox.showerror("Error", "No image available!")
             return
@@ -818,8 +874,7 @@ class ViewerApp:
             self.redis_pubsub.close()
             self.redis_pubsub = None
             # update contours/image
-            self.update_contours()
-            self.update_image()
+            self.resize_image_label()
 
         # subscribe and start listening
         self.redis_pubsub.psubscribe(**{self.state_redis_out.get(): anon_handler})
