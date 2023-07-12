@@ -808,7 +808,7 @@ class ViewerApp:
         # collected points
         points = [(int(x * self.image_label.winfo_width()), int(y * self.image_label.winfo_height()))
                   for x, y in self.sam_points]
-        self.log("Sending point(s) to SAM: %s" % str(points))
+        self.log("Sending image to SAM using prompt point(s): %s" % str(points))
         prompt = {
             "points": [
                 {
