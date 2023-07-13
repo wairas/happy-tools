@@ -18,6 +18,7 @@ from PIL import ImageTk, Image, ImageDraw
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
+from happy.hsi_to_rgb.generate import normalize_data
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -330,23 +331,6 @@ class ViewerApp:
         self.green_scale.set(g)
         self.blue_scale.set(b)
 
-    def normalize_data(self, data):
-        """
-        Normalizes data.
-
-        :param data: the data to normalize
-        :return: the normalized data
-        """
-        min_value = np.min(data)
-        max_value = np.max(data)
-        data_range = max_value - min_value
-
-        if data_range == 0:  # Handle division by zero
-            data = np.zeros_like(data)
-        else:
-            data = (data - min_value) / data_range
-        return data
-
     def get_data_dims(self):
         """
         Returns the dimensions of the loaded data.
@@ -509,9 +493,9 @@ class ViewerApp:
         green_band = self.data_norm[:, :, int(self.green_scale.get())]
         blue_band = self.data_norm[:, :, int(self.blue_scale.get())]
 
-        norm_red = self.normalize_data(red_band)
-        norm_green = self.normalize_data(green_band)
-        norm_blue = self.normalize_data(blue_band)
+        norm_red = normalize_data(red_band)
+        norm_green = normalize_data(green_band)
+        norm_blue = normalize_data(blue_band)
 
         rgb_image = np.dstack((norm_red, norm_green, norm_blue))
         self.display_image = (rgb_image * 255).astype(np.uint8)
