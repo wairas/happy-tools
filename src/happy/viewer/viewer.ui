@@ -105,10 +105,33 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_tools_clear_markers" named="True">
+                    <property name="accelerator">Cltr+Shift+M</property>
+                    <property name="command" type="command" cbtype="simple">on_tools_clear_markers_click</property>
+                    <property name="label" translatable="yes">Clear markers</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_tools_remove_last_annotations" named="True">
+                    <property name="accelerator">Cltr+Shift+L</property>
+                    <property name="command" type="command" cbtype="simple">on_tools_remove_last_annotations_click</property>
+                    <property name="label" translatable="yes">Remove last annotations</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator8" />
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_tools_sam" named="True">
                     <property name="accelerator">Ctrl+S</property>
                     <property name="command" type="command" cbtype="simple">on_tools_sam_click</property>
                     <property name="label" translatable="yes">SAM</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_tools_polygon" named="True">
+                    <property name="command" type="command" cbtype="simple">on_tools_polygon_click</property>
+                    <property name="label" translatable="yes">Polygon</property>
                   </object>
                 </child>
               </object>

@@ -35,6 +35,7 @@ setup(
         "pygubu==0.31",
         "redis",
         "ttkSimpleDialog==1.2.1",
+        "opex",
     ],
     package_dir={
         '': 'src'

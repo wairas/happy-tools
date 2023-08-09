@@ -14,11 +14,14 @@ import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
 
+from datetime import datetime
 from PIL import ImageTk, Image, ImageDraw
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.hsi_to_rgb.generate import normalize_data
+from opex import ObjectPredictions, ObjectPrediction, Polygon, BBox
+from operator import itemgetter
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -104,7 +107,10 @@ class ViewerApp:
         self.mainwindow.bind("<Control-e>", self.on_file_exportimage_click)
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
         self.mainwindow.bind("<Control-A>", self.on_tools_clear_annotations_click)
+        self.mainwindow.bind("<Control-M>", self.on_tools_clear_markers_click)
+        self.mainwindow.bind("<Control-L>", self.on_tools_remove_last_annotations_click)
         self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
+        self.mainwindow.bind("<Control-p>", self.on_tools_polygon_click)
 
         # mouse events
         # https://tkinterexamples.com/events/mouse/
@@ -132,7 +138,7 @@ class ViewerApp:
         self.redis_connection = None
         self.redis_pubsub = None
         self.redis_thread = None
-        self.sam_points = []
+        self.marker_points = []
         self.contours = []
 
     def run(self):
@@ -432,7 +438,7 @@ class ViewerApp:
             return
         image = self.get_scaled_image(dims[0], dims[1])
         if image is not None:
-            image_sam_points = self.calc_sam_points_overlay(dims[0], dims[1])
+            image_sam_points = self.calc_marker_points_overlay(dims[0], dims[1])
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
             image_contours = self.calc_contours_overlay(dims[0], dims[1])
@@ -441,9 +447,9 @@ class ViewerApp:
             self.photo_scan = ImageTk.PhotoImage(image=image)
             self.image_label.config(image=self.photo_scan)
 
-    def calc_sam_points_overlay(self, width, height):
+    def calc_marker_points_overlay(self, width, height):
         """
-        Generates a new overlay image for contours and returns it.
+        Generates a new overlay image for marker points and returns it.
 
         :param width: the width to use
         :type width: int
@@ -454,11 +460,33 @@ class ViewerApp:
         image = Image.new("RGBA", (width, height), color=None)
         draw = ImageDraw.Draw(image)
         marker_size = int(self.entry_marker_size.get())
-        for point in self.sam_points:
+        for point in self.marker_points:
             point_a = (point[0]*width, point[1]*height)
             bbox = [point_a[0] - marker_size // 2, point_a[1] - marker_size // 2, point_a[0] + marker_size // 2, point_a[1] + marker_size // 2]
             draw.ellipse(bbox, outline=self.entry_marker_color.get())
         return image
+
+    def calc_absolute_contours(self, width, height):
+        """
+        Calculates the absolute contours from the normalized ones.
+
+        :param width: the width to use
+        :type width: int
+        :param height: the height to use
+        :type height: int
+        :return: the absolute contours
+        :rtype: list
+        """
+        result = []
+        for contours in self.contours:
+            contours_a = []
+            for contour in contours:
+                contour_a = []
+                for coord in contour:
+                    contour_a.append((int(coord[0]*width), int(coord[1]*height)))
+                contours_a.append(contour_a)
+            result.append(contours_a)
+        return result
 
     def calc_contours_overlay(self, width, height):
         """
@@ -472,13 +500,37 @@ class ViewerApp:
         """
         image = Image.new("RGBA", (width, height), color=None)
         draw = ImageDraw.Draw(image)
-        for contours in self.contours:
+        for contours in self.calc_absolute_contours(width, height):
             for contour in contours:
-                contour_a = []
-                for coord in contour:
-                    contour_a.append((coord[0]*width, coord[1]*height))
-                draw.polygon(contour_a, outline=self.entry_annotation_color.get())
+                draw.polygon(contour, outline=self.entry_annotation_color.get())
         return image
+
+    def contours_to_opex(self, width, height):
+        """
+        Turns the contours into OPEX format and returns it.
+
+        :param width: the width of the image to use
+        :type width: int
+        :param height: the height of the image to use
+        :type height: int
+        :return: the generated OPEX data structure, None if no contours available
+        :rtype: ObjectPredictions
+        """
+        if len(self.contours) == 0:
+            return None
+        start_time = datetime.now()
+        objs = []
+        for contours in self.calc_absolute_contours(width, height):
+            for contour in contours:
+                # https://stackoverflow.com/a/13145419/4698227
+                min_xy = min(contour, key=itemgetter(0))[0], min(contour, key=itemgetter(1))[1]
+                max_xy = max(contour, key=itemgetter(0))[0], max(contour, key=itemgetter(1))[1]
+                bbox = BBox(left=min_xy[0], top=min_xy[1], right=max_xy[0], bottom=max_xy[1])
+                poly = Polygon(points=contour)
+                pred = ObjectPrediction(label="object", bbox=bbox, polygon=poly)
+                objs.append(pred)
+        result = ObjectPredictions(id=str(start_time), timestamp=str(start_time), objects=objs)
+        return result
 
     def update_image(self):
         """
@@ -678,7 +730,7 @@ class ViewerApp:
 
         # include annotations?
         if self.state_export_with_annotations.get() == 1:
-            image_sam_points = self.calc_sam_points_overlay(dims[0], dims[1])
+            image_sam_points = self.calc_marker_points_overlay(dims[0], dims[1])
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
             image_contours = self.calc_contours_overlay(dims[0], dims[1])
@@ -689,6 +741,9 @@ class ViewerApp:
         if filename is not None:
             self.last_image_dir = os.path.dirname(filename)
             image.save(filename)
+            annotations = self.contours_to_opex(dims[0], dims[1])
+            if annotations is not None:
+                annotations.save_json_to_file(os.path.splitext(filename)[0] + ".json")
 
     def on_file_close_click(self, event=None):
         self.mainwindow.quit()
@@ -721,12 +776,12 @@ class ViewerApp:
             x = event.x / self.image_label.winfo_width()
             y = event.y / self.image_label.winfo_height()
             point = (x, y)
-            self.sam_points.append(point)
-            self.log("SAM point added: %s" % str(point))
+            self.marker_points.append(point)
+            self.log("Marker point added: %s" % str(point))
         # ctrl -> clear
         elif event.state == 20:
-            self.sam_points = []
-            self.log("SAM points cleared")
+            self.marker_points = []
+            self.log("Marker points cleared")
         # update image
         self.update_image()
 
@@ -758,17 +813,36 @@ class ViewerApp:
             self.blue_scale.set(new_channel)
 
     def on_tools_clear_annotations_click(self, event=None):
-        self.contours = []
-        self.sam_points = []
-        self.update_image()
-        self.log("Annotations/SAM points cleared")
+        if (len(self.contours) > 0) or (len(self.marker_points) > 0):
+            self.contours = []
+            self.marker_points = []
+            self.update_image()
+            self.log("Annotations/marker points cleared")
+        else:
+            self.log("No annotations/marker points to clear")
+
+    def on_tools_clear_markers_click(self, event=None):
+        if len(self.marker_points) > 0:
+            self.marker_points = []
+            self.update_image()
+            self.log("Marker points cleared")
+        else:
+            self.log("No marker points to clear")
+
+    def on_tools_remove_last_annotations_click(self, event=None):
+        if len(self.contours) > 0:
+            self.contours.pop()
+            self.update_image()
+            self.log("Last annotations removed")
+        else:
+            self.log("No annotations to remove")
 
     def on_tools_sam_click(self, event=None):
         if self.redis_connection is None:
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
             self.notebook.select(2)
             return
-        if len(self.sam_points) == 0:
+        if len(self.marker_points) == 0:
             messagebox.showerror("Error", "No prompt points for SAM collected!")
             return
 
@@ -791,7 +865,7 @@ class ViewerApp:
 
         # collected points
         points = [(int(x * self.image_label.winfo_width()), int(y * self.image_label.winfo_height()))
-                  for x, y in self.sam_points]
+                  for x, y in self.marker_points]
         self.log("Sending image to SAM using prompt point(s): %s" % str(points))
         prompt = {
             "points": [
@@ -811,7 +885,7 @@ class ViewerApp:
         self.redis_connection.publish(self.state_redis_in.get(), json.dumps(d))
 
         # empty points
-        self.sam_points = []
+        self.marker_points = []
 
         self.redis_pubsub = self.redis_connection.pubsub()
 
@@ -863,6 +937,17 @@ class ViewerApp:
         # subscribe and start listening
         self.redis_pubsub.psubscribe(**{self.state_redis_out.get(): anon_handler})
         self.redis_thread = self.redis_pubsub.run_in_thread(sleep_time=0.001)
+
+    def on_tools_polygon_click(self, event=None):
+        if len(self.marker_points) <= 3:
+            messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
+            return
+
+        contours = [self.marker_points[:]]
+        self.contours.append(contours)
+        self.marker_points = []
+        self.log("Polygon added")
+        self.update_image()
 
     def on_button_sam_connect_click(self, event=None):
         if self.redis_connection is not None:
