@@ -130,6 +130,7 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_tools_polygon" named="True">
+                    <property name="accelerator">Ctrl+P</property>
                     <property name="command" type="command" cbtype="simple">on_tools_polygon_click</property>
                     <property name="label" translatable="yes">Polygon</property>
                   </object>
