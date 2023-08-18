@@ -771,15 +771,21 @@ class ViewerApp:
         self.resize_image_label()
 
     def on_image_click(self, event=None):
+        # modifiers: https://tkdocs.com/shipman/event-handlers.html
+        state = event.state
+        # remove NUMLOCK
+        state &= ~0x0010
+        # remove CAPSLOCK
+        state &= ~0x0002
         # no modifier -> add
-        if event.state == 16:
+        if state == 0x0000:
             x = event.x / self.image_label.winfo_width()
             y = event.y / self.image_label.winfo_height()
             point = (x, y)
             self.marker_points.append(point)
             self.log("Marker point added: %s" % str(point))
         # ctrl -> clear
-        elif event.state == 20:
+        elif state == 0x0004:
             self.marker_points = []
             self.log("Marker points cleared")
         # update image
