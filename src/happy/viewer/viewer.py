@@ -669,7 +669,7 @@ class ViewerApp:
 
         if filename is not None:
             self.last_scan_dir = os.path.dirname(filename)
-            self.load_scan(filename)
+            self.load_scan(filename, do_update=True)
 
     def on_file_clear_blackref(self, event=None):
         if self.data_blackref is not None:
@@ -690,7 +690,7 @@ class ViewerApp:
 
         if filename is not None:
             self.last_blackref_dir = os.path.dirname(filename)
-            self.load_blackref(filename)
+            self.load_blackref(filename, do_update=True)
 
     def on_file_clear_whiteref(self, event=None):
         if self.data_whiteref is not None:
@@ -711,7 +711,7 @@ class ViewerApp:
 
         if filename is not None:
             self.last_whiteref_dir = os.path.dirname(filename)
-            self.load_whiteref(filename)
+            self.load_whiteref(filename, do_update=True)
 
     def on_file_exportimage_click(self, event=None):
         """
