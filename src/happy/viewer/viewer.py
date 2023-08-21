@@ -14,14 +14,13 @@ import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from datetime import datetime
 from PIL import ImageTk, Image, ImageDraw
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.hsi_to_rgb.generate import normalize_data
-from opex import ObjectPredictions, ObjectPrediction, Polygon, BBox
-from operator import itemgetter
+from happy.viewer._countours import ContoursManager
+
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -139,7 +138,7 @@ class ViewerApp:
         self.redis_pubsub = None
         self.redis_thread = None
         self.marker_points = []
-        self.contours = []
+        self.contours_manager = ContoursManager()
 
     def run(self):
         self.mainwindow.mainloop()
@@ -441,7 +440,7 @@ class ViewerApp:
             image_sam_points = self.calc_marker_points_overlay(dims[0], dims[1])
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.calc_contours_overlay(dims[0], dims[1])
+            image_contours = self.contours_manager.calc_contours_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
             self.photo_scan = ImageTk.PhotoImage(image=image)
@@ -465,72 +464,6 @@ class ViewerApp:
             bbox = [point_a[0] - marker_size // 2, point_a[1] - marker_size // 2, point_a[0] + marker_size // 2, point_a[1] + marker_size // 2]
             draw.ellipse(bbox, outline=self.entry_marker_color.get())
         return image
-
-    def calc_absolute_contours(self, width, height):
-        """
-        Calculates the absolute contours from the normalized ones.
-
-        :param width: the width to use
-        :type width: int
-        :param height: the height to use
-        :type height: int
-        :return: the absolute contours
-        :rtype: list
-        """
-        result = []
-        for contours in self.contours:
-            contours_a = []
-            for contour in contours:
-                contour_a = []
-                for coord in contour:
-                    contour_a.append((int(coord[0]*width), int(coord[1]*height)))
-                contours_a.append(contour_a)
-            result.append(contours_a)
-        return result
-
-    def calc_contours_overlay(self, width, height):
-        """
-        Generates a new overlay image for contours and returns it.
-
-        :param width: the width to use
-        :type width: int
-        :param height: the height to use
-        :type height: int
-        :return: the generated overlay
-        """
-        image = Image.new("RGBA", (width, height), color=None)
-        draw = ImageDraw.Draw(image)
-        for contours in self.calc_absolute_contours(width, height):
-            for contour in contours:
-                draw.polygon(contour, outline=self.entry_annotation_color.get())
-        return image
-
-    def contours_to_opex(self, width, height):
-        """
-        Turns the contours into OPEX format and returns it.
-
-        :param width: the width of the image to use
-        :type width: int
-        :param height: the height of the image to use
-        :type height: int
-        :return: the generated OPEX data structure, None if no contours available
-        :rtype: ObjectPredictions
-        """
-        if len(self.contours) == 0:
-            return None
-        start_time = datetime.now()
-        objs = []
-        for contours in self.calc_absolute_contours(width, height):
-            for contour in contours:
-                # https://stackoverflow.com/a/13145419/4698227
-                min_xy = min(contour, key=itemgetter(0))[0], min(contour, key=itemgetter(1))[1]
-                max_xy = max(contour, key=itemgetter(0))[0], max(contour, key=itemgetter(1))[1]
-                bbox = BBox(left=min_xy[0], top=min_xy[1], right=max_xy[0], bottom=max_xy[1])
-                poly = Polygon(points=contour)
-                pred = ObjectPrediction(label="object", bbox=bbox, polygon=poly)
-                objs.append(pred)
-        result = ObjectPredictions(id=str(start_time), timestamp=str(start_time), objects=objs)
-        return result
 
     def update_image(self):
         """
@@ -733,7 +666,7 @@ class ViewerApp:
             image_sam_points = self.calc_marker_points_overlay(dims[0], dims[1])
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.calc_contours_overlay(dims[0], dims[1])
+            image_contours = self.contours_manager.calc_contours_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
 
@@ -741,7 +674,7 @@ class ViewerApp:
         if filename is not None:
             self.last_image_dir = os.path.dirname(filename)
             image.save(filename)
-            annotations = self.contours_to_opex(dims[0], dims[1])
+            annotations = self.contours_manager.contours_to_opex(dims[0], dims[1])
             if annotations is not None:
                 annotations.save_json_to_file(os.path.splitext(filename)[0] + ".json")
 
@@ -819,8 +752,8 @@ class ViewerApp:
             self.blue_scale.set(new_channel)
 
     def on_tools_clear_annotations_click(self, event=None):
-        if (len(self.contours) > 0) or (len(self.marker_points) > 0):
-            self.contours = []
+        if self.contours_manager.has_contours() or (len(self.marker_points) > 0):
+            self.contours_manager.clear()
             self.marker_points = []
             self.update_image()
             self.log("Annotations/marker points cleared")
@@ -836,10 +769,9 @@ class ViewerApp:
             self.log("No marker points to clear")
 
     def on_tools_remove_last_annotations_click(self, event=None):
-        if len(self.contours) > 0:
-            self.contours.pop()
+        if self.contours_manager.remove_last():
             self.update_image()
-            self.log("Last annotations removed")
+            self.log("Last annotation removed")
         else:
             self.log("No annotations to remove")
 
@@ -932,7 +864,7 @@ class ViewerApp:
             self.log("# contours: %d" % len(contours_n))
             if discarded > 0:
                 self.log("# contours too small (< %d): %d" % (min_obj_size, discarded))
-            self.contours.append(contours_n)
+            self.contours_manager.add(contours_n)
             # stop/close pubsub
             self.redis_thread.stop()
             self.redis_pubsub.close()
@@ -950,7 +882,7 @@ class ViewerApp:
             return
 
         contours = [self.marker_points[:]]
-        self.contours.append(contours)
+        self.contours_manager.add(contours)
         self.marker_points = []
         self.log("Polygon added")
         self.update_image()
