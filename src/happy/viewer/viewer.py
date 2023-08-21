@@ -1,15 +1,11 @@
 #!/usr/bin/python3
 import argparse
-import base64
 import spectral.io.envi as envi
 import io
-import json
 import numpy as np
 import os
 import pathlib
 import pygubu
-import redis
-import sys
 import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -21,7 +17,7 @@ from ttkSimpleDialog import ttkSimpleDialog
 from happy.hsi_to_rgb.generate import normalize_data
 from happy.viewer._countours import ContoursManager
 from happy.viewer._markers import MarkersManager
-
+from happy.viewer._redis import SamManager
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -135,11 +131,9 @@ class ViewerApp:
         self.current_whiteref = None
         self.photo_scan = None
         self.display_image = None
-        self.redis_connection = None
-        self.redis_pubsub = None
-        self.redis_thread = None
         self.markers_manager = MarkersManager()
         self.contours_manager = ContoursManager()
+        self.sam_manager = SamManager()
 
     def run(self):
         self.mainwindow.mainloop()
@@ -757,8 +751,19 @@ class ViewerApp:
         else:
             self.log("No annotations to remove")
 
+    def on_sam_predictions(self, contours):
+        """
+        Gets called when predictions become available.
+
+        :param contours: the predicted contours
+        """
+        # add contours
+        self.contours_manager.add(contours)
+        # update contours/image
+        self.resize_image_label()
+
     def on_tools_sam_click(self, event=None):
-        if self.redis_connection is None:
+        if not self.sam_manager.is_connected():
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
             self.notebook.select(2)
             return
@@ -779,83 +784,20 @@ class ViewerApp:
         if img is None:
             messagebox.showerror("Error", "No image available!")
             return
+
+        # image as bytes
         buf = io.BytesIO()
         img.save(buf, format='JPEG')
         content = buf.getvalue()
 
-        # collected points
+        # absolute marker points
         points = self.markers_manager.to_absolute(self.image_label.winfo_width(), self.image_label.winfo_height())
-        self.log("Sending image to SAM using prompt point(s): %s" % str(points))
-        prompt = {
-            "points": [
-                {
-                    "x": item[0],
-                    "y": item[1],
-                    "label": 1
-                } for item in points
-            ]
-        }
-
-        # create message and send
-        d = {
-            "image": base64.encodebytes(content).decode("ascii"),
-            "prompt": prompt,
-        }
-        self.redis_connection.publish(self.state_redis_in.get(), json.dumps(d))
-
-        # empty points
         self.markers_manager.clear()
 
-        self.redis_pubsub = self.redis_connection.pubsub()
-
-        # handler for listening/outputting
-        def anon_handler(message):
-            self.log("SAM data received")
-            d = json.loads(message['data'].decode())
-            # mask
-            png_data = base64.decodebytes(d["mask"].encode())
-            mask = Image.open(io.BytesIO(png_data))
-            width, height = mask.size
-            # contours to normalized contours
-            contours_n = []
-            contours = d["contours"]
-            min_obj_size = self.state_min_obj_size.get()
-            discarded = 0
-            for contour in contours:
-                points_n = []
-                minx = sys.maxsize
-                maxx = 0
-                miny = sys.maxsize
-                maxy = 0
-                for coords in contour:
-                    x, y = coords
-                    minx = min(minx, x)
-                    maxx = max(maxx, x)
-                    miny = min(miny, y)
-                    maxy = max(maxy, y)
-                    points_n.append((x / width, y / height))
-                # minimum size?
-                keep = (min_obj_size <= 0)
-                if (min_obj_size > 0) and (maxx - minx + 1 > min_obj_size) and (maxy - miny + 1 > min_obj_size):
-                    keep = True
-                if keep:
-                    contours_n.append(points_n)
-                else:
-                    discarded += 1
-            self.log("# contours: %d" % len(contours_n))
-            if discarded > 0:
-                self.log("# contours too small (< %d): %d" % (min_obj_size, discarded))
-            self.contours_manager.add(contours_n)
-            # stop/close pubsub
-            self.redis_thread.stop()
-            self.redis_pubsub.close()
-            self.redis_pubsub = None
-            # update contours/image
-            self.resize_image_label()
-
-        # subscribe and start listening
-        self.redis_pubsub.psubscribe(**{self.state_redis_out.get(): anon_handler})
-        self.redis_thread = self.redis_pubsub.run_in_thread(sleep_time=0.001)
+        # predict contours
+        self.sam_manager.predict(content, points,
+                                 self.state_redis_in.get(), self.state_redis_out.get(),
+                                 self.state_min_obj_size.get(), self.log, self.on_sam_predictions)
 
     def on_tools_polygon_click(self, event=None):
         if not self.markers_manager.has_polygon():
@@ -869,29 +811,18 @@ class ViewerApp:
         self.update_image()
 
     def on_button_sam_connect_click(self, event=None):
-        if self.redis_connection is not None:
+        if self.sam_manager.is_connected():
             self.log("Disconnecting Redis...")
             self.button_sam_connect.configure(text="Connect")
-            try:
-                self.redis_connection.close()
-                self.redis_connection = None
-                self.label_redis_connection.configure(text="Disconnected")
-            except:
-                pass
+            self.sam_manager.disconnect()
+            self.label_redis_connection.configure(text="Disconnected")
         else:
             self.log("Connecting Redis...")
-            pw = self.state_redis_pw.get()
-            if pw == "":
-                pw = None
-            self.redis_connection = redis.Redis(host=self.state_redis_host.get(), port=self.state_redis_port.get(), password=pw)
-            try:
-                self.redis_connection.ping()
+            if self.sam_manager.connect(host=self.state_redis_host.get(), port=self.state_redis_port.get(), pw=self.state_redis_pw.get()):
                 self.label_redis_connection.configure(text="Connected")
                 self.button_sam_connect.configure(text="Disconnect")
-            except:
-                traceback.print_exc()
+            else:
                 self.label_redis_connection.configure(text="Failed to connect")
-                self.redis_connection = None
 
     def on_button_log_clear_click(self, event=None):
         self.text_log.delete(1.0, tk.END)
