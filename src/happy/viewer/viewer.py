@@ -441,7 +441,7 @@ class ViewerApp:
             image_sam_points = self.markers_manager.calc_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.contours_manager.calc_contours_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_contours = self.contours_manager.calc_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
             self.photo_scan = ImageTk.PhotoImage(image=image)
@@ -648,7 +648,7 @@ class ViewerApp:
             image_sam_points = self.markers_manager.calc_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.contours_manager.calc_contours_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_contours = self.contours_manager.calc_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
 
@@ -656,7 +656,7 @@ class ViewerApp:
         if filename is not None:
             self.last_image_dir = os.path.dirname(filename)
             image.save(filename)
-            annotations = self.contours_manager.contours_to_opex(dims[0], dims[1])
+            annotations = self.contours_manager.to_opex(dims[0], dims[1])
             if annotations is not None:
                 annotations.save_json_to_file(os.path.splitext(filename)[0] + ".json")
 
