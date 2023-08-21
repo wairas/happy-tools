@@ -438,10 +438,10 @@ class ViewerApp:
             return
         image = self.get_scaled_image(dims[0], dims[1])
         if image is not None:
-            image_sam_points = self.markers_manager.calc_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            image_sam_points = self.markers_manager.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.contours_manager.calc_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_contours = self.contours_manager.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
             self.photo_scan = ImageTk.PhotoImage(image=image)
@@ -645,10 +645,10 @@ class ViewerApp:
 
         # include annotations?
         if self.state_export_with_annotations.get() == 1:
-            image_sam_points = self.markers_manager.calc_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            image_sam_points = self.markers_manager.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.contours_manager.calc_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_contours = self.contours_manager.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
 
@@ -784,7 +784,7 @@ class ViewerApp:
         content = buf.getvalue()
 
         # collected points
-        points = self.markers_manager.calc_absolute(self.image_label.winfo_width(), self.image_label.winfo_height())
+        points = self.markers_manager.to_absolute(self.image_label.winfo_width(), self.image_label.winfo_height())
         self.log("Sending image to SAM using prompt point(s): %s" % str(points))
         prompt = {
             "points": [

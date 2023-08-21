@@ -36,7 +36,7 @@ class MarkersManager:
         """
         self.points.append(point)
 
-    def calc_overlay(self, width, height, marker_size, marker_color):
+    def to_overlay(self, width, height, marker_size, marker_color):
         """
         Generates a new overlay image for marker points and returns it.
 
@@ -58,7 +58,7 @@ class MarkersManager:
             draw.ellipse(bbox, outline=marker_color)
         return image
 
-    def calc_absolute(self, width, height):
+    def to_absolute(self, width, height):
         """
         Returns the absolute points.
         :param width:

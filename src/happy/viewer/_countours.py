@@ -16,7 +16,7 @@ class ContoursManager:
         """
         self.contours = list()
 
-    def calc_absolute(self, width, height):
+    def to_absolute(self, width, height):
         """
         Calculates the absolute contours from the normalized ones.
 
@@ -38,7 +38,7 @@ class ContoursManager:
             result.append(contours_a)
         return result
 
-    def calc_overlay(self, width, height, outline_color):
+    def to_overlay(self, width, height, outline_color):
         """
         Generates a new overlay image for contours and returns it.
 
@@ -50,7 +50,7 @@ class ContoursManager:
         """
         image = Image.new("RGBA", (width, height), color=None)
         draw = ImageDraw.Draw(image)
-        for contours in self.calc_absolute(width, height):
+        for contours in self.to_absolute(width, height):
             for contour in contours:
                 draw.polygon(contour, outline=outline_color)
         return image
@@ -70,7 +70,7 @@ class ContoursManager:
             return None
         start_time = datetime.now()
         objs = []
-        for contours in self.calc_absolute(width, height):
+        for contours in self.to_absolute(width, height):
             for contour in contours:
                 # https://stackoverflow.com/a/13145419/4698227
                 min_xy = min(contour, key=itemgetter(0))[0], min(contour, key=itemgetter(1))[1]
