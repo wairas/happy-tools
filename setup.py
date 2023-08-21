@@ -49,6 +49,7 @@ setup(
         "console_scripts": [
             "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
             "happy-hsi2rgb=happy.hsi_to_rgb.generate:sys_main",
+            "happy-opex2happy=happy.opex_to_happy.generate:sys_main",
             "happy-viewer=happy.viewer.viewer:sys_main",
         ]
     },
