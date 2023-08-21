@@ -131,9 +131,9 @@ class ViewerApp:
         self.current_whiteref = None
         self.photo_scan = None
         self.display_image = None
-        self.markers_manager = MarkersManager()
-        self.contours_manager = ContoursManager()
-        self.sam_manager = SamManager()
+        self.markers = MarkersManager()
+        self.contours = ContoursManager()
+        self.sam = SamManager()
 
     def run(self):
         self.mainwindow.mainloop()
@@ -432,10 +432,10 @@ class ViewerApp:
             return
         image = self.get_scaled_image(dims[0], dims[1])
         if image is not None:
-            image_sam_points = self.markers_manager.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            image_sam_points = self.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.contours_manager.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_contours = self.contours.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
             self.photo_scan = ImageTk.PhotoImage(image=image)
@@ -639,10 +639,10 @@ class ViewerApp:
 
         # include annotations?
         if self.state_export_with_annotations.get() == 1:
-            image_sam_points = self.markers_manager.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            image_sam_points = self.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.contours_manager.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_contours = self.contours.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
 
@@ -650,7 +650,7 @@ class ViewerApp:
         if filename is not None:
             self.last_image_dir = os.path.dirname(filename)
             image.save(filename)
-            annotations = self.contours_manager.to_opex(dims[0], dims[1])
+            annotations = self.contours.to_opex(dims[0], dims[1])
             if annotations is not None:
                 annotations.save_json_to_file(os.path.splitext(filename)[0] + ".json")
 
@@ -691,11 +691,11 @@ class ViewerApp:
             x = event.x / self.image_label.winfo_width()
             y = event.y / self.image_label.winfo_height()
             point = (x, y)
-            self.markers_manager.add(point)
+            self.markers.add(point)
             self.log("Marker point added: %s" % str(point))
         # ctrl -> clear
         elif state == 0x0004:
-            self.markers_manager.clear()
+            self.markers.clear()
             self.log("Marker points cleared")
         # update image
         self.update_image()
@@ -728,24 +728,24 @@ class ViewerApp:
             self.blue_scale.set(new_channel)
 
     def on_tools_clear_annotations_click(self, event=None):
-        if self.contours_manager.has_contours() or self.markers_manager.has_points():
-            self.contours_manager.clear()
-            self.markers_manager.clear()
+        if self.contours.has_contours() or self.markers.has_points():
+            self.contours.clear()
+            self.markers.clear()
             self.update_image()
             self.log("Annotations/marker points cleared")
         else:
             self.log("No annotations/marker points to clear")
 
     def on_tools_clear_markers_click(self, event=None):
-        if self.markers_manager.has_points():
-            self.markers_manager.clear()
+        if self.markers.has_points():
+            self.markers.clear()
             self.update_image()
             self.log("Marker points cleared")
         else:
             self.log("No marker points to clear")
 
     def on_tools_remove_last_annotations_click(self, event=None):
-        if self.contours_manager.remove_last():
+        if self.contours.remove_last():
             self.update_image()
             self.log("Last annotation removed")
         else:
@@ -758,16 +758,16 @@ class ViewerApp:
         :param contours: the predicted contours
         """
         # add contours
-        self.contours_manager.add(contours)
+        self.contours.add(contours)
         # update contours/image
         self.resize_image_label()
 
     def on_tools_sam_click(self, event=None):
-        if not self.sam_manager.is_connected():
+        if not self.sam.is_connected():
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
             self.notebook.select(2)
             return
-        if not self.markers_manager.has_points():
+        if not self.markers.has_points():
             messagebox.showerror("Error", "No prompt points for SAM collected!")
             return
 
@@ -791,34 +791,34 @@ class ViewerApp:
         content = buf.getvalue()
 
         # absolute marker points
-        points = self.markers_manager.to_absolute(self.image_label.winfo_width(), self.image_label.winfo_height())
-        self.markers_manager.clear()
+        points = self.markers.to_absolute(self.image_label.winfo_width(), self.image_label.winfo_height())
+        self.markers.clear()
 
         # predict contours
-        self.sam_manager.predict(content, points,
-                                 self.state_redis_in.get(), self.state_redis_out.get(),
-                                 self.state_min_obj_size.get(), self.log, self.on_sam_predictions)
+        self.sam.predict(content, points,
+                         self.state_redis_in.get(), self.state_redis_out.get(),
+                         self.state_min_obj_size.get(), self.log, self.on_sam_predictions)
 
     def on_tools_polygon_click(self, event=None):
-        if not self.markers_manager.has_polygon():
+        if not self.markers.has_polygon():
             messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
             return
 
-        contours = [self.markers_manager.points[:]]
-        self.contours_manager.add(contours)
-        self.markers_manager.clear()
+        contours = [self.markers.points[:]]
+        self.contours.add(contours)
+        self.markers.clear()
         self.log("Polygon added")
         self.update_image()
 
     def on_button_sam_connect_click(self, event=None):
-        if self.sam_manager.is_connected():
-            self.log("Disconnecting Redis...")
+        if self.sam.is_connected():
+            self.log("Disconnecting SAM...")
             self.button_sam_connect.configure(text="Connect")
-            self.sam_manager.disconnect()
+            self.sam.disconnect()
             self.label_redis_connection.configure(text="Disconnected")
         else:
-            self.log("Connecting Redis...")
-            if self.sam_manager.connect(host=self.state_redis_host.get(), port=self.state_redis_port.get(), pw=self.state_redis_pw.get()):
+            self.log("Connecting SAM...")
+            if self.sam.connect(host=self.state_redis_host.get(), port=self.state_redis_port.get(), pw=self.state_redis_pw.get()):
                 self.label_redis_connection.configure(text="Connected")
                 self.button_sam_connect.configure(text="Disconnect")
             else:
