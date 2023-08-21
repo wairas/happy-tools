@@ -14,12 +14,13 @@ import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from PIL import ImageTk, Image, ImageDraw
+from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.hsi_to_rgb.generate import normalize_data
 from happy.viewer._countours import ContoursManager
+from happy.viewer._markers import MarkersManager
 
 
 PROJECT_PATH = pathlib.Path(__file__).parent
@@ -137,7 +138,7 @@ class ViewerApp:
         self.redis_connection = None
         self.redis_pubsub = None
         self.redis_thread = None
-        self.marker_points = []
+        self.markers_manager = MarkersManager()
         self.contours_manager = ContoursManager()
 
     def run(self):
@@ -437,7 +438,7 @@ class ViewerApp:
             return
         image = self.get_scaled_image(dims[0], dims[1])
         if image is not None:
-            image_sam_points = self.calc_marker_points_overlay(dims[0], dims[1])
+            image_sam_points = self.markers_manager.calc_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
             image_contours = self.contours_manager.calc_contours_overlay(dims[0], dims[1], self.entry_annotation_color.get())
@@ -445,25 +446,6 @@ class ViewerApp:
                 image.paste(image_contours, (0, 0), image_contours)
             self.photo_scan = ImageTk.PhotoImage(image=image)
             self.image_label.config(image=self.photo_scan)
-
-    def calc_marker_points_overlay(self, width, height):
-        """
-        Generates a new overlay image for marker points and returns it.
-
-        :param width: the width to use
-        :type width: int
-        :param height: the height to use
-        :type height: int
-        :return: the generated overlay
-        """
-        image = Image.new("RGBA", (width, height), color=None)
-        draw = ImageDraw.Draw(image)
-        marker_size = int(self.entry_marker_size.get())
-        for point in self.marker_points:
-            point_a = (point[0]*width, point[1]*height)
-            bbox = [point_a[0] - marker_size // 2, point_a[1] - marker_size // 2, point_a[0] + marker_size // 2, point_a[1] + marker_size // 2]
-            draw.ellipse(bbox, outline=self.entry_marker_color.get())
-        return image
 
     def update_image(self):
         """
@@ -663,7 +645,7 @@ class ViewerApp:
 
         # include annotations?
         if self.state_export_with_annotations.get() == 1:
-            image_sam_points = self.calc_marker_points_overlay(dims[0], dims[1])
+            image_sam_points = self.markers_manager.calc_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
             image_contours = self.contours_manager.calc_contours_overlay(dims[0], dims[1], self.entry_annotation_color.get())
@@ -715,11 +697,11 @@ class ViewerApp:
             x = event.x / self.image_label.winfo_width()
             y = event.y / self.image_label.winfo_height()
             point = (x, y)
-            self.marker_points.append(point)
+            self.markers_manager.add(point)
             self.log("Marker point added: %s" % str(point))
         # ctrl -> clear
         elif state == 0x0004:
-            self.marker_points = []
+            self.markers_manager.clear()
             self.log("Marker points cleared")
         # update image
         self.update_image()
@@ -752,17 +734,17 @@ class ViewerApp:
             self.blue_scale.set(new_channel)
 
     def on_tools_clear_annotations_click(self, event=None):
-        if self.contours_manager.has_contours() or (len(self.marker_points) > 0):
+        if self.contours_manager.has_contours() or self.markers_manager.has_points():
             self.contours_manager.clear()
-            self.marker_points = []
+            self.markers_manager.clear()
             self.update_image()
             self.log("Annotations/marker points cleared")
         else:
             self.log("No annotations/marker points to clear")
 
     def on_tools_clear_markers_click(self, event=None):
-        if len(self.marker_points) > 0:
-            self.marker_points = []
+        if self.markers_manager.has_points():
+            self.markers_manager.clear()
             self.update_image()
             self.log("Marker points cleared")
         else:
@@ -780,7 +762,7 @@ class ViewerApp:
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
             self.notebook.select(2)
             return
-        if len(self.marker_points) == 0:
+        if not self.markers_manager.has_points():
             messagebox.showerror("Error", "No prompt points for SAM collected!")
             return
 
@@ -802,8 +784,7 @@ class ViewerApp:
         content = buf.getvalue()
 
         # collected points
-        points = [(int(x * self.image_label.winfo_width()), int(y * self.image_label.winfo_height()))
-                  for x, y in self.marker_points]
+        points = self.markers_manager.calc_absolute(self.image_label.winfo_width(), self.image_label.winfo_height())
         self.log("Sending image to SAM using prompt point(s): %s" % str(points))
         prompt = {
             "points": [
@@ -823,7 +804,7 @@ class ViewerApp:
         self.redis_connection.publish(self.state_redis_in.get(), json.dumps(d))
 
         # empty points
-        self.marker_points = []
+        self.markers_manager.clear()
 
         self.redis_pubsub = self.redis_connection.pubsub()
 
@@ -877,13 +858,13 @@ class ViewerApp:
         self.redis_thread = self.redis_pubsub.run_in_thread(sleep_time=0.001)
 
     def on_tools_polygon_click(self, event=None):
-        if len(self.marker_points) <= 3:
+        if not self.markers_manager.has_polygon():
             messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
             return
 
-        contours = [self.marker_points[:]]
+        contours = [self.markers_manager.points[:]]
         self.contours_manager.add(contours)
-        self.marker_points = []
+        self.markers_manager.clear()
         self.log("Polygon added")
         self.update_image()
 
