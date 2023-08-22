@@ -13,7 +13,7 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.viewer._countours import ContoursManager
+from happy.viewer._contours import ContoursManager
 from happy.viewer._data import DataManager
 from happy.viewer._markers import MarkersManager
 from happy.viewer._redis import SamManager
