@@ -36,6 +36,7 @@ setup(
         "redis",
         "ttkSimpleDialog==1.2.1",
         "opex",
+        "shapely",
     ],
     package_dir={
         '': 'src'

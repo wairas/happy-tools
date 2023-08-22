@@ -110,6 +110,7 @@ class ViewerApp:
         # mouse events
         # https://tkinterexamples.com/events/mouse/
         self.image_label.bind("<Button-1>", self.on_image_click)
+        self.image_label.bind("<Button-1>", self.on_image_click)
         self.label_r_value.bind("<Button-1>", self.on_label_r_click)
         self.label_g_value.bind("<Button-1>", self.on_label_g_click)
         self.label_b_value.bind("<Button-1>", self.on_label_b_click)
@@ -507,6 +508,51 @@ class ViewerApp:
         self.state_marker_color.set(marker_color)
         self.state_min_obj_size.set(min_obj_size)
 
+    def add_marker(self, event):
+        """
+        Adds a marker using the event coordinates.
+
+        :param event: the event that triggered the adding
+        """
+        x = event.x / self.image_label.winfo_width()
+        y = event.y / self.image_label.winfo_height()
+        point = (x, y)
+        self.markers.add(point)
+        self.log("Marker point added: %s" % str(point))
+        self.update_image()
+
+    def set_label(self, event):
+        """
+        Prompts the user to enter a label for the contours that contain the event's position.
+
+        :param event: the event that triggered the label setting
+        """
+        x = event.x / self.image_label.winfo_width()
+        y = event.y / self.image_label.winfo_height()
+        contours = self.contours.contains(x, y)
+        if len(contours) > 0:
+            labels = set([x.label for x in contours])
+            if len(contours) > 1:
+                text = "Please enter the label to apply to %d contours:" % len(contours)
+            else:
+                text = "Please enter the label"
+            new_label = ttkSimpleDialog.askstring(
+                title="Object label",
+                prompt=text,
+                initialvalue="" if (len(labels) != 1) else list(labels)[0],
+                parent=self.mainwindow)
+            if new_label is not None:
+                for contour in contours:
+                    contour.label = new_label
+                self.update_image()
+
+    def clear_markers(self):
+        """
+        Clears all markers.
+        """
+        self.markers.clear()
+        self.log("Marker points cleared")
+
     def on_file_open_scan_click(self, event=None):
         """
         Allows the user to select a black reference ENVI file.
@@ -623,17 +669,13 @@ class ViewerApp:
         state &= ~0x0002
         # no modifier -> add
         if state == 0x0000:
-            x = event.x / self.image_label.winfo_width()
-            y = event.y / self.image_label.winfo_height()
-            point = (x, y)
-            self.markers.add(point)
-            self.log("Marker point added: %s" % str(point))
+            self.add_marker(event)
+        # shift -> set label
+        elif state == 0x0001:
+            self.set_label(event)
         # ctrl -> clear
         elif state == 0x0004:
-            self.markers.clear()
-            self.log("Marker points cleared")
-        # update image
-        self.update_image()
+            self.clear_markers()
 
     def on_label_r_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
@@ -690,7 +732,7 @@ class ViewerApp:
         """
         Gets called when predictions become available.
 
-        :param contours: the predicted contours (list of list of x/y tuples)
+        :param contours: the predicted (normalized) contours (list of list of x/y tuples)
         :type contours: list
         """
         # add contours

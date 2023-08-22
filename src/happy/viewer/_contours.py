@@ -4,6 +4,30 @@ from operator import itemgetter
 
 from PIL import Image, ImageDraw
 from opex import BBox, Polygon, ObjectPrediction, ObjectPredictions
+from shapely.geometry import Point as SPoint
+from shapely.geometry.polygon import Polygon as SPolygon
+
+
+@dataclass
+class BBoxNormalized:
+    """
+    Encapsulates a bounding box.
+    """
+    left: float
+    top: float
+    right: float
+    bottom: float
+
+
+@dataclass
+class BBoxAbsolute:
+    """
+    Encapsulates a bounding box.
+    """
+    left: int
+    top: int
+    right: int
+    bottom: int
 
 
 @dataclass
@@ -14,6 +38,18 @@ class Contour:
 
     label: str = ""
     """ the label for the contour. """
+
+    normalized: bool = True
+    """ whether normalized or absolute coordinates. """
+
+    def has_label(self):
+        """
+        Checks whether an actual label is present.
+
+        :return: True if present
+        :rtype: bool
+        """
+        return (self.label is not None) and (len(self.label) > 0)
 
     def to_absolute(self, width, height):
         """
@@ -29,7 +65,22 @@ class Contour:
         points_a = []
         for coord in self.points:
             points_a.append((int(coord[0] * width), int(coord[1] * height)))
-        return Contour(points_a, label=self.label)
+        return Contour(points_a, label=self.label, normalized=False)
+
+    def bbox(self):
+        """
+        Determines the bounding box of the contour.
+
+        :return: the bounding box
+        :rtype: BBoxNormalized or BBoxAbsolute
+        """
+        # https://stackoverflow.com/a/13145419/4698227
+        min_xy = min(self.points, key=itemgetter(0))[0], min(self.points, key=itemgetter(1))[1]
+        max_xy = max(self.points, key=itemgetter(0))[0], max(self.points, key=itemgetter(1))[1]
+        if self.normalized:
+            return BBoxNormalized(left=float(min_xy[0]), top=float(min_xy[1]), right=float(max_xy[0]), bottom=float(max_xy[1]))
+        else:
+            return BBoxAbsolute(left=int(min_xy[0]), top=int(min_xy[1]), right=int(max_xy[0]), bottom=int(max_xy[1]))
 
 
 class ContoursManager:
@@ -76,6 +127,16 @@ class ContoursManager:
         for contours in self.to_absolute(width, height):
             for contour in contours:
                 draw.polygon(contour.points, outline=outline_color)
+                if contour.has_label():
+                    bbox = contour.bbox()
+                    w, h = draw.textsize(contour.label)
+                    draw.text(
+                        (
+                            bbox.left + (bbox.right - bbox.left - w) / 2,
+                            bbox.top + (bbox.bottom - bbox.top - h) / 2
+                        ),
+                        contour.label,
+                        fill=outline_color)
         return image
 
     def to_opex(self, width, height):
@@ -95,10 +156,8 @@ class ContoursManager:
         objs = []
         for contours in self.to_absolute(width, height):
             for contour in contours:
-                # https://stackoverflow.com/a/13145419/4698227
-                min_xy = min(contour.points, key=itemgetter(0))[0], min(contour.points, key=itemgetter(1))[1]
-                max_xy = max(contour.points, key=itemgetter(0))[0], max(contour.points, key=itemgetter(1))[1]
-                bbox = BBox(left=min_xy[0], top=min_xy[1], right=max_xy[0], bottom=max_xy[1])
+                bb = contour.bbox()
+                bbox = BBox(left=bb.left, top=bb.top, right=bb.right, bottom=bb.bottom)
                 poly = Polygon(points=contour.points)
                 label = "object" if (contour.label is "") else contour.label
                 pred = ObjectPrediction(label=label, bbox=bbox, polygon=poly)
@@ -149,3 +208,23 @@ class ContoursManager:
             return True
         else:
             return False
+
+    def contains(self, x, y):
+        """
+        Returns all the contours that contain the specified (normalized) coordinates.
+
+        :param x: the normalized x to look for
+        :type x: float
+        :param y: the normalized y to look for
+        :type y: float
+        :return: the list of contours that contain the point
+        :rtype: list
+        """
+        result = []
+        point = SPoint(x, y)
+        for contours in self.contours:
+            for contour in contours:
+                polygon = SPolygon(contour.points)
+                if polygon.contains(point):
+                    result.append(contour)
+        return result
