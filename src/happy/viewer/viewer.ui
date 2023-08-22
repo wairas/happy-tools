@@ -115,7 +115,7 @@
                   <object class="tk.Menuitem.Command" id="command_tools_remove_last_annotations" named="True">
                     <property name="accelerator">Cltr+Shift+L</property>
                     <property name="command" type="command" cbtype="simple">on_tools_remove_last_annotations_click</property>
-                    <property name="label" translatable="yes">Remove last annotations</property>
+                    <property name="label" translatable="yes">Remove last annotation</property>
                   </object>
                 </child>
                 <child>
