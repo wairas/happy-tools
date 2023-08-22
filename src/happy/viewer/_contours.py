@@ -46,6 +46,8 @@ class ContoursManager:
         :type width: int
         :param height: the height to use
         :type height: int
+        :param outline_color: the color for the outline
+        :type outline_color: str
         :return: the generated overlay
         """
         image = Image.new("RGBA", (width, height), color=None)
