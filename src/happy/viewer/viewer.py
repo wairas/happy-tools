@@ -2,7 +2,6 @@
 import argparse
 import spectral.io.envi as envi
 import io
-import numpy as np
 import os
 import pathlib
 import pygubu
@@ -14,8 +13,8 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.hsi_to_rgb.generate import normalize_data
 from happy.viewer._countours import ContoursManager
+from happy.viewer._data import DataManager
 from happy.viewer._markers import MarkersManager
 from happy.viewer._redis import SamManager
 
@@ -122,15 +121,8 @@ class ViewerApp:
         self.last_whiteref_dir = "."
         self.last_scan_dir = "."
         self.last_image_dir = "."
-        self.data_scan = None
-        self.data_blackref = None
-        self.data_whiteref = None
-        self.data_norm = None
-        self.current_scan = None
-        self.current_blackref = None
-        self.current_whiteref = None
         self.photo_scan = None
-        self.display_image = None
+        self.data = DataManager()
         self.markers = MarkersManager()
         self.contours = ContoursManager()
         self.sam = SamManager()
@@ -211,16 +203,14 @@ class ViewerApp:
         """
         self.log("Loading scan: %s" % filename)
         img = envi.open(filename)
-        self.data_scan = img.load()
-        self.current_scan = filename
-        self.reset_norm_data()
+        self.data.set_scan(filename, img.load())
 
         # configure scales
-        num_bands = self.data_scan.shape[2]
+        num_bands = self.data.scan_data.shape[2]
         self.red_scale.configure(to=num_bands - 1)
         self.green_scale.configure(to=num_bands - 1)
         self.blue_scale.configure(to=num_bands - 1)
-        self.label_dims.configure(text=DIMENSIONS % self.data_scan.shape)
+        self.label_dims.configure(text=DIMENSIONS % self.data.scan_data.shape)
 
         # set r/g/b from default bands?
         if self.autodetect_channels:
@@ -247,16 +237,14 @@ class ViewerApp:
         """
         self.log("Loading black reference: %s" % filename)
         data = envi.open(filename).load()
-        if data.shape != self.data_scan.shape:
+        if data.shape != self.data.scan_data.shape:
             messagebox.showerror(
                 "Error",
                 "Black reference data should have the same shape as the scan data!\n"
-                + "scan:" + str(self.data_scan.shape) + " != blackref:" + str(data.shape))
+                + "scan:" + str(self.data.scan_data.shape) + " != blackref:" + str(data.shape))
             return
-
-        self.data_blackref = data
-        self.current_blackref = filename
-        self.reset_norm_data()
+        
+        self.data.set_blackref(filename, data)
 
         if do_update:
             self.update()
@@ -272,41 +260,17 @@ class ViewerApp:
         """
         self.log("Loading white reference: %s" % filename)
         data = envi.open(filename).load()
-        if data.shape != self.data_scan.shape:
+        if data.shape != self.data.scan_data.shape:
             messagebox.showerror(
                 "Error",
                 "White reference data should have the same shape as the scan data!\n"
-                + "scan:" + str(self.data_scan.shape) + " != whiteref:" + str(data.shape))
+                + "scan:" + str(self.data.scan_data.shape) + " != whiteref:" + str(data.shape))
             return
 
-        self.data_whiteref = data
-        self.current_whiteref = filename
-        self.reset_norm_data()
+        self.data.set_whiteref(filename, data)
 
         if do_update:
             self.update()
-
-    def reset_norm_data(self):
-        """
-        Resets the normalized data, forcing a recalculation.
-        """
-        self.data_norm = None
-
-    def calc_norm_data(self):
-        """
-        Calculates the normalized data.
-        """
-        if self.data_norm is not None:
-            return
-        if self.data_scan is not None:
-            self.log("Calculating...")
-            self.data_norm = self.data_scan
-            # subtract black reference
-            if self.data_blackref is not None:
-                self.data_norm = self.data_norm - self.data_blackref
-            # divide by white reference
-            if self.data_whiteref is not None:
-                self.data_norm = self.data_norm / self.data_whiteref
 
     def set_wavelengths(self, r, g, b):
         """
@@ -331,18 +295,6 @@ class ViewerApp:
         self.green_scale.set(g)
         self.blue_scale.set(b)
 
-    def get_data_dims(self):
-        """
-        Returns the dimensions of the loaded data.
-
-        :return: the tuple (w,h) of the data, None if no data
-        :rtype: tuple
-        """
-        if self.data_norm is None:
-            return None
-        else:
-            return self.data_norm.shape[1], self.data_norm.shape[0]
-
     def get_image_label_dims(self):
         """
         Returns the dimensions of the image label displaying the data.
@@ -350,7 +302,7 @@ class ViewerApp:
         :return: the tuple (w,h) of the image label, None if no data
         :rtype: tuple
         """
-        if self.data_norm is None:
+        if self.data.norm_data is None:
             return None
         else:
             return self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10
@@ -374,7 +326,7 @@ class ViewerApp:
         # keep aspect ratio?
         if self.keep_aspectratio:
             available_aspect = available_width / available_height
-            img_width, img_height = self.get_data_dims()
+            img_width, img_height = self.data.dims()
             img_aspect = img_width / img_height
             if img_aspect > available_aspect:
                 scale = img_width / available_width
@@ -398,8 +350,8 @@ class ViewerApp:
         :type height: int
         :return: the scaled image
         """
-        if self.display_image is not None:
-            image = Image.fromarray(self.display_image)
+        if self.data.display_image is not None:
+            image = Image.fromarray(self.data.display_image)
             image = image.resize((width, height), Image.LANCZOS)
             return image
         else:
@@ -412,10 +364,10 @@ class ViewerApp:
         :return: the dimensions as tuple (w,h) or None if not available
         :rtype: tuple
         """
-        if self.data_norm is None:
+        if self.data.norm_data is None:
             return None
         if self.keep_aspectratio:
-            result = (self.data_norm.shape[1], self.data_norm.shape[0])
+            result = (self.data.norm_data.shape[1], self.data.norm_data.shape[0])
         else:
             result = (self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
         return result
@@ -445,22 +397,7 @@ class ViewerApp:
         """
         Updates the image.
         """
-        if self.data_scan is None:
-            return
-
-        self.calc_norm_data()
-
-        red_band = self.data_norm[:, :, int(self.red_scale.get())]
-        green_band = self.data_norm[:, :, int(self.green_scale.get())]
-        blue_band = self.data_norm[:, :, int(self.blue_scale.get())]
-
-        norm_red = normalize_data(red_band)
-        norm_green = normalize_data(green_band)
-        norm_blue = normalize_data(blue_band)
-
-        rgb_image = np.dstack((norm_red, norm_green, norm_blue))
-        self.display_image = (rgb_image * 255).astype(np.uint8)
-
+        self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()), self.log)
         self.resize_image_label()
         self.log("")
 
@@ -471,22 +408,22 @@ class ViewerApp:
         info = ""
         # scan
         info += "Scan:\n"
-        if self.current_scan is None:
+        if self.data.scan_file is None:
             info += "-none-"
         else:
-            info += self.current_scan + "\n" + str(self.data_scan.shape)
+            info += self.data.scan_file + "\n" + str(self.data.scan_data.shape)
         # black
         info += "\n\nBlack reference:\n"
-        if self.current_blackref is None:
+        if self.data.blackref_file is None:
             info += "-none-"
         else:
-            info += self.current_blackref + "\n" + str(self.data_blackref.shape)
+            info += self.data.blackref_file + "\n" + str(self.data.blackref_data.shape)
         # white
         info += "\n\nWhite reference:\n"
-        if self.current_whiteref is None:
+        if self.data.whiteref_file is None:
             info += "-none-"
         else:
-            info += self.current_whiteref + "\n" + str(self.data_whiteref.shape)
+            info += self.data.whiteref_file + "\n" + str(self.data.whiteref_data.shape)
         # update
         self.text_info.delete(1.0, tk.END)
         self.text_info.insert(tk.END, info)
@@ -581,17 +518,16 @@ class ViewerApp:
             self.load_scan(filename, do_update=True)
 
     def on_file_clear_blackref(self, event=None):
-        if self.data_blackref is not None:
-            self.data_blackref = None
-            self.current_blackref = None
-            self.reset_norm_data()
+        if self.data.has_blackref():
+            self.log("Clearing black reference")
+            self.data.clear_blackref()
             self.update()
 
     def on_file_open_blackref(self, event=None):
         """
         Allows the user to select a black reference ENVI file.
         """
-        if self.data_scan is None:
+        if not self.data.has_scan():
             messagebox.showerror("Error", "Please load a scan file first!")
             return
 
@@ -602,17 +538,16 @@ class ViewerApp:
             self.load_blackref(filename, do_update=True)
 
     def on_file_clear_whiteref(self, event=None):
-        if self.data_whiteref is not None:
-            self.data_whiteref = None
-            self.current_whiteref = None
-            self.reset_norm_data()
+        if self.data.has_whiteref():
+            self.log("Clearing white reference")
+            self.data.clear_whiteref()
             self.update()
 
     def on_file_open_whiteref(self, event=None):
         """
         Allows the user to select a white reference ENVI file.
         """
-        if self.data_scan is None:
+        if not self.data.has_scan():
             messagebox.showerror("Error", "Please load a scan file first!")
             return
 
@@ -627,7 +562,7 @@ class ViewerApp:
         Allows the user to select a PNG file for saving the false color RGB to.
         """
         if self.keep_aspectratio:
-            dims = self.get_data_dims()
+            dims = self.data.dims()
         else:
             dims = self.get_image_label_dims()
         if dims is None:
