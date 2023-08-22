@@ -13,10 +13,10 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.viewer._contours import ContoursManager, Contour
-from happy.viewer._data import DataManager
-from happy.viewer._markers import MarkersManager
-from happy.viewer._redis import SamManager
+from happy.envi_viewer._contours import ContoursManager, Contour
+from happy.envi_viewer._data import DataManager
+from happy.envi_viewer._markers import MarkersManager
+from happy.envi_viewer._redis import SamManager
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -814,7 +814,7 @@ def main(args=None):
     """
     parser = argparse.ArgumentParser(
         description="ENVI Hyper-spectral Image Viewer.\nOffers contour detection using SAM (Segment-Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-anything)",
-        prog="happy-viewer",
+        prog="envi-viewer",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--scan", type=str, help="Path to the scan file (ENVI format)", required=False)
     parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)", required=False)

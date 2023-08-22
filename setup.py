@@ -48,10 +48,10 @@ setup(
     packages=find_namespace_packages(where='src'),
     entry_points={
         "console_scripts": [
+            "envi-viewer=happy.envi_viewer.viewer:sys_main",
             "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
             "happy-hsi2rgb=happy.hsi_to_rgb.generate:sys_main",
             "happy-opex2happy=happy.opex_to_happy.generate:sys_main",
-            "happy-viewer=happy.viewer.viewer:sys_main",
         ]
     },
     version="0.0.1",
