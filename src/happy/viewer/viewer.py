@@ -13,7 +13,7 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.viewer._contours import ContoursManager
+from happy.viewer._contours import ContoursManager, Contour
 from happy.viewer._data import DataManager
 from happy.viewer._markers import MarkersManager
 from happy.viewer._redis import SamManager
@@ -690,10 +690,11 @@ class ViewerApp:
         """
         Gets called when predictions become available.
 
-        :param contours: the predicted contours
+        :param contours: the predicted contours (list of list of x/y tuples)
+        :type contours: list
         """
         # add contours
-        self.contours.add(contours)
+        self.contours.add([Contour(points=x) for x in contours])
         # update contours/image
         self.resize_image_label()
 
@@ -739,8 +740,7 @@ class ViewerApp:
             messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
             return
 
-        contours = [self.markers.points[:]]
-        self.contours.add(contours)
+        self.contours.add([Contour(points=self.markers.points[:])])
         self.markers.clear()
         self.log("Polygon added")
         self.update_image()
