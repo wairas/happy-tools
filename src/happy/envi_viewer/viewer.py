@@ -540,6 +540,19 @@ class ViewerApp:
         self.markers.clear()
         self.log("Marker points cleared")
 
+    def scale_to_text(self, index):
+        """
+        Generates the text for the scale label (index: wavelength).
+
+        :param index: the index on the scale
+        :type index: int
+        :return: the generated text
+        :rtype: str
+        """
+        if not self.data.has_scan():
+            return str(index)
+        return str(index) + ": " + str(self.data.get_wavelengths()[index])
+
     def on_file_open_scan_click(self, event=None):
         """
         Allows the user to select a black reference ENVI file.
@@ -633,15 +646,15 @@ class ViewerApp:
         self.update_image()
 
     def on_scale_r_changed(self, event):
-        self.red_scale_value.configure(text=str(self.state_scale_r.get()))
+        self.red_scale_value.configure(text=self.scale_to_text(self.state_scale_r.get()))
         self.update_image()
 
     def on_scale_g_changed(self, event):
-        self.green_scale_value.configure(text=str(self.state_scale_g.get()))
+        self.green_scale_value.configure(text=self.scale_to_text(self.state_scale_g.get()))
         self.update_image()
 
     def on_scale_b_changed(self, event):
-        self.blue_scale_value.configure(text=str(self.state_scale_b.get()))
+        self.blue_scale_value.configure(text=self.scale_to_text(self.state_scale_b.get()))
         self.update_image()
 
     def on_window_resize(self, event):
