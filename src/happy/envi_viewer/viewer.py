@@ -412,6 +412,14 @@ class ViewerApp:
             info += "-none-"
         else:
             info += self.data.whiteref_file + "\n" + str(self.data.whiteref_data.shape)
+        # wave lengths
+        info += "\n\nWave lengths:\n"
+        if len(self.data.get_wavelengths()) == 0:
+            info += "-none-"
+        else:
+            info += "index\twave length\n"
+            for i in self.data.get_wavelengths():
+                info += str(i) + "\t" + self.data.get_wavelengths()[i] + "\n"
         # update
         self.text_info.delete(1.0, tk.END)
         self.text_info.insert(tk.END, info)
