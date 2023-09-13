@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 import argparse
-import spectral.io.envi as envi
 import io
 import os
 import pathlib
@@ -17,6 +16,7 @@ from happy.envi_viewer._contours import ContoursManager, Contour
 from happy.envi_viewer._data import DataManager
 from happy.envi_viewer._markers import MarkersManager
 from happy.envi_viewer._redis import SamManager
+from happy.envi_viewer._session import SessionManager, PROPERTIES
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -116,13 +116,8 @@ class ViewerApp:
         self.label_b_value.bind("<Button-1>", self.on_label_b_click)
 
         # init some vars
-        self.autodetect_channels = False
-        self.keep_aspectratio = False
-        self.last_blackref_dir = "."
-        self.last_whiteref_dir = "."
-        self.last_scan_dir = "."
-        self.last_image_dir = "."
         self.photo_scan = None
+        self.session = SessionManager()
         self.data = DataManager()
         self.markers = MarkersManager()
         self.contours = ContoursManager()
@@ -213,7 +208,7 @@ class ViewerApp:
         self.label_dims.configure(text=DIMENSIONS % self.data.scan_data.shape)
 
         # set r/g/b from default bands?
-        if self.autodetect_channels:
+        if self.session.autodetect_channels:
             try:
                 metadata = self.data.scan_img.metadata
                 if "default bands" in metadata:
@@ -312,7 +307,7 @@ class ViewerApp:
             return None
 
         # keep aspect ratio?
-        if self.keep_aspectratio:
+        if self.session.keep_aspectratio:
             available_aspect = available_width / available_height
             img_width, img_height = self.data.dims()
             img_aspect = img_width / img_height
@@ -354,7 +349,7 @@ class ViewerApp:
         """
         if self.data.norm_data is None:
             return None
-        if self.keep_aspectratio:
+        if self.session.keep_aspectratio:
             result = (self.data.norm_data.shape[1], self.data.norm_data.shape[0])
         else:
             result = (self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
@@ -438,7 +433,7 @@ class ViewerApp:
         :param value: whether to keep
         :type value: bool
         """
-        self.keep_aspectratio = value
+        self.session.keep_aspectratio = value
         self.state_keep_aspectratio.set(1 if value else 0)
 
     def set_autodetect_channels(self, value):
@@ -448,7 +443,7 @@ class ViewerApp:
         :param value: whether to auto-detect
         :type value: bool
         """
-        self.autodetect_channels = value
+        self.session.autodetect_channels = value
         self.state_autodetect_channels.set(1 if value else 0)
 
     def set_annotation_color(self, color):
@@ -548,6 +543,52 @@ class ViewerApp:
         self.markers.clear()
         self.log("Marker points cleared")
 
+    def state_to_session(self):
+        """
+        Transfers the current state in the UI to the session manager.
+        """
+        self.session.autodetect_channels = self.state_autodetect_channels.get() == 1
+        self.session.keep_aspectratio = self.state_keep_aspectratio.get() == 1
+        # last_blackref_dir
+        # last_whiteref_dir
+        # last_scan_dir
+        # last_image_dir
+        self.session.scale_r = self.state_scale_r.get()
+        self.session.scale_g = self.state_scale_g.get()
+        self.session.scale_b = self.state_scale_b.get()
+        self.session.annotation_color = self.state_annotation_color.get()
+        self.session.redis_host = self.state_redis_host.get()
+        self.session.redis_port = self.state_redis_port.get()
+        self.session.redis_pw = self.state_redis_pw.get()
+        self.session.redis_in = self.state_redis_in.get()
+        self.session.redis_out = self.state_redis_out.get()
+        self.session.marker_size = self.state_marker_size.get()
+        self.session.marker_color = self.state_marker_color.get()
+        self.session.min_obj_size = self.state_min_obj_size.get()
+
+    def session_to_state(self):
+        """
+        Transfers the session data to the UI.
+        """
+        self.state_autodetect_channels.set(1 if self.session.autodetect_channels else 0)
+        self.state_keep_aspectratio.set(1 if self.session.keep_aspectratio else 0)
+        # last_blackref_dir
+        # last_whiteref_dir
+        # last_scan_dir
+        # last_image_dir
+        self.state_scale_r.set(self.session.scale_r)
+        self.state_scale_g.set(self.session.scale_g)
+        self.state_scale_b.set(self.session.scale_b)
+        self.state_annotation_color.set(self.session.annotation_color)
+        self.state_redis_host.set(self.session.redis_host)
+        self.state_redis_port.set(self.session.redis_port)
+        self.state_redis_pw.set(self.session.redis_pw)
+        self.state_redis_in.set(self.session.redis_in)
+        self.state_redis_out.set(self.session.redis_out)
+        self.state_marker_size.set(self.session.marker_size)
+        self.state_marker_color.set(self.session.marker_color)
+        self.state_min_obj_size.set(self.session.min_obj_size)
+
     def scale_to_text(self, index):
         """
         Generates the text for the scale label (index: wavelength).
@@ -565,10 +606,10 @@ class ViewerApp:
         """
         Allows the user to select a black reference ENVI file.
         """
-        filename = self.open_envi_file('Open scan', self.last_scan_dir)
+        filename = self.open_envi_file('Open scan', self.session.last_scan_dir)
 
         if filename is not None:
-            self.last_scan_dir = os.path.dirname(filename)
+            self.session.last_scan_dir = os.path.dirname(filename)
             self.load_scan(filename, do_update=True)
 
     def on_file_clear_blackref(self, event=None):
@@ -585,10 +626,10 @@ class ViewerApp:
             messagebox.showerror("Error", "Please load a scan file first!")
             return
 
-        filename = self.open_envi_file('Open black reference', self.last_blackref_dir)
+        filename = self.open_envi_file('Open black reference', self.session.last_blackref_dir)
 
         if filename is not None:
-            self.last_blackref_dir = os.path.dirname(filename)
+            self.session.last_blackref_dir = os.path.dirname(filename)
             self.load_blackref(filename, do_update=True)
 
     def on_file_clear_whiteref(self, event=None):
@@ -605,17 +646,17 @@ class ViewerApp:
             messagebox.showerror("Error", "Please load a scan file first!")
             return
 
-        filename = self.open_envi_file('Open white reference', self.last_whiteref_dir)
+        filename = self.open_envi_file('Open white reference', self.session.last_whiteref_dir)
 
         if filename is not None:
-            self.last_whiteref_dir = os.path.dirname(filename)
+            self.session.last_whiteref_dir = os.path.dirname(filename)
             self.load_whiteref(filename, do_update=True)
 
     def on_file_exportimage_click(self, event=None):
         """
         Allows the user to select a PNG file for saving the false color RGB to.
         """
-        if self.keep_aspectratio:
+        if self.session.keep_aspectratio:
             dims = self.data.dims()
         else:
             dims = self.get_image_label_dims()
@@ -635,34 +676,39 @@ class ViewerApp:
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
 
-        filename = self.save_image_file('Save image', self.last_image_dir)
+        filename = self.save_image_file('Save image', self.session.last_image_dir)
         if filename is not None:
-            self.last_image_dir = os.path.dirname(filename)
+            self.session.last_image_dir = os.path.dirname(filename)
             image.save(filename)
             annotations = self.contours.to_opex(dims[0], dims[1])
             if annotations is not None:
                 annotations.save_json_to_file(os.path.splitext(filename)[0] + ".json")
 
     def on_file_close_click(self, event=None):
+        self.state_to_session()
+        self.session.save()
         self.mainwindow.quit()
 
     def on_autodetect_channels_click(self):
-        self.autodetect_channels = self.state_autodetect_channels.get()
+        self.session.autodetect_channels = self.state_autodetect_channels.get()
 
     def on_keep_aspectratio_click(self):
-        self.keep_aspectratio = self.state_keep_aspectratio.get()
+        self.session.keep_aspectratio = self.state_keep_aspectratio.get()
         self.update_image()
 
     def on_scale_r_changed(self, event):
         self.red_scale_value.configure(text=self.scale_to_text(self.state_scale_r.get()))
+        self.session.scale_r = self.state_scale_r.get()
         self.update_image()
 
     def on_scale_g_changed(self, event):
         self.green_scale_value.configure(text=self.scale_to_text(self.state_scale_g.get()))
+        self.session.scale_g = self.state_scale_g.get()
         self.update_image()
 
     def on_scale_b_changed(self, event):
         self.blue_scale_value.configure(text=self.scale_to_text(self.state_scale_b.get()))
+        self.session.scale_b = self.state_scale_b.get()
         self.update_image()
 
     def on_window_resize(self, event):
@@ -827,33 +873,37 @@ def main(args=None):
     parser.add_argument("-s", "--scan", type=str, help="Path to the scan file (ENVI format)", required=False)
     parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)", required=False)
     parser.add_argument("-w", "--white_reference", type=str, help="Path to the white reference file (ENVI format)", required=False)
-    parser.add_argument("-r", "--red", metavar="INT", help="the wave length to use for the red channel", default=0, type=int, required=False)
-    parser.add_argument("-g", "--green", metavar="INT", help="the wave length to use for the green channel", default=0, type=int, required=False)
-    parser.add_argument("-b", "--blue", metavar="INT", help="the wave length to use for the blue channel", default=0, type=int, required=False)
-    parser.add_argument("--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False)
-    parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False)
-    parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default="#ff0000", required=False)
-    parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default="localhost", required=False)
-    parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=6379, required=False)
+    parser.add_argument("-r", "--scale_r", metavar="INT", help="the wave length to use for the red channel", default=None, type=int, required=False)
+    parser.add_argument("-g", "--scale_g", metavar="INT", help="the wave length to use for the green channel", default=None, type=int, required=False)
+    parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel", default=None, type=int, required=False)
+    parser.add_argument("--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False, default=None)
+    parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False, default=None)
+    parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default=None, required=False)
+    parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default=None, required=False)
+    parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=None, required=False)
     parser.add_argument("--redis_pw", metavar="PASSWORD", type=str, help="The password to use with the Redis server", default=None, required=False)
-    parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on", default="sam_in", required=False)
-    parser.add_argument("--redis_out", metavar="CHANNEL", type=str, help="The channel that SAM is broadcasting the detections on", default="sam_out", required=False)
-    parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host", required=False)
-    parser.add_argument("--sam_marker_size", metavar="INT", help="The size in pixels for the SAM points", default=7, type=int, required=False)
-    parser.add_argument("--sam_marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)", default="#ff0000", required=False)
-    parser.add_argument("--sam_min_obj_size", metavar="INT", help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=-1, type=int, required=False)
+    parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on", default=None, required=False)
+    parser.add_argument("--redis_out", metavar="CHANNEL", type=str, help="The channel that SAM is broadcasting the detections on", default=None, required=False)
+    parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host", required=False, default=None)
+    parser.add_argument("--marker_size", metavar="INT", help="The size in pixels for the SAM points", default=None, type=int, required=False)
+    parser.add_argument("--marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)", default=None, required=False)
+    parser.add_argument("--min_obj_size", metavar="INT", help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=None, type=int, required=False)
     parsed = parser.parse_args(args=args)
     app = ViewerApp()
-    if parsed.autodetect_channels:
-        app.set_autodetect_channels(True)
-    else:
-        app.set_autodetect_channels(False)
-        app.set_wavelengths(parsed.red, parsed.green, parsed.blue)
-    app.set_keep_aspectratio(parsed.keep_aspectratio)
-    app.set_annotation_color(parsed.annotation_color)
-    app.set_redis_connection(parsed.redis_host, parsed.redis_port, parsed.redis_pw, parsed.redis_in, parsed.redis_out)
-    app.set_sam_options(parsed.sam_marker_size, parsed.sam_marker_color, parsed.sam_min_obj_size)
-    if parsed.redis_connect:
+
+    # override session data
+    app.session.load()
+    for p in PROPERTIES:
+        if hasattr(parsed, p):
+            value = getattr(parsed, p)
+            if value is not None:
+                setattr(app.session, p, value)
+    app.session_to_state()
+
+    if not app.session.autodetect_channels:
+        app.set_wavelengths(app.session.scale_r, app.session.scale_g, app.session.scale_b)
+    app.set_redis_connection(app.session.redis_host, app.session.redis_port, app.session.redis_pw, app.session.redis_in, app.session.redis_out)
+    if app.session.redis_connect:
         app.button_sam_connect.invoke()
     if parsed.scan is not None:
         app.load_scan(parsed.scan, do_update=False)
