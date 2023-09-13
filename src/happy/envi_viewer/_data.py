@@ -27,6 +27,7 @@ class DataManager:
         self.whiteref_data = None
         self.norm_data = None
         self.display_image = None
+        self.wavelengths = None
 
     def has_scan(self):
         """
@@ -44,6 +45,7 @@ class DataManager:
         self.scan_file = None
         self.scan_img = None
         self.scan_data = None
+        self.wavelengths = None
         self.reset_norm_data()
 
     def set_scan(self, fname):
@@ -78,17 +80,17 @@ class DataManager:
         :return: the dictionary of the wave band / wave length association, empty if no scan present
         :rtype: dict
         """
-        result = dict()
-
         if not self.has_scan():
-            return result
+            return dict()
 
-        metadata = self.scan_img.metadata
-        if "wavelength" in metadata:
-            for i in range(self.get_num_bands()):
-                result[i] = metadata["wavelength"][i]
+        if self.wavelengths is None:
+            self.wavelengths = dict()
+            metadata = self.scan_img.metadata
+            if "wavelength" in metadata:
+                for i in range(self.get_num_bands()):
+                    self.wavelengths[i] = metadata["wavelength"][i]
 
-        return result
+        return self.wavelengths
 
     def has_whiteref(self):
         """
