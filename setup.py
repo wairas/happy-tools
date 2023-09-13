@@ -43,7 +43,7 @@ setup(
     },
     package_data={
         "happy": ["*.png"],
-        "happy.viewer": ["*.ui"],
+        "happy.envi_viewer": ["*.ui"],
     },
     packages=find_namespace_packages(where='src'),
     entry_points={
