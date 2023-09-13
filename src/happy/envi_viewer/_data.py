@@ -1,4 +1,5 @@
 import numpy as np
+import spectral.io.envi as envi
 
 from happy.hsi_to_rgb.generate import normalize_data
 
@@ -12,11 +13,17 @@ class DataManager:
         """
         Initializes the manager.
         """
+        # _file: the filename
+        # _img: the ENVI data structure
+        # _data: the numpy data
         self.scan_file = None
+        self.scan_img = None
         self.scan_data = None
         self.blackref_file = None
+        self.blackref_img = None
         self.blackref_data = None
         self.whiteref_file = None
+        self.whiteref_img = None
         self.whiteref_data = None
         self.norm_data = None
         self.display_image = None
@@ -35,20 +42,53 @@ class DataManager:
         Removes the scan data.
         """
         self.scan_file = None
+        self.scan_img = None
         self.scan_data = None
         self.reset_norm_data()
 
-    def set_scan(self, fname, data):
+    def set_scan(self, fname):
         """
         Sets the scan.
 
         :param fname: the filename
         :type fname: str
-        :param data: the scan data
         """
+        img = envi.open(fname)
         self.scan_file = fname
-        self.scan_data = data
+        self.scan_img = img
+        self.scan_data = img.load()
         self.reset_norm_data()
+
+    def get_num_bands(self):
+        """
+        Returns the number of bands in the scan.
+
+        :return: the number of bands, 0 if no scan present
+        :rtype: int
+        """
+        if not self.has_scan():
+            return 0
+
+        return self.scan_data.shape[2]
+
+    def get_wavelengths(self):
+        """
+        Returns the indexed wave lengths.
+
+        :return: the dictionary of the wave band / wave length association, empty if no scan present
+        :rtype: dict
+        """
+        result = dict()
+
+        if not self.has_scan():
+            return result
+
+        metadata = self.scan_img.metadata
+        if "wavelength" in metadata:
+            for i in range(self.get_num_bands()):
+                result[i] = metadata["wavelength"][i]
+
+        return result
 
     def has_whiteref(self):
         """
@@ -64,18 +104,30 @@ class DataManager:
         Removes the white reference data.
         """
         self.whiteref_file = None
+        self.whiteref_img = None
         self.whiteref_data = None
         self.reset_norm_data()
 
-    def set_whiteref(self, fname, data):
+    def set_whiteref(self, fname):
         """
         Sets the white reference.
 
         :param fname: the filename
         :type fname: str
-        :param data: the white reference data
+        :return: None if successfully added, otherwise error message
+        :rtype: str
         """
+        if not self.has_scan():
+            return "Please load a scan first!"
+
+        img = envi.open(fname)
+        data = img.load()
+        if data.shape != self.scan_data.shape:
+            return "White reference data should have the same shape as the scan data!\n" \
+                   + "scan:" + str(self.scan_data.shape) + " != whiteref:" + str(data.shape)
+
         self.whiteref_file = fname
+        self.whiteref_img = img
         self.whiteref_data = data
         self.reset_norm_data()
 
@@ -93,18 +145,30 @@ class DataManager:
         Removes the black reference data.
         """
         self.blackref_file = None
+        self.blackref_img = None
         self.blackref_data = None
         self.reset_norm_data()
 
-    def set_blackref(self, fname, data):
+    def set_blackref(self, fname):
         """
         Sets the black reference.
 
         :param fname: the filename
         :type fname: str
-        :param data: the black reference data
+        :return: None if successfully added, otherwise error message
+        :rtype: str
         """
+        if not self.has_scan():
+            return "Please load a scan first!"
+
+        img = envi.open(fname)
+        data = img.load()
+        if data.shape != self.scan_data.shape:
+            return "Black reference data should have the same shape as the scan data!\n" \
+                   + "scan:" + str(self.scan_data.shape) + " != blackref:" + str(data.shape)
+
         self.blackref_file = fname
+        self.blackref_img = img
         self.blackref_data = data
         self.reset_norm_data()
 

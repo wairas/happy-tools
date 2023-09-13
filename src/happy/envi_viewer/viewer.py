@@ -203,11 +203,10 @@ class ViewerApp:
         :type do_update: bool
         """
         self.log("Loading scan: %s" % filename)
-        img = envi.open(filename)
-        self.data.set_scan(filename, img.load())
+        self.data.set_scan(filename)
 
         # configure scales
-        num_bands = self.data.scan_data.shape[2]
+        num_bands = self.data.get_num_bands()
         self.red_scale.configure(to=num_bands - 1)
         self.green_scale.configure(to=num_bands - 1)
         self.blue_scale.configure(to=num_bands - 1)
@@ -216,7 +215,7 @@ class ViewerApp:
         # set r/g/b from default bands?
         if self.autodetect_channels:
             try:
-                metadata = img.metadata
+                metadata = self.data.scan_img.metadata
                 if "default bands" in metadata:
                     bands = [int(x) for x in metadata["default bands"]]
                     r, g, b = bands
@@ -237,16 +236,10 @@ class ViewerApp:
         :type do_update: bool
         """
         self.log("Loading black reference: %s" % filename)
-        data = envi.open(filename).load()
-        if data.shape != self.data.scan_data.shape:
-            messagebox.showerror(
-                "Error",
-                "Black reference data should have the same shape as the scan data!\n"
-                + "scan:" + str(self.data.scan_data.shape) + " != blackref:" + str(data.shape))
+        error = self.data.set_blackref(filename)
+        if error is not None:
+            messagebox.showerror("Error", error)
             return
-        
-        self.data.set_blackref(filename, data)
-
         if do_update:
             self.update()
 
@@ -260,16 +253,10 @@ class ViewerApp:
         :type do_update: bool
         """
         self.log("Loading white reference: %s" % filename)
-        data = envi.open(filename).load()
-        if data.shape != self.data.scan_data.shape:
-            messagebox.showerror(
-                "Error",
-                "White reference data should have the same shape as the scan data!\n"
-                + "scan:" + str(self.data.scan_data.shape) + " != whiteref:" + str(data.shape))
+        error = self.data.set_whiteref(filename)
+        if error is not None:
+            messagebox.showerror("Error", error)
             return
-
-        self.data.set_whiteref(filename, data)
-
         if do_update:
             self.update()
 
