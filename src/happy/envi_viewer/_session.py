@@ -93,6 +93,9 @@ class SessionManager:
         """
         if path is None:
             path = self.get_default_config_path()
+            # does not exist (yet)?
+            if not os.path.exists(path):
+                return
 
         with open(path, "r") as fp:
             data = json.load(fp)
