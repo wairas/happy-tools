@@ -414,7 +414,8 @@ class ViewerApp:
         else:
             info += "index\twave length\n"
             for i in self.data.get_wavelengths():
-                info += str(i) + "\t" + self.data.get_wavelengths()[i] + "\n"
+                if i in self.data.get_wavelengths():
+                    info += str(i) + "\t" + self.data.get_wavelengths()[i] + "\n"
         # update
         self.text_info.delete(1.0, tk.END)
         self.text_info.insert(tk.END, info)
@@ -600,7 +601,10 @@ class ViewerApp:
         """
         if not self.data.has_scan():
             return str(index)
-        return str(index) + ": " + str(self.data.get_wavelengths()[index])
+        try:
+            return str(index) + ": " + str(self.data.get_wavelengths()[index])
+        except:
+            return str(index)
 
     def on_file_open_scan_click(self, event=None):
         """
