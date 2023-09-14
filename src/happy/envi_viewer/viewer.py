@@ -416,6 +416,18 @@ class ViewerApp:
             for i in self.data.get_wavelengths():
                 if i in self.data.get_wavelengths():
                     info += str(i) + "\t" + self.data.get_wavelengths()[i] + "\n"
+        # other metadata
+        info += "\n\nOther meta-data:\n"
+        if not self.data.has_scan():
+            info += "-none-"
+        else:
+            metadata = self.data.scan_img.metadata
+            for k in metadata:
+                if k == "wavelength":
+                    continue
+                else:
+                    info += "- %s: %s\n" % (k, str(metadata[k]))
+
         # update
         self.text_info.delete(1.0, tk.END)
         self.text_info.insert(tk.END, info)
