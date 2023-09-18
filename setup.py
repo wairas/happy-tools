@@ -59,8 +59,8 @@ setup(
             "happy-mat-info=happy.mat_info.output:sys_main",
             "happy-opex2happy=happy.opex_to_happy.generate:sys_main",
             "happy-plot-preproc=happy.plot_preproc.output:sys_main",
-            "happy-scikit-regression-build=happy.scikit.regression_build:sys_main",
-            "happy-scikit-unsupervised-build=happy.scikit.unsupervised_build:sys_main",
+            "happy-scikit-regression-build=happy.builders.regression_build:sys_main",
+            "happy-scikit-unsupervised-build=happy.builders.unsupervised_build:sys_main",
         ]
     },
     version="0.0.1",
