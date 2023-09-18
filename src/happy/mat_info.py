@@ -1,10 +1,14 @@
-
-import scipy.io as sio
 import argparse
 import numpy as np
+import scipy.io as sio
+import traceback
+
 
 def main():
-    parser = argparse.ArgumentParser(description='Load and display structs from a MATLAB file.')
+    parser = argparse.ArgumentParser(
+        description='Load and display structs from a MATLAB file.',
+        prog="happy-mat-info",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('matfile', type=str, help='Path to the MATLAB file')
     args = parser.parse_args()
 
@@ -25,6 +29,22 @@ def main():
                 print("Unique integer values:")
                 print(unique_values)
             print()
+
+
+def sys_main() -> int:
+    """
+    Runs the main function using the system cli arguments, and
+    returns a system error code.
+
+    :return: 0 for success, 1 for failure.
+    """
+    try:
+        main()
+        return 0
+    except Exception:
+        traceback.print_exc()
+        return 1
+
 
 if __name__ == "__main__":
     main()
