@@ -1,5 +1,7 @@
+import copy
 from dataclasses import dataclass
 from datetime import datetime
+import json
 from operator import itemgetter
 
 from PIL import Image, ImageDraw
@@ -42,6 +44,9 @@ class Contour:
     normalized: bool = True
     """ whether normalized or absolute coordinates. """
 
+    meta: dict = None
+    """ optional meta-data. """
+
     def has_label(self):
         """
         Checks whether an actual label is present.
@@ -65,7 +70,10 @@ class Contour:
         points_a = []
         for coord in self.points:
             points_a.append((int(coord[0] * width), int(coord[1] * height)))
-        return Contour(points_a, label=self.label, normalized=False)
+        result = Contour(points_a, label=self.label, normalized=False)
+        if self.meta is not None:
+            result.meta = copy.copy(self.meta)
+        return result
 
     def bbox(self):
         """
@@ -161,6 +169,16 @@ class ContoursManager:
                 poly = Polygon(points=contour.points)
                 label = "object" if (contour.label is "") else contour.label
                 pred = ObjectPrediction(label=label, bbox=bbox, polygon=poly)
+                if contour.meta is not None:
+                    meta = dict()
+                    for k in contour.meta:
+                        o = contour.meta[k]
+                        if isinstance(o, list) or isinstance(o, dict):
+                            o = json.dumps(o)
+                        else:
+                            o = str(o)
+                        meta[k] = str(o)
+                    pred.meta = meta
                 objs.append(pred)
         result = ObjectPredictions(id=str(start_time), timestamp=str(start_time), objects=objs)
         return result

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import argparse
+import copy
 import io
 import os
 import pathlib
@@ -798,15 +799,17 @@ class ViewerApp:
         else:
             self.log("No annotations to remove")
 
-    def on_sam_predictions(self, contours):
+    def on_sam_predictions(self, contours, meta):
         """
         Gets called when predictions become available.
 
         :param contours: the predicted (normalized) contours (list of list of x/y tuples)
         :type contours: list
+        :param meta: meta-data of the predictions
+        :type meta: dict
         """
         # add contours
-        self.contours.add([Contour(points=x) for x in contours])
+        self.contours.add([Contour(points=x, meta=copy.copy(meta)) for x in contours])
         # update contours/image
         self.resize_image_label()
 

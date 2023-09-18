@@ -123,6 +123,10 @@ class SamManager(RedisBased):
             contours_n = []
             contours = d["contours"]
             discarded = 0
+            if "meta" in d:
+                meta = d["meta"]
+            else:
+                meta = dict()
             for contour in contours:
                 points_n = []
                 minx = sys.maxsize
@@ -153,7 +157,8 @@ class SamManager(RedisBased):
             self.redis_pubsub = None
             # update contours/image
             self.predictions = contours_n
-            update(self.predictions)
+            self.meta = meta
+            update(self.predictions, self.meta)
 
         # subscribe and start listening
         self.redis_pubsub.psubscribe(**{channel_out: anon_handler})
