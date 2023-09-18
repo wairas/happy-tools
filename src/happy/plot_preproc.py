@@ -1,6 +1,7 @@
 import argparse
 import matplotlib.pyplot as plt
 import os
+import traceback
 from readers.happy_reader import HappyReader
 from pixel_selectors.simple_selector import SimpleSelector
 from preprocessors.preprocessors import SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, PassThrough, WavelengthSubsetPreprocessor, SpectralNoiseInterpolator
@@ -12,15 +13,14 @@ from preprocessors.preprocessors import SNVPreprocessor, MultiPreprocessor, Deri
 """
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Process HappyData")
+def main():
+    parser = argparse.ArgumentParser(
+        description="Plot set of pixels with various pre-processing.",
+        prog="happy-plot-preproc",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("foldername", type=str, help="Folder containing HappyData files")
     parser.add_argument("--pixels", type=int, default=100, help="Number of random pixels to select")
-    return parser.parse_args()
-
-
-def main():
-    args = parse_args()
+    args = parser.parse_args()
     foldername = args.foldername
     num_pixels = args.pixels
     
@@ -30,7 +30,6 @@ def main():
     print(f"sample_id:{sample_id}  base:{base_folder}")
 
     # Create a HappyReader instance
-   
     happy_reader = HappyReader(base_folder)
 
     # Load the HappyData for the given sample ID
@@ -50,7 +49,7 @@ def main():
     ]
 
     # Create a PixelSelector instance
-    pixel_selector=SimpleSelector(num_pixels, criteria=None, include_background=True)
+    pixel_selector = SimpleSelector(num_pixels, criteria=None, include_background=True)
 
     fig, axes = plt.subplots(nrows=len(pre_processors), figsize=(10, 6 * len(pre_processors)))
 
@@ -74,6 +73,21 @@ def main():
     plt.subplots_adjust(top=0.95, bottom=0.08, left=0.1, right=0.95, hspace=0.5)
 
     plt.show()
+
+
+def sys_main() -> int:
+    """
+    Runs the main function using the system cli arguments, and
+    returns a system error code.
+
+    :return: 0 for success, 1 for failure.
+    """
+    try:
+        main()
+        return 0
+    except Exception:
+        traceback.print_exc()
+        return 1
 
 
 if __name__ == "__main__":

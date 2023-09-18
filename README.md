@@ -9,7 +9,7 @@ pip install git+https://github.com/wairas/happy-tools.git
 
 ## Command-line
 
-### HDR INFO
+### HDR Info
 
 ```
 usage: happy-hdr-info [-h] hdrfile
@@ -99,7 +99,7 @@ optional arguments:
 ```
 
 
-### MAT INFO
+### Matlab file Info
 
 ```
 usage: happy-mat-info [-h] matfile
@@ -140,6 +140,22 @@ optional arguments:
   -n, --dry_run         whether to omit saving the PNG images (default: False)
   -v, --verbose         whether to be more verbose with the output (default:
                         False)
+```
+
+
+### Plot pre-processors
+
+```
+usage: happy-plot-preproc [-h] [--pixels PIXELS] foldername
+
+Plot set of pixels with various pre-processing.
+
+positional arguments:
+  foldername       Folder containing HappyData files
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --pixels PIXELS  Number of random pixels to select (default: 100)
 ```
 
 
