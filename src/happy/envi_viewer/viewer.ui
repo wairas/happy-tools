@@ -300,7 +300,7 @@
                                         <layout manager="grid">
                                           <property name="padx">10</property>
                                           <property name="pady">10</property>
-                                          <property name="row">2</property>
+                                          <property name="row">3</property>
                                           <property name="sticky">w</property>
                                         </layout>
                                       </object>
@@ -313,8 +313,25 @@
                                           <property name="column">1</property>
                                           <property name="padx">10</property>
                                           <property name="pady">10</property>
-                                          <property name="row">2</property>
+                                          <property name="row">3</property>
                                           <property name="sticky">ew</property>
+                                        </layout>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="ttk.Checkbutton" id="checkbutton_check_scan_dimensions" named="True">
+                                        <property name="command" type="command" cbtype="simple">on_check_scan_dimensions_click</property>
+                                        <property name="offvalue">0</property>
+                                        <property name="onvalue">1</property>
+                                        <property name="text" translatable="yes">Check scan dimensions</property>
+                                        <property name="variable">int:state_check_scan_dimensions</property>
+                                        <layout manager="grid">
+                                          <property name="column">0</property>
+                                          <property name="columnspan">2</property>
+                                          <property name="padx">10</property>
+                                          <property name="pady">10</property>
+                                          <property name="row">2</property>
+                                          <property name="sticky">w</property>
                                         </layout>
                                       </object>
                                     </child>

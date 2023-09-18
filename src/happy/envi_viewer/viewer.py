@@ -44,6 +44,7 @@ class ViewerApp:
         # attach variables to app itself
         self.state_keep_aspectratio = None
         self.state_autodetect_channels = None
+        self.state_check_scan_dimensions = None
         self.state_annotation_color = None
         self.state_redis_host = None
         self.state_redis_port = None
@@ -69,6 +70,7 @@ class ViewerApp:
         # options
         self.checkbutton_autodetect_channels = builder.get_object("checkbutton_autodetect_channels", master)
         self.checkbutton_keep_aspectratio = builder.get_object("checkbutton_keep_aspectratio", master)
+        self.checkbutton_check_scan_dimenions = builder.get_object("checkbutton_check_scan_dimensions", master)
         self.entry_annotation_color = builder.get_object("entry_annotation_color", master)
         self.entry_redis_host = builder.get_object("entry_redis_host", master)
         self.entry_redis_port = builder.get_object("entry_redis_port", master)
@@ -208,10 +210,11 @@ class ViewerApp:
             messagebox.showerror("Warning", warning)
 
         # different dimensions?
-        if (self.last_dims is not None) and (self.data.has_scan()):
-            if self.last_dims != self.data.scan_data.shape:
-                warning = "Different data dimensions detected: last=%s, new=%s" % (str(self.last_dims), str(self.data.scan_data.shape))
-                messagebox.showwarning("Different dimensions", warning)
+        if self.session.check_scan_dimensions:
+            if (self.last_dims is not None) and (self.data.has_scan()):
+                if self.last_dims != self.data.scan_data.shape:
+                    warning = "Different data dimensions detected: last=%s, new=%s" % (str(self.last_dims), str(self.data.scan_data.shape))
+                    messagebox.showwarning("Different dimensions", warning)
 
         # configure scales
         num_bands = self.data.get_num_bands()
@@ -472,6 +475,16 @@ class ViewerApp:
         self.session.autodetect_channels = value
         self.state_autodetect_channels.set(1 if value else 0)
 
+    def set_check_scan_dimensions(self, value):
+        """
+        Sets whether to compare dimensions of subsequent scans and display a warning when they differ.
+
+        :param value: whether to check dimensions
+        :type value: bool
+        """
+        self.session.check_scan_dimensions = value
+        self.state_check_scan_dimensions.set(1 if value else 0)
+
     def set_annotation_color(self, color):
         """
         Sets the color to use for the annotations like contours.
@@ -575,6 +588,7 @@ class ViewerApp:
         """
         self.session.autodetect_channels = self.state_autodetect_channels.get() == 1
         self.session.keep_aspectratio = self.state_keep_aspectratio.get() == 1
+        self.session.check_scan_dimensions = self.state_check_scan_dimensions.get() == 1
         # last_blackref_dir
         # last_whiteref_dir
         # last_scan_dir
@@ -598,6 +612,7 @@ class ViewerApp:
         """
         self.state_autodetect_channels.set(1 if self.session.autodetect_channels else 0)
         self.state_keep_aspectratio.set(1 if self.session.keep_aspectratio else 0)
+        self.state_check_scan_dimensions.set(1 if self.session.check_scan_dimensions else 0)
         # last_blackref_dir
         # last_whiteref_dir
         # last_scan_dir
@@ -909,6 +924,7 @@ def main(args=None):
     parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel", default=None, type=int, required=False)
     parser.add_argument("--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False, default=None)
     parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False, default=None)
+    parser.add_argument("--check_scan_dimensions", action="store_true", help="whether to compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
     parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default=None, required=False)
     parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default=None, required=False)
     parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=None, required=False)
@@ -957,7 +973,7 @@ def sys_main() -> int:
         main()
         return 0
     except Exception:
-        print(traceback.format_exc())
+        traceback.print_exc()
         return 1
 
 

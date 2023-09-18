@@ -5,6 +5,7 @@ import os
 PROPERTIES = [
     "autodetect_channels",
     "keep_aspectratio",
+    "check_scan_dimensions",
     "last_blackref_dir",
     "last_whiteref_dir",
     "last_scan_dir",
@@ -36,6 +37,7 @@ class SessionManager:
         """
         self.autodetect_channels = False
         self.keep_aspectratio = False
+        self.check_scan_dimensions = True
         self.last_blackref_dir = "."
         self.last_whiteref_dir = "."
         self.last_scan_dir = "."
