@@ -1,5 +1,5 @@
 from sklearn.decomposition import PCA
-from preprocessors.preprocessor import Preprocessor
+from happy.preprocessors.preprocessor import Preprocessor
 from sklearn.preprocessing import StandardScaler
 import spectral.io.envi as envi
 import numpy as np
