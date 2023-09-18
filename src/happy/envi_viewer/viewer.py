@@ -120,6 +120,7 @@ class ViewerApp:
         self.photo_scan = None
         self.session = SessionManager()
         self.data = DataManager()
+        self.last_dims = None
         self.markers = MarkersManager()
         self.contours = ContoursManager()
         self.sam = SamManager()
@@ -198,8 +199,19 @@ class ViewerApp:
         :param do_update: whether to update the display
         :type do_update: bool
         """
+        if self.data.has_scan():
+            self.last_dims = self.data.scan_data.shape
+
         self.log("Loading scan: %s" % filename)
-        self.data.set_scan(filename)
+        warning = self.data.set_scan(filename)
+        if warning is not None:
+            messagebox.showerror("Warning", warning)
+
+        # different dimensions?
+        if (self.last_dims is not None) and (self.data.has_scan()):
+            if self.last_dims != self.data.scan_data.shape:
+                warning = "Different data dimensions detected: last=%s, new=%s" % (str(self.last_dims), str(self.data.scan_data.shape))
+                messagebox.showwarning("Different dimensions", warning)
 
         # configure scales
         num_bands = self.data.get_num_bands()

@@ -48,18 +48,24 @@ class DataManager:
         self.wavelengths = None
         self.reset_norm_data()
 
-    def set_scan(self, fname):
+    def set_scan(self, path):
         """
         Sets the scan.
 
-        :param fname: the filename
-        :type fname: str
+        :param path: the filename
+        :type path: str
+        :return: None if successfully loaded, otherwise an error/warning message
+        :rtype: str
         """
-        img = envi.open(fname)
-        self.scan_file = fname
+        img = envi.open(path)
+        self.scan_file = path
         self.scan_img = img
         self.scan_data = img.load()
         self.reset_norm_data()
+        if len(self.get_wavelengths()) > 0:
+            if len(self.get_wavelengths()) != self.get_num_bands():
+                return "Number of defined wavelengths and number of bands in data differ: %d != %d" % (len(self.get_wavelengths()), self.get_num_bands())
+        return None
 
     def get_num_bands(self):
         """
@@ -110,28 +116,29 @@ class DataManager:
         self.whiteref_data = None
         self.reset_norm_data()
 
-    def set_whiteref(self, fname):
+    def set_whiteref(self, path):
         """
         Sets the white reference.
 
-        :param fname: the filename
-        :type fname: str
+        :param path: the filename
+        :type path: str
         :return: None if successfully added, otherwise error message
         :rtype: str
         """
         if not self.has_scan():
             return "Please load a scan first!"
 
-        img = envi.open(fname)
+        img = envi.open(path)
         data = img.load()
         if data.shape != self.scan_data.shape:
             return "White reference data should have the same shape as the scan data!\n" \
                    + "scan:" + str(self.scan_data.shape) + " != whiteref:" + str(data.shape)
 
-        self.whiteref_file = fname
+        self.whiteref_file = path
         self.whiteref_img = img
         self.whiteref_data = data
         self.reset_norm_data()
+        return None
 
     def has_blackref(self):
         """
@@ -151,28 +158,29 @@ class DataManager:
         self.blackref_data = None
         self.reset_norm_data()
 
-    def set_blackref(self, fname):
+    def set_blackref(self, path):
         """
         Sets the black reference.
 
-        :param fname: the filename
-        :type fname: str
+        :param path: the filename
+        :type path: str
         :return: None if successfully added, otherwise error message
         :rtype: str
         """
         if not self.has_scan():
             return "Please load a scan first!"
 
-        img = envi.open(fname)
+        img = envi.open(path)
         data = img.load()
         if data.shape != self.scan_data.shape:
             return "Black reference data should have the same shape as the scan data!\n" \
                    + "scan:" + str(self.scan_data.shape) + " != blackref:" + str(data.shape)
 
-        self.blackref_file = fname
+        self.blackref_file = path
         self.blackref_img = img
         self.blackref_data = data
         self.reset_norm_data()
+        return None
 
     def reset_norm_data(self):
         """
@@ -193,10 +201,16 @@ class DataManager:
             self.norm_data = self.scan_data
             # subtract black reference
             if self.blackref_data is not None:
-                self.norm_data = self.norm_data - self.blackref_data
+                if self.blackref_data.shape == self.norm_data.shape:
+                    self.norm_data = self.norm_data - self.blackref_data
+                else:
+                    print("Scan and blackref dimensions differ: %s != %s" % (str(self.scan_data.shape), str(self.blackref_data.shape)))
             # divide by white reference
             if self.whiteref_data is not None:
-                self.norm_data = self.norm_data / self.whiteref_data
+                if self.whiteref_data.shape == self.norm_data.shape:
+                    self.norm_data = self.norm_data / self.whiteref_data
+                else:
+                    print("Scan and whiteref dimensions differ: %s != %s" % (str(self.scan_data.shape), str(self.whiteref_data.shape)))
 
     def dims(self):
         """
