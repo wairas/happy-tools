@@ -52,15 +52,15 @@ setup(
         "console_scripts": [
             "envi-viewer=happy.envi_viewer.viewer:sys_main",  # deprecated
             "happy-envi-viewer=happy.envi_viewer.viewer:sys_main",
-            "happy-generate-image-regions-objects=happy.generate_image_regions_objects:sys_main",
-            "happy-hdr-info=happy.hdr_info:sys_main",
+            "happy-generate-image-regions-objects=happy.image_regions_objects.generate:sys_main",
+            "happy-hdr-info=happy.hdr_info.output:sys_main",
             "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
             "happy-hsi2rgb=happy.hsi_to_rgb.generate:sys_main",
-            "happy-mat-info=happy.mat_info:sys_main",
+            "happy-mat-info=happy.mat_info.output:sys_main",
             "happy-opex2happy=happy.opex_to_happy.generate:sys_main",
-            "happy-plot-preproc=happy.plot_preproc:sys_main",
-            "happy-scikit-regression-build=happy.scikit_regression_build:sys_main",
-            "happy-scikit-unsupervised-build=happy.scikit_unsupervised_build:sys_main",
+            "happy-plot-preproc=happy.plot_preproc.output:sys_main",
+            "happy-scikit-regression-build=happy.scikit.regression_build:sys_main",
+            "happy-scikit-unsupervised-build=happy.scikit.unsupervised_build:sys_main",
         ]
     },
     version="0.0.1",
