@@ -2,22 +2,62 @@ from PIL import Image
 
 import os
 import numpy as np
+import traceback
 
 import argparse
 from happy.splitter.happy_splitter import HappySplitter
 from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
 from happy.writers.csv_training_data_writer import CSVTrainingDataWriter
-from happy.criteria.criteria import Criteria
 
 from happy.pixel_selectors.simple_selector import SimpleSelector
 from happy.pixel_selectors.multi_selector import MultiSelector
 from happy.evaluators.regression_evaluator import RegressionEvaluator
 from happy.evaluators.prediction_actual_handler import PredictionActualHandler
-from happy.preprocessors.preprocessors import SpectralNoiseInterpolator, PadPreprocessor, PCAPreprocessor, SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
+from happy.preprocessors.preprocessors import SpectralNoiseInterpolator, PadPreprocessor, SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
+
+
+def create_false_color_image(predictions, min_actual, max_actual):
+    # Find the minimum and maximum values of actuals
+    predictions = predictions[:, :]
+
+    # Create an empty array for the false color image
+    false_color = np.zeros((predictions.shape[0], predictions.shape[1], 4), dtype=np.uint8)
+
+    max_actual = max_actual * 1.15
+    for i in range(predictions.shape[0]):
+        for j in range(predictions.shape[1]):
+            prediction = predictions[i, j]
+
+            if prediction <= 0:
+                # Zero value is transparent
+                # color = [0, 0, 0, 0]
+                color = [0, 0, 255, 255]
+            elif prediction < min_actual:
+                # Values below the minimum are blue
+                color = [0, 0, 255, 255]
+            elif prediction > max_actual:
+                # Values above the maximum are red
+                color = [255, 0, 0, 255]
+            else:
+                # Calculate the gradient color based on the range of actual values
+                gradient = (prediction - min_actual) / (max_actual - min_actual)
+                r = int(255 * (1 - gradient))
+                g = int(255 * (1 - gradient))
+                b = int(128 * gradient)
+                color = [r, g, b, 255]
+
+            # Assign the color to the false color image
+            false_color[i, j] = color
+
+    false_color_image = Image.fromarray(false_color)
+    return false_color_image
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Evaluate regression model on Happy Data using specified splits and pixel selector.')
+    parser = argparse.ArgumentParser(
+        description='Evaluate regression model on Happy Data using specified splits and pixel selector.',
+        prog="happy-scikit-regr-build",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('happy_data_base_dir', type=str, help='Directory containing the Happy Data files')
     parser.add_argument('regression_method', type=str, help='Regression method name')
     parser.add_argument('regression_params', type=str, help='JSON string containing regression parameters')
@@ -35,24 +75,19 @@ def main():
     happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
     
-    crit0 = Criteria("greater_than", key=args.target_value, value=0)
     pixel_selector0 = SimpleSelector(64, criteria=None)
-
     train_pixel_selectors = MultiSelector([pixel_selector0])
-    #predict_pixel_selector = SimpleSelector(128, criteria=None, include_background=True)
-    
+
     subset_indices = list(range(60, 190))
     w = WavelengthSubsetPreprocessor(subset_indices=subset_indices)
 
     clean = SpectralNoiseInterpolator()
     SNVpp = SNVPreprocessor()
     SGpp = DerivativePreprocessor(window_length=15)
-    #PCApp = PCAPreprocessor(components=30, percent_pixels=20)
     padp = PadPreprocessor(width=128, height=128, pad_value=0)
     pp = MultiPreprocessor(preprocessor_list=[w, clean, SNVpp, SGpp, padp])
     
     model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=pp, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=classification_method, training_data = None)
-    
     model.fit(train_ids, force=True, keep_training_data=False)
     
     csv_writer = CSVTrainingDataWriter(args.output_folder)
@@ -76,55 +111,25 @@ def main():
         if np.isnan(min_actual) or np.isnan(max_actual) or min_actual==max_actual:
             print("NaN value detected. Cannot proceed with gradient calculation.")
             continue
-        #print(actuals[i])
         false_color_image = create_false_color_image(prediction, min_actual, max_actual)
         false_color_image.save(os.path.join(args.output_folder, f'false_color_{i}.png'))
     eval.calculate_and_show_metrics()
 
 
-#def create_prediction_image(prediction):
-##    # Create an image from the regression prediction
-#    prediction = (prediction * 255).astype(np.uint8)
-#    prediction_image = Image.fromarray(prediction)
-#    return prediction_image
+def sys_main() -> int:
+    """
+    Runs the main function using the system cli arguments, and
+    returns a system error code.
 
+    :return: 0 for success, 1 for failure.
+    """
+    try:
+        main()
+        return 0
+    except Exception:
+        traceback.print_exc()
+        return 1
 
-def create_false_color_image(predictions, min_actual, max_actual):
-    # Find the minimum and maximum values of actuals
-    predictions = predictions[:,:]
-  
-    # Create an empty array for the false color image
-    false_color = np.zeros((predictions.shape[0], predictions.shape[1], 4), dtype=np.uint8)
-
-    max_actual = max_actual * 1.15
-    for i in range(predictions.shape[0]):
-        for j in range(predictions.shape[1]):
-            prediction = predictions[i, j]
-
-            if prediction <= 0:
-                # Zero value is transparent               
-                #color = [0, 0, 0, 0]
-                color = [0, 0, 255, 255]
-            elif prediction < min_actual:
-                # Values below the minimum are blue
-                color = [0, 0, 255, 255]
-            elif prediction > max_actual:
-                # Values above the maximum are red
-                color = [255, 0, 0, 255]
-            else:
-                # Calculate the gradient color based on the range of actual values
-                gradient = (prediction - min_actual) / (max_actual - min_actual)
-                r = int(255 * (1 - gradient))
-                g = int(255 * (1 - gradient))
-                b = int(128 * gradient)
-                color = [r, g, b, 255]
-
-            # Assign the color to the false color image
-            false_color[i, j] = color
-
-    false_color_image = Image.fromarray(false_color)
-    return false_color_image
-    
 
 if __name__ == "__main__":
     main()

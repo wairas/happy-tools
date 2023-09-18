@@ -9,6 +9,68 @@ pip install git+https://github.com/wairas/happy-tools.git
 
 ## Command-line
 
+
+### ENVI Viewer
+
+```
+usage: envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE] [-w WHITE_REFERENCE]
+                   [-r INT] [-g INT] [-b INT] [--autodetect_channels]
+                   [--keep_aspectratio] [--annotation_color HEXCOLOR]
+                   [--redis_host HOST] [--redis_port PORT]
+                   [--redis_pw PASSWORD] [--redis_in CHANNEL]
+                   [--redis_out CHANNEL] [--redis_connect] [--marker_size INT]
+                   [--marker_color HEXCOLOR] [--min_obj_size INT]
+
+ENVI Hyper-spectral Image Viewer. Offers contour detection using SAM (Segment-
+Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-
+anything)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SCAN, --scan SCAN  Path to the scan file (ENVI format) (default: None)
+  -f BLACK_REFERENCE, --black_reference BLACK_REFERENCE
+                        Path to the black reference file (ENVI format)
+                        (default: None)
+  -w WHITE_REFERENCE, --white_reference WHITE_REFERENCE
+                        Path to the white reference file (ENVI format)
+                        (default: None)
+  -r INT, --scale_r INT
+                        the wave length to use for the red channel (default:
+                        None)
+  -g INT, --scale_g INT
+                        the wave length to use for the green channel (default:
+                        None)
+  -b INT, --scale_b INT
+                        the wave length to use for the blue channel (default:
+                        None)
+  --autodetect_channels
+                        whether to determine the channels from the meta-data
+                        (overrides the manually specified channels) (default:
+                        None)
+  --keep_aspectratio    whether to keep the aspect ratio (default: None)
+  --annotation_color HEXCOLOR
+                        the color to use for the annotations like contours
+                        (hex color) (default: None)
+  --redis_host HOST     The Redis host to connect to (IP or hostname)
+                        (default: None)
+  --redis_port PORT     The port the Redis server is listening on (default:
+                        None)
+  --redis_pw PASSWORD   The password to use with the Redis server (default:
+                        None)
+  --redis_in CHANNEL    The channel that SAM is receiving images on (default:
+                        None)
+  --redis_out CHANNEL   The channel that SAM is broadcasting the detections on
+                        (default: None)
+  --redis_connect       whether to immediately connect to the Redis host
+                        (default: None)
+  --marker_size INT     The size in pixels for the SAM points (default: None)
+  --marker_color HEXCOLOR
+                        the color to use for the SAM points (hex color)
+                        (default: None)
+  --min_obj_size INT    The minimum size that SAM contours need to have (<= 0
+                        for no minimum) (default: None)
+```
+
 ### HDR Info
 
 ```
@@ -159,63 +221,27 @@ optional arguments:
 ```
 
 
-### ENVI Viewer
+### Scikit Regression Build 
 
 ```
-usage: envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE] [-w WHITE_REFERENCE]
-                   [-r INT] [-g INT] [-b INT] [--autodetect_channels]
-                   [--keep_aspectratio] [--annotation_color HEXCOLOR]
-                   [--redis_host HOST] [--redis_port PORT]
-                   [--redis_pw PASSWORD] [--redis_in CHANNEL]
-                   [--redis_out CHANNEL] [--redis_connect] [--marker_size INT]
-                   [--marker_color HEXCOLOR] [--min_obj_size INT]
+usage: happy-scikit-regr-build [-h] [--repeat_num REPEAT_NUM]
+                               happy_data_base_dir regression_method
+                               regression_params target_value
+                               happy_splitter_file output_folder
 
-ENVI Hyper-spectral Image Viewer. Offers contour detection using SAM (Segment-
-Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-
-anything)
+Evaluate regression model on Happy Data using specified splits and pixel
+selector.
+
+positional arguments:
+  happy_data_base_dir   Directory containing the Happy Data files
+  regression_method     Regression method name
+  regression_params     JSON string containing regression parameters
+  target_value          Target value column name
+  happy_splitter_file   Happy Splitter file
+  output_folder         Output JSON file to store the predictions
 
 optional arguments:
   -h, --help            show this help message and exit
-  -s SCAN, --scan SCAN  Path to the scan file (ENVI format) (default: None)
-  -f BLACK_REFERENCE, --black_reference BLACK_REFERENCE
-                        Path to the black reference file (ENVI format)
-                        (default: None)
-  -w WHITE_REFERENCE, --white_reference WHITE_REFERENCE
-                        Path to the white reference file (ENVI format)
-                        (default: None)
-  -r INT, --scale_r INT
-                        the wave length to use for the red channel (default:
-                        None)
-  -g INT, --scale_g INT
-                        the wave length to use for the green channel (default:
-                        None)
-  -b INT, --scale_b INT
-                        the wave length to use for the blue channel (default:
-                        None)
-  --autodetect_channels
-                        whether to determine the channels from the meta-data
-                        (overrides the manually specified channels) (default:
-                        None)
-  --keep_aspectratio    whether to keep the aspect ratio (default: None)
-  --annotation_color HEXCOLOR
-                        the color to use for the annotations like contours
-                        (hex color) (default: None)
-  --redis_host HOST     The Redis host to connect to (IP or hostname)
-                        (default: None)
-  --redis_port PORT     The port the Redis server is listening on (default:
-                        None)
-  --redis_pw PASSWORD   The password to use with the Redis server (default:
-                        None)
-  --redis_in CHANNEL    The channel that SAM is receiving images on (default:
-                        None)
-  --redis_out CHANNEL   The channel that SAM is broadcasting the detections on
-                        (default: None)
-  --redis_connect       whether to immediately connect to the Redis host
-                        (default: None)
-  --marker_size INT     The size in pixels for the SAM points (default: None)
-  --marker_color HEXCOLOR
-                        the color to use for the SAM points (hex color)
-                        (default: None)
-  --min_obj_size INT    The minimum size that SAM contours need to have (<= 0
-                        for no minimum) (default: None)
+  --repeat_num REPEAT_NUM
+                        Repeat number (default: 1) (default: 0)
 ```
