@@ -3,6 +3,7 @@ import argparse
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import traceback
 from happy.splitter.happy_splitter import HappySplitter
 from happy.model.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer
 from happy.pixel_selectors.simple_selector import SimpleSelector
@@ -11,8 +12,25 @@ from happy.criteria.criteria import Criteria
 from happy.preprocessors.preprocessors import PCAPreprocessor, SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
 
 
+def create_prediction_image(prediction):
+    # Create a grayscale prediction image
+    prediction_image = Image.fromarray((prediction * 255).astype(np.uint8))
+    return prediction_image
+
+
+def create_false_color_image(prediction):
+    # Create a false color prediction image
+    cmap = plt.get_cmap('viridis', np.max(prediction) + 1)
+    false_color = cmap(prediction)
+    false_color_image = Image.fromarray((false_color[:, :, :3] * 255).astype(np.uint8))
+    return false_color_image
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Evaluate clustering on hyperspectral data using specified clusterer and pixel selector.')
+    parser = argparse.ArgumentParser(
+        description='Evaluate clustering on hyperspectral data using specified clusterer and pixel selector.',
+        prog="happy-scikit-unsupervised-build",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('data_folder', type=str, help='Directory containing the hyperspectral data')
     parser.add_argument('clusterer_name', type=str, help='Clusterer name (e.g., kmeans, agglomerative, spectral, dbscan, meanshift)')
     parser.add_argument('clusterer_params', type=str, help='JSON string containing clusterer parameters')
@@ -68,18 +86,19 @@ def main():
         false_color_image.save(os.path.join(args.output_folder, f'false_color_{i}.png'))
 
 
-def create_prediction_image(prediction):
-    # Create a grayscale prediction image
-    prediction_image = Image.fromarray((prediction * 255).astype(np.uint8))
-    return prediction_image
+def sys_main() -> int:
+    """
+    Runs the main function using the system cli arguments, and
+    returns a system error code.
 
-
-def create_false_color_image(prediction):
-    # Create a false color prediction image
-    cmap = plt.get_cmap('viridis', np.max(prediction) + 1)
-    false_color = cmap(prediction)
-    false_color_image = Image.fromarray((false_color[:, :, :3] * 255).astype(np.uint8))
-    return false_color_image
+    :return: 0 for success, 1 for failure.
+    """
+    try:
+        main()
+        return 0
+    except Exception:
+        traceback.print_exc()
+        return 1
 
 
 if __name__ == "__main__":
