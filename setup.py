@@ -27,16 +27,18 @@ setup(
     ],
     license='MIT License',
     install_requires=[
-        "numpy==1.21.6",
-        "pandas==1.3.5",
-        "scipy==1.7.3",
+        "numpy<1.22",
+        "pandas<1.4",
+        "scipy",
         "spectral==0.23.1",
-        "pillow==9.5.0",
+        "pillow<10.0",
         "pygubu==0.31",
         "redis",
         "ttkSimpleDialog==1.2.1",
         "opex",
         "shapely",
+        "scikit-learn",
+        "matplotlib",
     ],
     package_dir={
         '': 'src'
