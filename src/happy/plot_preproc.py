@@ -2,9 +2,9 @@ import argparse
 import matplotlib.pyplot as plt
 import os
 import traceback
-from readers.happy_reader import HappyReader
-from pixel_selectors.simple_selector import SimpleSelector
-from preprocessors.preprocessors import SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, PassThrough, WavelengthSubsetPreprocessor, SpectralNoiseInterpolator
+from happy.readers.happy_reader import HappyReader
+from happy.pixel_selectors.simple_selector import SimpleSelector
+from happy.preprocessors.preprocessors import SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, PassThrough, WavelengthSubsetPreprocessor, SpectralNoiseInterpolator
 
 """
    Use this script to display a set of pixels with various pre-processing
