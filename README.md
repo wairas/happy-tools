@@ -9,6 +9,20 @@ pip install git+https://github.com/wairas/happy-tools.git
 
 ## Command-line
 
+### Data Viewer
+
+```
+usage: happy-data-viewer [-h] base_folder
+
+Viewer for Happy data folder structures.
+
+positional arguments:
+  base_folder  Base folder for HappyReader
+
+optional arguments:
+  -h, --help   show this help message and exit
+```
+
 
 ### ENVI Viewer
 
