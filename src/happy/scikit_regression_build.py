@@ -56,7 +56,7 @@ def create_false_color_image(predictions, min_actual, max_actual):
 def main():
     parser = argparse.ArgumentParser(
         description='Evaluate regression model on Happy Data using specified splits and pixel selector.',
-        prog="happy-scikit-regr-build",
+        prog="happy-scikit-regression-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('happy_data_base_dir', type=str, help='Directory containing the Happy Data files')
     parser.add_argument('regression_method', type=str, help='Regression method name')

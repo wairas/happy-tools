@@ -224,10 +224,10 @@ optional arguments:
 ### Scikit Regression Build 
 
 ```
-usage: happy-scikit-regr-build [-h] [--repeat_num REPEAT_NUM]
-                               happy_data_base_dir regression_method
-                               regression_params target_value
-                               happy_splitter_file output_folder
+usage: happy-scikit-regression-build [-h] [--repeat_num REPEAT_NUM]
+                                     happy_data_base_dir regression_method
+                                     regression_params target_value
+                                     happy_splitter_file output_folder
 
 Evaluate regression model on Happy Data using specified splits and pixel
 selector.
