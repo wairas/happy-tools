@@ -7,12 +7,35 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from happy.core import get_classname
-from happy.io import simple_filename_func, load_sampleids
+from happy.base.core import get_classname
 from happy.criteria.criteria import Criteria
 from happy.pixel_selectors.averaged_grid_pixel_selector import AveragedGridSelector
 from happy.pixel_selectors.column_wise_pixel_selector import ColumnWisePixelSelector
 from happy.readers.mat_reader import MatReader
+
+
+def simple_filename_func(base_dir, sample_id):
+    base_id, sub_dir, _ = sample_id.split("__")
+    return os.path.join(base_dir, sub_dir, "normcubes", f"{base_id}.mat")
+
+
+def get_objectid_from_sampleid(sample_id):
+    _, _, objid = sample_id.split("__")
+    return int(objid)
+
+
+def load_sampleids(filename):
+    """
+    Loads the JSON array with the sample IDs to process.
+
+    :param filename: the JSON file to load (must contain an array)
+    :type filename: str
+    :return: the list
+    :rtype: list
+    """
+    with open(filename) as f:
+        data = json.load(f)
+    return data
 
 
 def load_global_jsons(ids_filename, output_path, spectra_reader, pixel_selectors, meta_data_keys, target_keys):
