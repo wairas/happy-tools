@@ -30,6 +30,7 @@ optional arguments:
 usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [-w WHITE_REFERENCE] [-r INT] [-g INT] [-b INT]
                          [--autodetect_channels] [--keep_aspectratio]
+                         [--check_scan_dimensions]
                          [--annotation_color HEXCOLOR] [--redis_host HOST]
                          [--redis_port PORT] [--redis_pw PASSWORD]
                          [--redis_in CHANNEL] [--redis_out CHANNEL]
@@ -63,6 +64,10 @@ optional arguments:
                         (overrides the manually specified channels) (default:
                         None)
   --keep_aspectratio    whether to keep the aspect ratio (default: None)
+  --check_scan_dimensions
+                        whether to compare the dimensions of subsequently
+                        loaded scans and output a warning if they differ
+                        (default: None)
   --annotation_color HEXCOLOR
                         the color to use for the annotations like contours
                         (hex color) (default: None)
