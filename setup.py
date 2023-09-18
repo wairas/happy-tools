@@ -52,6 +52,7 @@ setup(
         "console_scripts": [
             "envi-viewer=happy.envi_viewer.viewer:sys_main",  # deprecated
             "happy-envi-viewer=happy.envi_viewer.viewer:sys_main",
+            "happy-generate-image-regions-objects=happy.generate_image_regions_objects:sys_main",
             "happy-hdr-info=happy.hdr_info:sys_main",
             "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
             "happy-hsi2rgb=happy.hsi_to_rgb.generate:sys_main",
