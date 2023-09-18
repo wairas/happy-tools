@@ -4,7 +4,10 @@ import traceback
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Load and print information about an HDR file.', prog="happy-hdr-info")
+    parser = argparse.ArgumentParser(
+        description='Load and print information about an HDR file.',
+        prog="happy-hdr-info",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('hdrfile', type=str, help='Path to the HDR file')
     args = parser.parse_args()
 
