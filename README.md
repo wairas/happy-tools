@@ -13,13 +13,14 @@ pip install git+https://github.com/wairas/happy-tools.git
 ### ENVI Viewer
 
 ```
-usage: envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE] [-w WHITE_REFERENCE]
-                   [-r INT] [-g INT] [-b INT] [--autodetect_channels]
-                   [--keep_aspectratio] [--annotation_color HEXCOLOR]
-                   [--redis_host HOST] [--redis_port PORT]
-                   [--redis_pw PASSWORD] [--redis_in CHANNEL]
-                   [--redis_out CHANNEL] [--redis_connect] [--marker_size INT]
-                   [--marker_color HEXCOLOR] [--min_obj_size INT]
+usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
+                         [-w WHITE_REFERENCE] [-r INT] [-g INT] [-b INT]
+                         [--autodetect_channels] [--keep_aspectratio]
+                         [--annotation_color HEXCOLOR] [--redis_host HOST]
+                         [--redis_port PORT] [--redis_pw PASSWORD]
+                         [--redis_in CHANNEL] [--redis_out CHANNEL]
+                         [--redis_connect] [--marker_size INT]
+                         [--marker_color HEXCOLOR] [--min_obj_size INT]
 
 ENVI Hyper-spectral Image Viewer. Offers contour detection using SAM (Segment-
 Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-

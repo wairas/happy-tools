@@ -884,7 +884,7 @@ def main(args=None):
     """
     parser = argparse.ArgumentParser(
         description="ENVI Hyper-spectral Image Viewer.\nOffers contour detection using SAM (Segment-Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-anything)",
-        prog="envi-viewer",
+        prog="happy-envi-viewer",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--scan", type=str, help="Path to the scan file (ENVI format)", required=False)
     parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)", required=False)
