@@ -46,12 +46,14 @@ setup(
     package_data={
         "happy": ["*.png"],
         "happy.envi_viewer": ["*.ui"],
+        "happy.data_viewer": ["*.ui"],
     },
     packages=find_namespace_packages(where='src'),
     entry_points={
         "console_scripts": [
             "envi-viewer=happy.envi_viewer.viewer:sys_main",  # deprecated
             "happy-envi-viewer=happy.envi_viewer.viewer:sys_main",
+            "happy-data-viewer=happy.data_viewer.viewer_old:sys_main",
             "happy-generate-image-regions-objects=happy.image_regions_objects.generate:sys_main",
             "happy-hdr-info=happy.hdr_info.output:sys_main",
             "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
