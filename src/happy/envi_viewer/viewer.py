@@ -128,6 +128,7 @@ class ViewerApp:
         self.contours = ContoursManager()
         self.data = DataManager(self.contours)
         self.last_dims = None
+        self.last_wavelengths = None
         self.markers = MarkersManager()
         self.sam = SamManager()
 
@@ -210,6 +211,7 @@ class ViewerApp:
 
         if self.data.has_scan():
             self.last_dims = self.data.scan_data.shape
+            self.last_wavelengths = copy.copy(self.data.get_wavelengths())
 
         self.log("Loading scan: %s" % filename)
         warning = self.data.set_scan(filename)
@@ -222,6 +224,10 @@ class ViewerApp:
                 if self.last_dims != self.data.scan_data.shape:
                     warning = "Different data dimensions detected: last=%s, new=%s" % (str(self.last_dims), str(self.data.scan_data.shape))
                     messagebox.showwarning("Different dimensions", warning)
+                elif self.last_wavelengths != self.data.get_wavelengths():
+                    self.log("Last wavelengths: %s" % str(self.last_wavelengths))
+                    self.log("Current wavelengths: %s" % str(self.data.get_wavelengths()))
+                    messagebox.showwarning("Different wavelengths", "Different wavelengths detected (see console for last/current)!")
 
         # configure scales
         num_bands = self.data.get_num_bands()
