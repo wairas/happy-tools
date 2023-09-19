@@ -137,6 +137,37 @@
                 </child>
               </object>
             </child>
+            <child>
+              <object class="tk.Menuitem.Submenu" id="submenu2">
+                <property name="label" translatable="yes">Meta-data</property>
+                <property name="tearoff">false</property>
+                <property name="underline">0</property>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_metadata_clear" named="True">
+                    <property name="command" type="command" cbtype="simple">on_metadata_clear_click</property>
+                    <property name="label" translatable="yes">Clear</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_metadata_set" named="True">
+                    <property name="command" type="command" cbtype="simple">on_metadata_set_click</property>
+                    <property name="label" translatable="yes">Set...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_metadata_remove" named="True">
+                    <property name="command" type="command" cbtype="simple">on_metadata_remove_click</property>
+                    <property name="label" translatable="yes">Remove...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_metadata_view" named="True">
+                    <property name="command" type="command" cbtype="simple">on_metadata_view_click</property>
+                    <property name="label" translatable="yes">View...</property>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
       </object>

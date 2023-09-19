@@ -2,6 +2,7 @@
 import argparse
 import copy
 import io
+import json
 import os
 import pathlib
 import pygubu
@@ -13,11 +14,13 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
+from datetime import datetime
 from happy.envi_viewer._contours import ContoursManager, Contour
 from happy.envi_viewer._data import DataManager
 from happy.envi_viewer._markers import MarkersManager
 from happy.envi_viewer._redis import SamManager
 from happy.envi_viewer._session import SessionManager, PROPERTIES
+from opex import ObjectPredictions
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -586,9 +589,9 @@ class ViewerApp:
         """
         Transfers the current state in the UI to the session manager.
         """
-        self.session.autodetect_channels = self.state_autodetect_channels.get() == 1
-        self.session.keep_aspectratio = self.state_keep_aspectratio.get() == 1
-        self.session.check_scan_dimensions = self.state_check_scan_dimensions.get() == 1
+        self.session.autodetect_channels = (self.state_autodetect_channels.get() == 1)
+        self.session.keep_aspectratio = (self.state_keep_aspectratio.get() == 1)
+        self.session.check_scan_dimensions = (self.state_check_scan_dimensions.get() == 1)
         # last_blackref_dir
         # last_whiteref_dir
         # last_scan_dir
@@ -655,6 +658,7 @@ class ViewerApp:
         if filename is not None:
             self.session.last_scan_dir = os.path.dirname(filename)
             self.load_scan(filename, do_update=True)
+            self.contours.clear()
 
     def on_file_clear_blackref(self, event=None):
         if self.data.has_blackref():
@@ -724,9 +728,12 @@ class ViewerApp:
         if filename is not None:
             self.session.last_image_dir = os.path.dirname(filename)
             image.save(filename)
+            self.log("Image saved to: %s" % filename)
             annotations = self.contours.to_opex(dims[0], dims[1])
             if annotations is not None:
-                annotations.save_json_to_file(os.path.splitext(filename)[0] + ".json")
+                filename = os.path.splitext(filename)[0] + ".json"
+                annotations.save_json_to_file(filename)
+                self.log("Annotations saved to: %s" % filename)
 
     def on_file_close_click(self, event=None):
         self.state_to_session()
@@ -734,11 +741,14 @@ class ViewerApp:
         self.mainwindow.quit()
 
     def on_autodetect_channels_click(self):
-        self.session.autodetect_channels = self.state_autodetect_channels.get()
+        self.session.autodetect_channels = (self.state_autodetect_channels.get() == 1)
 
     def on_keep_aspectratio_click(self):
-        self.session.keep_aspectratio = self.state_keep_aspectratio.get()
+        self.session.keep_aspectratio = (self.state_keep_aspectratio.get() == 1)
         self.update_image()
+
+    def on_check_scan_dimensions_click(self):
+        self.session.check_scan_dimensions = (self.state_check_scan_dimensions.get() == 1)
 
     def on_scale_r_changed(self, event):
         self.red_scale_value.configure(text=self.scale_to_text(self.state_scale_r.get()))
@@ -886,6 +896,66 @@ class ViewerApp:
         self.markers.clear()
         self.log("Polygon added")
         self.update_image()
+
+    def on_metadata_clear_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showinfo("Info", "No data present!")
+            return
+
+        self.contours.clear_metadata()
+        self.log("Meta-data cleared")
+
+    def on_metadata_set_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showinfo("Info", "No data present!")
+            return
+
+        k = ttkSimpleDialog.askstring(
+            title="Meta-data",
+            prompt="Please enter the name of the meta-data value to set:",
+            parent=self.mainwindow)
+        if (k is None) or (k == ""):
+            return
+        v = ttkSimpleDialog.askstring(
+            title="Meta-data",
+            prompt="Please enter the value to set under '%s':" % k,
+            parent=self.mainwindow)
+        if (v is None) or (v == ""):
+            return
+        self.contours.set_metadata(k, v)
+        self.log("Meta-data set: %s=%s" % (k, v))
+        self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
+
+    def on_metadata_remove_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showinfo("Info", "No data present!")
+            return
+
+        k = ttkSimpleDialog.askstring(
+            title="Meta-data",
+            prompt="Please enter the name of the meta-data value to remove:",
+            parent=self.mainwindow)
+        if (k is None) or (k == ""):
+            return
+        msg = self.contours.remove_metadata(k)
+        if msg is not None:
+            messagebox.showwarning("Meta-data", msg)
+        else:
+            self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
+
+    def on_metadata_view_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showinfo("Info", "No data present!")
+            return
+
+        if self.contours.has_metadata():
+            messagebox.showinfo("Meta-data", "Currently no meta-data stored.")
+            return
+        s = ""
+        for k in self.contours.metadata:
+            s += "%s:\n  %s\n" % (k, self.contours.metadata[k])
+        self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
+        messagebox.showinfo("Meta-data", "Current meta-data:\n\n%s" % s)
 
     def on_button_sam_connect_click(self, event=None):
         if self.sam.is_connected():

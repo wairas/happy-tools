@@ -101,6 +101,7 @@ class ContoursManager:
         Initializes the manager.
         """
         self.contours = list()
+        self.metadata = dict()
 
     def to_absolute(self, width, height):
         """
@@ -158,7 +159,7 @@ class ContoursManager:
         :return: the generated OPEX data structure, None if no contours available
         :rtype: ObjectPredictions
         """
-        if not self.has_contours():
+        if not self.has_contours() and not self.has_metadata():
             return None
         start_time = datetime.now()
         objs = []
@@ -181,6 +182,8 @@ class ContoursManager:
                     pred.meta = meta
                 objs.append(pred)
         result = ObjectPredictions(id=str(start_time), timestamp=str(start_time), objects=objs)
+        if len(self.metadata) > 0:
+            result.meta = copy.copy(self.metadata)
         return result
 
     def has_contours(self):
@@ -194,11 +197,12 @@ class ContoursManager:
 
     def clear(self):
         """
-        Clears the contours.
+        Clears the contours and meta-data.
 
         :return: True if anything was cleared
         :rtype: bool
         """
+        self.clear_metadata()
         if len(self.contours) > 0:
             self.contours = []
             return True
@@ -246,3 +250,43 @@ class ContoursManager:
                 if polygon.contains(point):
                     result.append(contour)
         return result
+
+    def has_metadata(self):
+        """
+        Checks whether any meta-data is present.
+
+        :return: True if meta-data present
+        :rtype: bool
+        """
+        return len(self.metadata) > 0
+
+    def clear_metadata(self):
+        """
+        Clears the metadata.
+        """
+        self.metadata = dict()
+
+    def set_metadata(self, k, v):
+        """
+        Sets the specified meta-data value.
+
+        :param k: the key
+        :type k: str
+        :param v: the associated value
+        :type v: str
+        """
+        self.metadata[k] = v
+
+    def remove_metadata(self, k):
+        """
+        Removes the specified key from the meta-data.
+
+        :param k: the key to remove
+        :type k: str
+        :return: None if successfully removed, otherwise error message
+        :rtype: str
+        """
+        if k in self.metadata:
+            self.metadata.pop(k)
+        else:
+            return "No meta-data value stored under '%s'!" % k
