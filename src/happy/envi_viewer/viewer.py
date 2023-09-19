@@ -913,12 +913,12 @@ class ViewerApp:
         points = self.markers.to_spectra(self.data.scan_data)
         x = [x for x in range(self.data.get_num_bands())]
         plt.close()
+        plt.figure(num='ENVI Viewer: Spectra')
         for p in points:
             plt.plot(x, points[p], label=p)
         plt.xlabel("band index")
         plt.ylabel("amplitude")
         plt.title("Spectra")
-        plt.figure(num='ENVI Viewer: Spectra')
         plt.legend()
         plt.show()
 
