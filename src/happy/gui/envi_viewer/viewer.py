@@ -15,11 +15,11 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.envi_viewer._contours import ContoursManager, Contour
-from happy.envi_viewer._data import DataManager
-from happy.envi_viewer._markers import MarkersManager
-from happy.envi_viewer._redis import SamManager
-from happy.envi_viewer._session import SessionManager, PROPERTIES
+from happy.gui.envi_viewer import ContoursManager, Contour
+from happy.gui.envi_viewer._data import DataManager
+from happy.gui.envi_viewer._markers import MarkersManager
+from happy.gui.envi_viewer import SamManager
+from happy.gui.envi_viewer import SessionManager, PROPERTIES
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"

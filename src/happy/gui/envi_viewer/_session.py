@@ -38,10 +38,10 @@ class SessionManager:
         self.autodetect_channels = False
         self.keep_aspectratio = False
         self.check_scan_dimensions = True
-        self.last_blackref_dir = "."
-        self.last_whiteref_dir = "."
-        self.last_scan_dir = "."
-        self.last_image_dir = "."
+        self.last_blackref_dir = ""
+        self.last_whiteref_dir = ""
+        self.last_scan_dir = ""
+        self.last_image_dir = ""
         self.scale_r = 0
         self.scale_g = 0
         self.scale_b = 0

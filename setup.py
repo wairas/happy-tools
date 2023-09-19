@@ -51,18 +51,18 @@ setup(
     packages=find_namespace_packages(where='src'),
     entry_points={
         "console_scripts": [
-            "envi-viewer=happy.envi_viewer.viewer:sys_main",  # deprecated
-            "happy-envi-viewer=happy.envi_viewer.viewer:sys_main",
-            "happy-data-viewer=happy.data_viewer.viewer_old:sys_main",
-            "happy-generate-image-regions-objects=happy.image_regions_objects.generate:sys_main",
-            "happy-hdr-info=happy.hdr_info.output:sys_main",
-            "happy-hsi2csv=happy.hsi_to_csv.generate:sys_main",
-            "happy-hsi2rgb=happy.hsi_to_rgb.generate:sys_main",
-            "happy-mat-info=happy.mat_info.output:sys_main",
-            "happy-opex2happy=happy.opex_to_happy.generate:sys_main",
-            "happy-plot-preproc=happy.plot_preproc.output:sys_main",
-            "happy-scikit-regression-build=happy.builders.regression_build:sys_main",
-            "happy-scikit-unsupervised-build=happy.builders.unsupervised_build:sys_main",
+            "envi-viewer=happy.gui.envi_viewer.viewer:sys_main",  # deprecated
+            "happy-envi-viewer=happy.gui.envi_viewer.viewer:sys_main",
+            "happy-data-viewer=happy.gui.data_viewer.viewer_old:sys_main",
+            "happy-generate-image-regions-objects=happy.console.image_regions_objects.generate:sys_main",
+            "happy-hdr-info=happy.console.hdr_info.output:sys_main",
+            "happy-hsi2csv=happy.console.hsi_to_csv.generate:sys_main",
+            "happy-hsi2rgb=happy.console.hsi_to_rgb.generate:sys_main",
+            "happy-mat-info=happy.console.mat_info.output:sys_main",
+            "happy-opex2happy=happy.console.opex_to_happy.generate:sys_main",
+            "happy-plot-preproc=happy.console.plot_preproc.output:sys_main",
+            "happy-scikit-regression-build=happy.console.builders.regression_build:sys_main",
+            "happy-scikit-unsupervised-build=happy.console.builders.unsupervised_build:sys_main",
         ]
     },
     version="0.0.1",

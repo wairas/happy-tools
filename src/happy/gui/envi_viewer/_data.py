@@ -1,8 +1,8 @@
 import numpy as np
 import spectral.io.envi as envi
 
-from happy.hsi_to_rgb.generate import normalize_data
-from happy.envi_viewer._contours import ContoursManager, Contour, LABEL_WHITEREF
+from happy.console.hsi_to_rgb.generate import normalize_data
+from happy.gui.envi_viewer import LABEL_WHITEREF
 
 
 class DataManager:
