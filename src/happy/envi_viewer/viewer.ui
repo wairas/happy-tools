@@ -61,6 +61,15 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Checkbutton" id="checkbutton_file_use_whiteref_annotation" named="True">
+                    <property name="command" type="command" cbtype="simple">on_file_use_whiteref_annotation</property>
+                    <property name="label" translatable="yes">Use "whiteref" annotation</property>
+                    <property name="offvalue">0</property>
+                    <property name="onvalue">1</property>
+                    <property name="variable">int:state_use_whiteref_annotation</property>
+                  </object>
+                </child>
+                <child>
                   <object class="tk.Menuitem.Separator" id="separator7" />
                 </child>
                 <child>

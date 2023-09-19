@@ -60,6 +60,7 @@ class ViewerApp:
         self.state_scale_g = None
         self.state_scale_b = None
         self.state_export_with_annotations = None
+        self.state_use_whiteref_annotation = None
         builder.import_variables(self)
 
         # reference components
@@ -111,6 +112,7 @@ class ViewerApp:
         self.mainwindow.bind("<Control-L>", self.on_tools_remove_last_annotations_click)
         self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
         self.mainwindow.bind("<Control-p>", self.on_tools_polygon_click)
+        self.mainwindow.bind("<Control-w>", self.on_tools_view_spectra_click)
 
         # mouse events
         # https://tkinterexamples.com/events/mouse/
@@ -123,10 +125,10 @@ class ViewerApp:
         # init some vars
         self.photo_scan = None
         self.session = SessionManager()
-        self.data = DataManager()
+        self.contours = ContoursManager()
+        self.data = DataManager(self.contours)
         self.last_dims = None
         self.markers = MarkersManager()
-        self.contours = ContoursManager()
         self.sam = SamManager()
 
     def run(self):
@@ -701,6 +703,11 @@ class ViewerApp:
             self.session.last_whiteref_dir = os.path.dirname(filename)
             self.load_whiteref(filename, do_update=True)
 
+    def on_file_use_whiteref_annotation(self, event=None):
+        self.data.use_whiteref_annotation = (self.state_use_whiteref_annotation.get() == 1)
+        self.data.reset_norm_data()
+        self.update_image()
+
     def on_file_exportimage_click(self, event=None):
         """
         Allows the user to select a PNG file for saving the false color RGB to.
@@ -911,6 +918,7 @@ class ViewerApp:
         plt.xlabel("band index")
         plt.ylabel("amplitude")
         plt.title("Spectra")
+        plt.figure(num='ENVI Viewer: Spectra')
         plt.legend()
         plt.show()
 

@@ -2,6 +2,7 @@ import numpy as np
 import spectral.io.envi as envi
 
 from happy.hsi_to_rgb.generate import normalize_data
+from happy.envi_viewer._contours import ContoursManager, Contour, LABEL_WHITEREF
 
 
 class DataManager:
@@ -9,9 +10,12 @@ class DataManager:
     For managing the loaded data.
     """
 
-    def __init__(self):
+    def __init__(self, contours):
         """
         Initializes the manager.
+
+        :param contours: the contours manager
+        :type contours: ContoursManager
         """
         # _file: the filename
         # _img: the ENVI data structure
@@ -28,6 +32,9 @@ class DataManager:
         self.norm_data = None
         self.display_image = None
         self.wavelengths = None
+        self.contours = contours
+        self.use_whiteref_annotation = False
+        self.whiteref_annotation = None
 
     def has_scan(self):
         """
@@ -114,6 +121,7 @@ class DataManager:
         self.whiteref_file = None
         self.whiteref_img = None
         self.whiteref_data = None
+        self.whiteref_annotation = None
         self.reset_norm_data()
 
     def set_whiteref(self, path):
@@ -137,8 +145,28 @@ class DataManager:
         self.whiteref_file = path
         self.whiteref_img = img
         self.whiteref_data = data
+        self.whiteref_annotation = None
         self.reset_norm_data()
         return None
+
+    def get_whiteref_annotation(self):
+        """
+        Returns the whiteref value to use for normalizing, calculates it if necessary.
+
+        :return: the whiteref annotation value
+        :rtype: float
+        """
+        if self.whiteref_annotation is None:
+            contours = self.contours.get_contours(LABEL_WHITEREF)
+            if len(contours) == 1:
+                whiteref_img = self.get_scan_subimage(contours[0])
+                self.whiteref_annotation = np.average(whiteref_img)
+            elif len(contours) > 1:
+                print("More than one '%s' annotation found!" % LABEL_WHITEREF)
+            else:
+                self.whiteref_annotation = 1.0
+
+        return self.whiteref_annotation
 
     def has_blackref(self):
         """
@@ -187,6 +215,7 @@ class DataManager:
         Resets the normalized data, forcing a recalculation.
         """
         self.norm_data = None
+        self.whiteref_annotation = None
 
     def calc_norm_data(self, log):
         """
@@ -206,11 +235,15 @@ class DataManager:
                 else:
                     print("Scan and blackref dimensions differ: %s != %s" % (str(self.scan_data.shape), str(self.blackref_data.shape)))
             # divide by white reference
-            if self.whiteref_data is not None:
-                if self.whiteref_data.shape == self.norm_data.shape:
-                    self.norm_data = self.norm_data / self.whiteref_data
-                else:
-                    print("Scan and whiteref dimensions differ: %s != %s" % (str(self.scan_data.shape), str(self.whiteref_data.shape)))
+            if self.use_whiteref_annotation:
+                if self.get_whiteref_annotation() != 1.0:
+                    self.norm_data = self.norm_data / self.get_whiteref_annotation()
+            else:
+                if self.whiteref_data is not None:
+                    if self.whiteref_data.shape == self.norm_data.shape:
+                        self.norm_data = self.norm_data / self.whiteref_data
+                    else:
+                        print("Scan and whiteref dimensions differ: %s != %s" % (str(self.scan_data.shape), str(self.whiteref_data.shape)))
 
     def dims(self):
         """
@@ -251,3 +284,19 @@ class DataManager:
 
         rgb_image = np.dstack((norm_red, norm_green, norm_blue))
         self.display_image = (rgb_image * 255).astype(np.uint8)
+
+    def get_scan_subimage(self, contour):
+        """
+        Returns the subimage of the scan that encompasses the bbox of the contour.
+
+        :param contour: the contour to use for extracting the subset of the scan
+        :type contour: Contour
+        :return: the sub-image of the scan, None if no scane
+        """
+        if not self.has_scan():
+            return None
+
+        h, w, _ = self.scan_data.shape
+        bbox = contour.to_absolute(w, h).bbox()
+        result = self.scan_img[bbox.top:bbox.bottom, bbox.left:bbox.right, :]
+        return result

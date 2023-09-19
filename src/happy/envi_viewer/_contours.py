@@ -9,6 +9,9 @@ from opex import BBox, Polygon, ObjectPrediction, ObjectPredictions
 from shapely.geometry import Point as SPoint
 from shapely.geometry.polygon import Polygon as SPolygon
 
+LABEL_WHITEREF = "whiteref"
+""" the label to use for the white reference annotation. """
+
 
 @dataclass
 class BBoxNormalized:
@@ -168,7 +171,7 @@ class ContoursManager:
                 bb = contour.bbox()
                 bbox = BBox(left=bb.left, top=bb.top, right=bb.right, bottom=bb.bottom)
                 poly = Polygon(points=contour.points)
-                label = "object" if (contour.label is "") else contour.label
+                label = "object" if (contour.label == "") else contour.label
                 pred = ObjectPrediction(label=label, bbox=bbox, polygon=poly)
                 if contour.meta is not None:
                     meta = dict()
@@ -290,3 +293,40 @@ class ContoursManager:
             self.metadata.pop(k)
         else:
             return "No meta-data value stored under '%s'!" % k
+
+    def has_label(self, label):
+        """
+        Checks whether the label is present.
+
+        :param label: the label to check
+        :type label: str
+        :return: True if at least one present
+        :rtype: bool
+        """
+        result = False
+
+        for contours in self.contours:
+            for contour in contours:
+                if contour.has_label() and (contour.label == label):
+                    result = True
+                    break
+
+        return result
+
+    def get_contours(self, label):
+        """
+        Returns all the contours that have the specified label.
+
+        :param label: the label the contours must have
+        :type label: str
+        :return: the list of contours with the label present, can be empty
+        :rtype: list
+        """
+        result = []
+
+        for contours in self.contours:
+            for contour in contours:
+                if contour.has_label() and (contour.label == label):
+                    result.append(contour)
+
+        return result
