@@ -61,9 +61,13 @@ class MarkersManager:
     def to_absolute(self, width, height):
         """
         Returns the absolute points.
-        :param width:
-        :param height:
-        :return:
+
+        :param width: the width of the underlying image
+        :type width: int
+        :param height: the height of the underlying image
+        :type height: int
+        :return: the absolute marker points as list of x/y tuples
+        :rtype: list
         """
         return [(int(x * width), int(y * height)) for x, y in self.points]
 
@@ -75,3 +79,26 @@ class MarkersManager:
         :rtype: bool
         """
         return len(self.points) >= 3
+
+    def to_spectra(self, scan):
+        """
+        Turns the markers into a dictionary of the coordinate strings associated
+        with the numpy array of the spectral data.
+
+        :param scan: the underlying data
+        :type scan: numpy.array
+        :return: the dictionary of spectra
+        :rtype: dict
+        """
+        result = dict()
+
+        if self.has_points():
+            h, w, _ = scan.shape
+            for x, y in self.points:
+                x = int(x * w)
+                y = int(y * h)
+                label = "x=%d, y=%d" % (x, y)
+                spec = scan[y, x]
+                result[label] = spec
+
+        return result

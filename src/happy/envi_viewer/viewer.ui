@@ -135,6 +135,13 @@
                     <property name="label" translatable="yes">Polygon</property>
                   </object>
                 </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_tools_view_spectra" named="True">
+                    <property name="accelerator">Ctrl+W</property>
+                    <property name="command" type="command" cbtype="simple">on_tools_view_spectra_click</property>
+                    <property name="label" translatable="yes">View spectra...</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>

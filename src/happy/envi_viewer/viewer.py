@@ -3,6 +3,7 @@ import argparse
 import copy
 import io
 import json
+import matplotlib.pyplot as plt
 import os
 import pathlib
 import pygubu
@@ -14,13 +15,11 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from datetime import datetime
 from happy.envi_viewer._contours import ContoursManager, Contour
 from happy.envi_viewer._data import DataManager
 from happy.envi_viewer._markers import MarkersManager
 from happy.envi_viewer._redis import SamManager
 from happy.envi_viewer._session import SessionManager, PROPERTIES
-from opex import ObjectPredictions
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -204,6 +203,9 @@ class ViewerApp:
         :param do_update: whether to update the display
         :type do_update: bool
         """
+        self.markers.clear()
+        self.contours.clear()
+
         if self.data.has_scan():
             self.last_dims = self.data.scan_data.shape
 
@@ -658,7 +660,6 @@ class ViewerApp:
         if filename is not None:
             self.session.last_scan_dir = os.path.dirname(filename)
             self.load_scan(filename, do_update=True)
-            self.contours.clear()
 
     def on_file_clear_blackref(self, event=None):
         if self.data.has_blackref():
@@ -896,6 +897,22 @@ class ViewerApp:
         self.markers.clear()
         self.log("Polygon added")
         self.update_image()
+
+    def on_tools_view_spectra_click(self, event=None):
+        if not self.markers.has_points():
+            messagebox.showerror("Error", "No marker points present!")
+            return
+
+        points = self.markers.to_spectra(self.data.scan_data)
+        x = [x for x in range(self.data.get_num_bands())]
+        plt.close()
+        for p in points:
+            plt.plot(x, points[p], label=p)
+        plt.xlabel("band index")
+        plt.ylabel("amplitude")
+        plt.title("Spectra")
+        plt.legend()
+        plt.show()
 
     def on_metadata_clear_click(self, event=None):
         if not self.data.has_scan():
