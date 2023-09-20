@@ -11,7 +11,7 @@ class MultiSelector(PixelSelector):
         data['selectors'] = [selector.to_dict() for selector in self.selectors]
         return data
 
-    def select_pixels(self, happy_data):
+    def select_pixels(self, happy_data, n=None):
         pixels = []
         for selector in self.selectors:
             #print(selector.to_dict())

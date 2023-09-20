@@ -31,7 +31,6 @@ class PixelSelector:
             'criteria' : self.criteria.to_dict()
         }
 
-        
     def get_at(self, happy_data, x, y):
         raise NotImplementedError("Subclasses must implement the get_at method")
     
