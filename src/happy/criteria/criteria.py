@@ -22,7 +22,7 @@ class Criteria:
         return str(self.to_dict)
         
     def get_keys(self):
-        return([self.key])
+        return [self.key]
 
     def check(self, happy_data, x, y):
         z_data = happy_data.get_spectrum(x, y)
@@ -61,8 +61,8 @@ class CriteriaGroup:
             'class': self.__class__.__name__,
         }
         if self.criteria_list:
-            json_dict["criteria_list"]=[criteria.to_dict() for criteria in self.criteria_list ]
-        return(json_dict)
+            json_dict["criteria_list"] = [criteria.to_dict() for criteria in self.criteria_list ]
+        return json_dict
         
     def __str__(self):
         return str(self.to_dict())
@@ -74,7 +74,7 @@ class CriteriaGroup:
         return all(criteria.check(happy_data, x, y) for criteria in self.criteria_list)
      
     def get_keys(self):
-        return([c.key for c in self.criteria_list])
+        return [c.key for c in self.criteria_list]
 
     def add_criteria(self, criteria):
         self.criteria_list.append(criteria)
