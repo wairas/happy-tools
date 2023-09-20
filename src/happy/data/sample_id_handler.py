@@ -36,7 +36,6 @@ class SampleIDHandler:
             return self.sample_ids[sample_id]["sub_ids"][sub_sample_id]
         return None
 
-        
     def to_sample_id(self, folder_path):
         rel_path = os.path.relpath(folder_path, self.base_folder)
         

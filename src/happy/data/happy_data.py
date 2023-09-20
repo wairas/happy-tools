@@ -15,20 +15,20 @@ class HappyData:
         self.metadata_dict = metadata_dict
 
     def get_full_id(self):
-        return(self.sample_id+":"+self.region_id)
+        return self.sample_id + ":" + self.region_id
         
     def append_region_name(self, to_append):
         self.region_id = self.region_id + "_" + to_append
         
     def get_unique_values(self, target):
         if target not in self.metadata_dict:
-            return([])
+            return []
         data = self.metadata_dict[target]["data"]
         # Assuming 'my_array' is your numpy array
         unique_values = np.unique(data)
         unique_values_list = unique_values.tolist()
 
-        return(unique_values_list)
+        return unique_values_list
         
     def apply_preprocess(self, preprocessor_method):
         preprocessor_method.fit(self.data)
@@ -43,7 +43,7 @@ class HappyData:
         }
         preprocessed_happy_data.add_preprocessing_note(processing_note) 
         
-        return(preprocessed_happy_data)
+        return preprocessed_happy_data
         
     """    
     def get_segmentation_labels(self, target, mapping):
@@ -86,8 +86,7 @@ class HappyData:
         for idx in np.argwhere(common_valid_indices):
             xy_pair = tuple(idx)
             valid_xy_pairs.append(xy_pair)
-            
-        
+
         for x, y in valid_xy_pairs:
             if criteria.check(self, str(x), str(y)):
                 x_coords.append(x)
@@ -119,11 +118,10 @@ class HappyData:
         
     def get_meta_data(self, x=None, y=None, key="type"):
         if key == "x":
-            return(x)
+            return x
         elif key == "y":
-            return(y)
-            
-        
+            return y
+
         if key in self.metadata_dict:
             #print(self.metadata_dict[key]["data"].shape)
             #print (type(self.metadata_dict[key]["data"]))
@@ -136,8 +134,7 @@ class HappyData:
             
         if "meta_data" in self.global_dict and key in self.global_dict["meta_data"]:
             return self.global_dict["meta_data"][key]
-            
-       
+
         return None
         #return(self.get_meta_global_data(key))
         
@@ -161,13 +158,13 @@ class HappyData:
             #print("in here")
             #print(self.wavenumbers)
        
-        return(self.wavenumbers)
+        return self.wavenumbers
             
     def get_numpy_xy(self):
-        return(np.transpose(self.data, (1, 0, 2)))
+        return np.transpose(self.data, (1, 0, 2))
     
     def get_numpy_yx(self):
-        return(self.data)
+        return self.data
     
     """
     def get_all_xy_pairs(self, include_background=False):
