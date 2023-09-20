@@ -121,8 +121,14 @@ class DataManager:
         self.whiteref_file = None
         self.whiteref_img = None
         self.whiteref_data = None
-        self.whiteref_annotation = None
+        self.clear_whiteref_annotation()
         self.reset_norm_data()
+
+    def clear_whiteref_annotation(self):
+        """
+        Clears the calculated values from a whiteref annotation.
+        """
+        self.whiteref_annotation = None
 
     def set_whiteref(self, path):
         """
@@ -151,20 +157,24 @@ class DataManager:
 
     def get_whiteref_annotation(self):
         """
-        Returns the whiteref value to use for normalizing, calculates it if necessary.
+        Returns the whiteref values (one per band) to use for normalizing, calculates it if necessary.
 
-        :return: the whiteref annotation value
-        :rtype: float
+        :return: the list of whiteref annotation values (float)
+        :rtype: list
         """
         if self.whiteref_annotation is None:
+            self.whiteref_annotation = []
+            num_bands = self.scan_img.shape[2]
             contours = self.contours.get_contours(LABEL_WHITEREF)
             if len(contours) == 1:
                 whiteref_img = self.get_scan_subimage(contours[0])
-                self.whiteref_annotation = np.average(whiteref_img)
+                for i in range(num_bands):
+                    self.whiteref_annotation.append(np.average(whiteref_img[:, :, i]))
             elif len(contours) > 1:
                 print("More than one '%s' annotation found!" % LABEL_WHITEREF)
             else:
-                self.whiteref_annotation = 1.0
+                for i in range(num_bands):
+                    self.whiteref_annotation.append(1.0)
 
         return self.whiteref_annotation
 
@@ -236,8 +246,10 @@ class DataManager:
                     print("Scan and blackref dimensions differ: %s != %s" % (str(self.scan_data.shape), str(self.blackref_data.shape)))
             # divide by white reference
             if self.use_whiteref_annotation:
-                if self.get_whiteref_annotation() != 1.0:
-                    self.norm_data = self.norm_data / self.get_whiteref_annotation()
+                whiteref_values = self.get_whiteref_annotation()
+                for i in range(len(whiteref_values)):
+                    if whiteref_values[i] != 1.0:
+                        self.norm_data[:, :, i] = self.norm_data[:, :, i] / whiteref_values[i]
             else:
                 if self.whiteref_data is not None:
                     if self.whiteref_data.shape == self.norm_data.shape:

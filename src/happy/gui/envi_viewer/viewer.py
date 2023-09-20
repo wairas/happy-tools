@@ -15,7 +15,7 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.gui.envi_viewer import ContoursManager, Contour
+from happy.gui.envi_viewer import ContoursManager, Contour, LABEL_WHITEREF
 from happy.gui.envi_viewer import DataManager
 from happy.gui.envi_viewer import MarkersManager
 from happy.gui.envi_viewer import SamManager
@@ -586,6 +586,9 @@ class ViewerApp:
             if new_label is not None:
                 for contour in contours:
                     contour.label = new_label
+                if (new_label == LABEL_WHITEREF) and (self.state_use_whiteref_annotation.get() == 1):
+                    self.data.clear_whiteref_annotation()
+                    self.data.reset_norm_data()
                 self.update_image()
 
     def clear_markers(self):
