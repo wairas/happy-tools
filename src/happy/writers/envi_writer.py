@@ -7,7 +7,7 @@ class EnviWriter(BaseWriter):
     def __init__(self, output_folder):
         super().__init__(output_folder)
 
-    def write(self, data, filename, datatype=None, wavelengths=None):
+    def write_data(self, data, filename, datatype=None, wavelengths=None):
         filepath = os.path.join(self.output_folder, filename)
         print("write "+filename)
         print(data.shape)
