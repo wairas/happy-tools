@@ -7,6 +7,11 @@ Python tools for dealing with hyper-spectral images.
 pip install git+https://github.com/wairas/happy-tools.git
 ```
 
+## Docker
+
+For Docker images, please see [docker/README.md](docker/README.md).
+
+
 ## Command-line
 
 ### Data Viewer
