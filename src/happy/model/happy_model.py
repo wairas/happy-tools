@@ -29,4 +29,3 @@ class HappyModel:
             return pickle.load(file)
 
     # ... (other methods)
-

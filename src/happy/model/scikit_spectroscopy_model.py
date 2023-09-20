@@ -120,7 +120,7 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
         return encoded_data
 
     def fit(self, sample_ids, force=False, keep_training_data=False):
-        if self.training_data is None or Force or keep_training_data:
+        if self.training_data is None or force or keep_training_data:
             self.training_data = self.generate_training_dataset(sample_ids)
         # Implement logic to fit the scikit-learn model using training_data
         # Assuming the model is already initialized in self.model

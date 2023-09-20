@@ -35,7 +35,7 @@ class SpectroscopyModel(HappyModel):
                 dataset["y"].append(happy_data.get_numpy_yx().shape[0])
                 #dataset["y_pred"].append(target_value)
                 #dataset["sample_id"].append(happy_data.get_full_id())
-        return(dataset)
+        return dataset
         
     def _generate_dataset(self, sample_ids, is_train=True, return_actuals=False):
         dataset = {"X_train": [], "y_train": [], "sample_id": []} if is_train else {"X_pred": [], "y_pred": [],"sample_id": []}

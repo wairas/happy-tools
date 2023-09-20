@@ -11,7 +11,7 @@ class ImagingModel(HappyModel):
         
     def get_data_shape(self):
         print(f"data shape: {self.data_shape}")
-        return(self.data_shape)
+        return self.data_shape
 
     def generate_batch(self, sample_ids, batch_size, is_train=True, loop=False, return_actuals=False):
         # Get the preprocessed data
