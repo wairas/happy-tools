@@ -100,7 +100,7 @@ class DataManager:
             self.wavelengths = dict()
             metadata = self.scan_img.metadata
             if "wavelength" in metadata:
-                for i in range(metadata["wavelength"]):
+                for i in range(len(metadata["wavelength"])):
                     self.wavelengths[i] = metadata["wavelength"][i]
 
         return self.wavelengths
