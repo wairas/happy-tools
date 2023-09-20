@@ -16,8 +16,8 @@ from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.gui.envi_viewer import ContoursManager, Contour
-from happy.gui.envi_viewer._data import DataManager
-from happy.gui.envi_viewer._markers import MarkersManager
+from happy.gui.envi_viewer import DataManager
+from happy.gui.envi_viewer import MarkersManager
 from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
 
@@ -36,7 +36,7 @@ class ViewerApp:
         # Main widget
         self.mainwindow = builder.get_object("toplevel", master)
         builder.connect_callbacks(self)
-        self.mainwindow.iconphoto(False, tk.PhotoImage(file=str(PROJECT_PATH) + '/../logo.png'))
+        self.mainwindow.iconphoto(False, tk.PhotoImage(file=str(PROJECT_PATH) + '/../../logo.png'))
         self.mainwindow.bind("<Configure>", self.on_window_resize)
 
         # setting theme
