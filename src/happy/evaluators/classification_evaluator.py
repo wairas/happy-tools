@@ -2,10 +2,10 @@ from happy.evaluators.base_evaluator import BaseEvaluator
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
+
 class ClassificationEvaluator(BaseEvaluator):
     def __init__(self, happy_splitter, model, target):
-
-         self.data = {}
+        self.data = {}
         
     def accumulate_stats(self, predictions, actuals, repeat, fold):
         print(f"added {repeat}:{fold}")
