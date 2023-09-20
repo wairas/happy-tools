@@ -26,6 +26,7 @@ class DataViewer:
         self.rgb_image = None
         self.updating = False
         self.selected_sample_id = None
+        self.stored_happy_data = None
         
         self.channel_slider_frame = None
         self.channel_sliders = []
@@ -100,7 +101,9 @@ class DataViewer:
 
     def update_plot(self, happy_data):
         if self.updating:
-            return 
+            return
+        if self.stored_happy_data is None:
+            return
         self.updating = True
         #print("update")
         # Convert the hyperspectral data to an RGB image
