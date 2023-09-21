@@ -10,6 +10,7 @@ import tkinter.ttk as ttk
 
 from PIL import Image, ImageTk
 from tkinter import filedialog as fd
+from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.readers.happy_reader import HappyReader
 import matplotlib.pyplot as plt
@@ -90,6 +91,7 @@ class ViewerApp:
         self.metadata_values = None
         self.metadata_rgb_colors = None
         self.selected_metadata_key = None
+        self.last_export_dir = "."
 
     def log(self, msg):
         """
@@ -362,8 +364,30 @@ class ViewerApp:
         self.load_dir(sel_dir)
 
     def on_file_export_image_click(self):
-        # TODO
-        pass
+        if self.rgb_image is None:
+            messagebox.showerror("Error", "No image to export!")
+            return
+
+        fname = self.current_sample + "-" + self.current_repeat + ".png"
+        filetypes = (
+            ('PNG files', '*.png'),
+            ('All files', '*.*')
+        )
+        filename = fd.asksaveasfilename(
+            title="Save image",
+            initialdir=self.last_export_dir,
+            initialfile=fname,
+            filetypes=filetypes)
+        if (filename is None) or (filename == ""):
+            return
+
+        self.last_export_dir = os.path.dirname(filename)
+        if self.combined_image is not None:
+            self.combined_image.save(filename)
+        elif self.rgb_image is not None:
+            self.rgb_image.save(filename)
+        else:
+            messagebox.showerror("Error", "No image to save?")
 
     def on_file_close_click(self):
         self.mainwindow.quit()
