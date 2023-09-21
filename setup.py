@@ -53,7 +53,7 @@ setup(
         "console_scripts": [
             "envi-viewer=happy.gui.envi_viewer.viewer:sys_main",  # deprecated
             "happy-envi-viewer=happy.gui.envi_viewer.viewer:sys_main",
-            "happy-data-viewer=happy.gui.data_viewer.viewer_old:sys_main",
+            "happy-data-viewer=happy.gui.data_viewer.viewer:sys_main",
             "happy-generate-image-regions-objects=happy.console.image_regions_objects.generate:sys_main",
             "happy-hdr-info=happy.console.hdr_info.output:sys_main",
             "happy-hsi2csv=happy.console.hsi_to_csv.generate:sys_main",
