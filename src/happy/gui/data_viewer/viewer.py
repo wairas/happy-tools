@@ -103,6 +103,14 @@ class ViewerApp:
         """
         print(msg)
 
+    def clear_plot(self):
+        """
+        Clears any previous plot.
+        """
+        self.rgb_image = None
+        self.combined_image = None
+        self.canvas.delete("all")
+
     def load_dir(self, path):
         """
         Opens the specified directory.
@@ -125,6 +133,7 @@ class ViewerApp:
         self.var_listbox_samples.set(samples)
         if len(samples) > 0:
             self.listbox_samples.selection_set(0)
+        self.clear_plot()
 
     def load_sample(self, sample):
         """
@@ -158,6 +167,7 @@ class ViewerApp:
         self.var_listbox_repeats.set(repeats)
         if len(repeats) > 0:
             self.listbox_repeats.selection_set(0)
+        self.clear_plot()
 
     def load_repeat(self, repeat):
         """
@@ -168,6 +178,7 @@ class ViewerApp:
         """
         self.log("repeat: %s" % repeat)
         self.current_repeat = repeat
+        self.clear_plot()
         self.load_happy_data()
 
     def load_happy_data(self):
@@ -194,6 +205,7 @@ class ViewerApp:
 
         self.log("Loaded HappyData: %s" % str(self.stored_happy_data))
         self.rgb_image = None
+        self.combined_image = None
         num_channels = len(self.stored_happy_data[0].data[0, 0, :])
 
         # Update the range of existing sliders
@@ -203,8 +215,6 @@ class ViewerApp:
 
         # Continue with loading and displaying HappyData...
         self.updating = False  # Allow updates after loading
-        self.rgb_image = None
-        self.combined_image = None
         self.update_plot()
 
     def update_metadata_combobox(self, metadata_keys):
