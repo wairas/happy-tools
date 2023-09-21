@@ -124,7 +124,7 @@ def generate(data_dir, metadata_dir, sample_ids, output_dir, metadata_values, ta
     """
     Generates the CSV output.
 
-    :param data_dir: the directory with the data hyper-spectral data files to process
+    :param data_dir: the directory with the data hyperspectral data files to process
     :type data_dir: str
     :param metadata_dir: the directory with the JSON meta-data files
     :type metadata_dir: str
@@ -168,10 +168,10 @@ def main(args=None):
     :type args: list
     """
     parser = argparse.ArgumentParser(
-        description="Generates CSV files from hyper-spectral images.",
+        description="Generates CSV files from hyperspectral images.",
         prog="happy-hsi2csv",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-d", "--data_dir", metavar="DIR", help="the directory with the hyper-spectral data files", required=True)
+    parser.add_argument("-d", "--data_dir", metavar="DIR", help="the directory with the hyperspectral data files", required=True)
     parser.add_argument("-m", "--metadata_dir", metavar="DIR", help="the directory with the meta-data JSON files", required=True)
     parser.add_argument("-s", "--sample_ids", metavar="FILE", help="the JSON file with the array of sample IDs to process", required=True)
     parser.add_argument("-o", "--output_dir", metavar="DIR", help="the directory to store the results in", required=True)

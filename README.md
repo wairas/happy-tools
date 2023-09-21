@@ -1,5 +1,5 @@
 # happy-tools
-Python tools for dealing with hyper-spectral images.
+Python tools for dealing with hyperspectral images.
 
 ## Installation
 
@@ -42,7 +42,7 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [--redis_connect] [--marker_size INT]
                          [--marker_color HEXCOLOR] [--min_obj_size INT]
 
-ENVI Hyper-spectral Image Viewer. Offers contour detection using SAM (Segment-
+ENVI Hyperspectral Image Viewer. Offers contour detection using SAM (Segment-
 Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-
 anything)
 
@@ -133,12 +133,12 @@ usage: happy-hsi2csv [-h] -d DIR -m DIR -s FILE -o DIR
                      [-M [METADATA_VALUES [METADATA_VALUES ...]]] -T
                      TARGETS [TARGETS ...]
 
-Generates CSV files from hyper-spectral images.
+Generates CSV files from hyperspectral images.
 
 optional arguments:
   -h, --help            show this help message and exit
   -d DIR, --data_dir DIR
-                        the directory with the hyper-spectral data files
+                        the directory with the hyperspectral data files
                         (default: None)
   -m DIR, --metadata_dir DIR
                         the directory with the meta-data JSON files (default:
