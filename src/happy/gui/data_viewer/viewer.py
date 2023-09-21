@@ -91,6 +91,7 @@ class ViewerApp:
         self.updating = False
         self.stored_happy_data = None
         self.rgb_image = None
+        self.combined_image = None
         self.metadata_values = None
         self.metadata_rgb_colors = None
         self.selected_metadata_key = None
@@ -184,8 +185,9 @@ class ViewerApp:
         self.updating = True
         self.stored_happy_data = self.reader.load_data(self.current_sample + ":" + self.current_repeat)
         # Extract and store the metadata keys
-        if self.stored_happy_data:
+        if self.stored_happy_data is not None:
             metadata_keys = list(self.stored_happy_data[0].metadata_dict.keys())
+            sorted(metadata_keys)
             self.update_metadata_combobox(metadata_keys)  # Call a new method to update the Combobox
             if self.selected_metadata_key is not None:
                 metadata_values = self.stored_happy_data[0].metadata_dict[self.selected_metadata_key]["data"]
@@ -203,6 +205,8 @@ class ViewerApp:
 
         # Continue with loading and displaying HappyData...
         self.updating = False  # Allow updates after loading
+        self.rgb_image = None
+        self.combined_image = None
         self.update_plot()
 
     def update_metadata_combobox(self, metadata_keys):
@@ -252,20 +256,22 @@ class ViewerApp:
         rgb_image = self.rgb_image
 
         if self.selected_metadata_key is not None:
-            # Convert metadata RGB colors to a NumPy array
-            overlay_image = self.metadata_rgb_colors
-            # Apply transparency based on opacity slider value
-            overlay_alpha = float(self.scale_opacity.get() / 100)  # Scale to 0-255
-            # Convert hyperspectral RGB image to float
-            rgb_image_float = np.array(rgb_image).astype(float) / 255.0
-            # Combine hyperspectral image with the overlay image
-            combined_image = (1.0 - overlay_alpha) * rgb_image_float + (overlay_image * overlay_alpha)
-            # Clip values to ensure they are within [0, 1]
-            combined_image = np.clip(combined_image, 0, 1)
-            # Convert the combined image to uint8
-            combined_image_uint8 = (combined_image * 255).astype(np.uint8)
-            # Create an Image object from the combined image
-            rgb_image = Image.fromarray(combined_image_uint8)
+            if self.combined_image is None:
+                # Convert metadata RGB colors to a NumPy array
+                overlay_image = self.metadata_rgb_colors
+                # Apply transparency based on opacity slider value
+                overlay_alpha = float(self.scale_opacity.get() / 100)  # Scale to 0-255
+                # Convert hyperspectral RGB image to float
+                rgb_image_float = np.array(rgb_image).astype(float) / 255.0
+                # Combine hyperspectral image with the overlay image
+                combined_image = (1.0 - overlay_alpha) * rgb_image_float + (overlay_image * overlay_alpha)
+                # Clip values to ensure they are within [0, 1]
+                combined_image = np.clip(combined_image, 0, 1)
+                # Convert the combined image to uint8
+                combined_image_uint8 = (combined_image * 255).astype(np.uint8)
+                # Create an Image object from the combined image
+                self.combined_image = Image.fromarray(combined_image_uint8)
+            rgb_image = self.combined_image
 
         # Calculate canvas dimensions (only once)
         canvas_width = self.canvas.winfo_width() - 10  # remove padding
@@ -330,8 +336,9 @@ class ViewerApp:
             self.load_repeat(repeat)
 
     def on_metadata_select(self, event):
+        self.combined_image = None
         self.selected_metadata_key = self.combobox_metadata.get()
-        if self.stored_happy_data and self.selected_metadata_key:
+        if (self.stored_happy_data is not None) and (self.selected_metadata_key is not None):
             metadata_values = self.stored_happy_data[0].metadata_dict[self.selected_metadata_key]["data"]
             self.metadata_values = np.squeeze(metadata_values)
             self.metadata_rgb_colors = self.map_metadata_to_rgb(self.metadata_values)
@@ -357,6 +364,7 @@ class ViewerApp:
         self.mainwindow.quit()
 
     def on_scale_opacity_changed(self, scale_value):
+        self.combined_image = None
         self.update_plot()
 
     def on_keep_aspectratio_click(self):
@@ -365,14 +373,20 @@ class ViewerApp:
 
     def on_scale_r_changed(self, scale_value):
         self.label_r_value.configure(text=str(self.state_scale_r.get()))
+        self.rgb_image = None
+        self.combined_image = None
         self.update_plot()
 
     def on_scale_g_changed(self, scale_value):
         self.label_g_value.configure(text=str(self.state_scale_g.get()))
+        self.rgb_image = None
+        self.combined_image = None
         self.update_plot()
 
     def on_scale_b_changed(self, scale_value):
         self.label_b_value.configure(text=str(self.state_scale_b.get()))
+        self.rgb_image = None
+        self.combined_image = None
         self.update_plot()
 
     def on_label_r_click(self, event=None):
