@@ -117,7 +117,6 @@ class ViewerApp:
         # mouse events
         # https://tkinterexamples.com/events/mouse/
         self.image_label.bind("<Button-1>", self.on_image_click)
-        self.image_label.bind("<Button-1>", self.on_image_click)
         self.label_r_value.bind("<Button-1>", self.on_label_r_click)
         self.label_g_value.bind("<Button-1>", self.on_label_g_click)
         self.label_b_value.bind("<Button-1>", self.on_label_b_click)
