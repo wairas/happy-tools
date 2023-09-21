@@ -45,7 +45,6 @@ class ViewerApp:
         self.listbox_repeats = builder.get_object("listbox_repeats", master)
         self.combobox_metadata = builder.get_object("combobox_type", master)
         self.scale_opacity = builder.get_object("scale_opacity", master)
-        self.checkbox_keep_aspectratio = builder.get_object("checkbox_keep_aspectratio", master)
         self.scale_r = builder.get_object("scale_r", master)
         self.scale_g = builder.get_object("scale_g", master)
         self.scale_b = builder.get_object("scale_b", master)
@@ -75,7 +74,6 @@ class ViewerApp:
 
         # states
         self.state_opacity = None
-        self.state_keep_aspectratio = None
         self.state_scale_r = None
         self.state_scale_g = None
         self.state_scale_b = None
@@ -366,10 +364,6 @@ class ViewerApp:
     def on_scale_opacity_changed(self, scale_value):
         self.combined_image = None
         self.update_plot()
-
-    def on_keep_aspectratio_click(self):
-        # TODO
-        pass
 
     def on_scale_r_changed(self, scale_value):
         self.label_r_value.configure(text=str(self.state_scale_r.get()))

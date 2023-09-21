@@ -334,23 +334,6 @@
                                             </layout>
                                           </object>
                                         </child>
-                                        <child>
-                                          <object class="ttk.Checkbutton" id="checkbox_keep_aspectratio" named="True">
-                                            <property name="command" type="command" cbtype="simple">on_keep_aspectratio_click</property>
-                                            <property name="offvalue">0</property>
-                                            <property name="onvalue">1</property>
-                                            <property name="text" translatable="yes">Keep aspect ratio</property>
-                                            <property name="variable">int:state_keep_aspectratio</property>
-                                            <layout manager="grid">
-                                              <property name="column">0</property>
-                                              <property name="columnspan">2</property>
-                                              <property name="padx">5</property>
-                                              <property name="pady">5</property>
-                                              <property name="row">2</property>
-                                              <property name="sticky">w</property>
-                                            </layout>
-                                          </object>
-                                        </child>
                                       </object>
                                     </child>
                                     <child>
