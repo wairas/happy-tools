@@ -10,13 +10,10 @@ import tkinter.ttk as ttk
 
 from PIL import Image, ImageTk
 from tkinter import filedialog as fd
-from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.readers.happy_reader import HappyReader
-from happy.data.sample_id_handler import SampleIDHandler
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
-from matplotlib.cm import ScalarMappable
 
 
 PROJECT_PATH = pathlib.Path(__file__).parent
