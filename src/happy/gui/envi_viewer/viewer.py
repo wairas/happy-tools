@@ -431,10 +431,14 @@ class ViewerApp:
             info += self.data.blackref_file + "\n" + str(self.data.blackref_data.shape)
         # white
         info += "\n\nWhite reference:\n"
-        if self.data.whiteref_file is None:
-            info += "-none-"
-        else:
+        if self.data.whiteref_file is not None:
             info += self.data.whiteref_file + "\n" + str(self.data.whiteref_data.shape)
+        else:
+            contours = self.contours.get_contours(LABEL_WHITEREF)
+            if len(contours) == 1:
+                info += str(contours[0].bbox())
+            else:
+                info += "-none-"
         # wave lengths
         info += "\n\nWave lengths:\n"
         if len(self.data.get_wavelengths()) == 0:
@@ -588,6 +592,7 @@ class ViewerApp:
                 if (new_label == LABEL_WHITEREF) and (self.state_use_whiteref_annotation.get() == 1):
                     self.data.clear_whiteref_annotation()
                     self.data.reset_norm_data()
+                self.update_info()
                 self.update_image()
 
     def clear_markers(self):
@@ -714,6 +719,7 @@ class ViewerApp:
     def on_file_use_whiteref_annotation(self, event=None):
         self.data.use_whiteref_annotation = (self.state_use_whiteref_annotation.get() == 1)
         self.data.reset_norm_data()
+        self.update_info()
         self.update_image()
 
     def on_file_exportimage_click(self, event=None):
