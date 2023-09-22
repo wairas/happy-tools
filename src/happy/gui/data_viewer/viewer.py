@@ -93,6 +93,26 @@ class ViewerApp:
         self.selected_metadata_key = None
         self.last_export_dir = "."
 
+    def set_listbox_selectbackground(self, color):
+        """
+        Sets the background color to use for selected items in listboxes.
+
+        :param color: the color
+        :type color: str
+        """
+        self.listbox_samples.config(selectbackground=color)
+        self.listbox_repeats.config(selectbackground=color)
+
+    def set_listbox_selectforeground(self, color):
+        """
+        Sets the foreground color to use for selected items in listboxes.
+
+        :param color: the color
+        :type color: str
+        """
+        self.listbox_samples.config(selectforeground=color)
+        self.listbox_repeats.config(selectforeground=color)
+
     def log(self, msg):
         """
         Simply outputs the supplied message.
@@ -130,9 +150,10 @@ class ViewerApp:
                 samples.append(f)
         samples.sort()
         self.var_listbox_samples.set(samples)
+        self.clear_plot()
         if len(samples) > 0:
             self.listbox_samples.selection_set(0)
-        self.clear_plot()
+            self.on_listbox_samples_select()
 
     def load_sample(self, sample):
         """
@@ -164,9 +185,10 @@ class ViewerApp:
         else:
             repeats.sort(reverse=True)
         self.var_listbox_repeats.set(repeats)
+        self.clear_plot()
         if len(repeats) > 0:
             self.listbox_repeats.selection_set(0)
-        self.clear_plot()
+            self.on_listbox_repeats_select()
 
     def load_repeat(self, repeat):
         """
@@ -448,10 +470,15 @@ def main():
         prog="happy-data-viewer",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-f", "--base_folder", help="Base folder to display", default=None, required=False)
+    parser.add_argument("-d", "--delay", type=int, help="The delay in msec before displaying the base folder", default=1000, required=False)
+    parser.add_argument("--listbox_selectbackground", type=str, help="The background color to use for selected items in listboxes", default="#4a6984", required=False)
+    parser.add_argument("--listbox_selectforeground", type=str, help="The foreground color to use for selected items in listboxes", default="#ffffff", required=False)
     parsed = parser.parse_args()
     app = ViewerApp()
+    app.set_listbox_selectbackground(parsed.listbox_selectbackground)
+    app.set_listbox_selectforeground(parsed.listbox_selectforeground)
     if parsed.base_folder is not None:
-        app.load_dir(parsed.base_folder)
+        app.mainwindow.after(parsed.delay, lambda: app.load_dir(parsed.base_folder))
     app.run()
 
 
