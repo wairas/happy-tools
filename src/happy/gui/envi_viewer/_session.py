@@ -1,5 +1,4 @@
-import json
-import os
+from happy.gui.session import AbstractSessionManager
 
 
 PROPERTIES = [
@@ -26,7 +25,7 @@ PROPERTIES = [
 ]
 
 
-class SessionManager:
+class SessionManager(AbstractSessionManager):
     """
     For managing the session parameters.
     """
@@ -35,6 +34,7 @@ class SessionManager:
         """
         Initializes the manager.
         """
+        super().__init__()
         self.autodetect_channels = False
         self.keep_aspectratio = False
         self.check_scan_dimensions = True
@@ -56,52 +56,20 @@ class SessionManager:
         self.marker_color = "#ff0000"
         self.min_obj_size = -1
 
-    def get_default_config_path(self):
+    def get_default_config_name(self):
         """
-        Returns the default config file location.
+        Returns the filename (no path) of the session config file.
 
-        :return: the default config file
+        :return: the name
         :rtype: str
         """
-        home_dir = os.path.expanduser("~")
-        config_dir = os.path.join(home_dir, ".config", "happy")
-        if not os.path.exists(config_dir):
-            os.makedirs(config_dir)
-        return os.path.join(config_dir, "envi_viewer.json")
+        return "envi_viewer.json"
 
-    def save(self, path=None):
+    def get_properties(self):
         """
-        Saves the session (as json).
+        Returns the list of properties of the session manager to save/load.
 
-        :param path: the file to save to, uses a default location when None
-        :type path: str
+        :return: the list of property names
+        :rtype: list
         """
-        data = dict()
-        for p in PROPERTIES:
-            data[p] = getattr(self, p)
-
-        if path is None:
-            path = self.get_default_config_path()
-
-        with open(path, "w") as fp:
-            json.dump(data, fp, indent=4)
-
-    def load(self, path=None):
-        """
-        Loads the session (from json).
-
-        :param path: the file to load from, uses default location when None
-        :type path: str
-        """
-        if path is None:
-            path = self.get_default_config_path()
-            # does not exist (yet)?
-            if not os.path.exists(path):
-                return
-
-        with open(path, "r") as fp:
-            data = json.load(fp)
-
-        for p in PROPERTIES:
-            if p in data:
-                setattr(self, p, data[p])
+        return PROPERTIES
