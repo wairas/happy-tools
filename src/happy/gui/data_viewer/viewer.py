@@ -13,6 +13,7 @@ from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.readers.happy_reader import HappyReader
+from happy.gui.data_viewer import SessionManager, PROPERTIES
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
@@ -80,9 +81,7 @@ class ViewerApp:
         builder.import_variables(self)
 
         # other variables
-        self.current_dir = "."
-        self.current_sample = None
-        self.current_repeat = None
+        self.session = SessionManager()
         self.reader = None
         self.updating = False
         self.stored_happy_data = None
@@ -90,8 +89,6 @@ class ViewerApp:
         self.combined_image = None
         self.metadata_values = None
         self.metadata_rgb_colors = None
-        self.selected_metadata_key = None
-        self.last_export_dir = "."
 
     def set_listbox_selectbackground(self, color):
         """
@@ -130,6 +127,70 @@ class ViewerApp:
         self.combined_image = None
         self.canvas.delete("all")
 
+    def load(self, path, sample, repeat, metadata_key):
+        """
+        Loads the data using the base dir, sample and repeat.
+
+        :param path: the path to load from, can be None
+        :type path: str
+        :param sample: the sample to load, can be None
+        :type sample: str
+        :param repeat: the repeat to load, can be None
+        :type repeat: str
+        :param metadata_key: the meta-data key to select, can be None
+        :type metadata_key: str
+        """
+        self.clear_plot()
+
+        # base dir
+        if (path is None) or (len(path) == 0):
+            return
+        self.load_dir(path)
+
+        # sample
+        if (sample is None) or (len(sample) == 0):
+            return
+        self.updating = True
+        for i in range(self.listbox_samples.size()):
+            s = self.listbox_samples.get(i)
+            if s == sample:
+                self.listbox_samples.selection_clear(0, 'end')
+                self.listbox_samples.selection_set(i)
+                break
+        self.load_sample(sample)
+        self.updating = False
+
+        # repeat
+        if (repeat is None) or (len(repeat) == 0):
+            return
+        for i in range(self.listbox_repeats.size()):
+            s = self.listbox_repeats.get(i)
+            if s == repeat:
+                self.listbox_repeats.selection_clear(0, 'end')
+                self.listbox_repeats.selection_set(i)
+                break
+        self.load_repeat(repeat)
+
+        # metadata key
+        if (metadata_key is None) or (len(metadata_key) == 0):
+            return
+        self.select_metadata_key(metadata_key)
+
+    def select_metadata_key(self, key):
+        """
+        Selects the specified meta-data key, if possible.
+
+        :param key: the key to select
+        :type key: str
+        """
+        if key is None:
+            return
+        keys = self.combobox_metadata['values']
+        for i, k in enumerate(keys):
+            if k == key:
+                self.combobox_metadata.current(i)
+                break
+
     def load_dir(self, path):
         """
         Opens the specified directory.
@@ -139,7 +200,7 @@ class ViewerApp:
         """
         self.log("dir: %s" % path)
         self.label_dir.configure(text=path)
-        self.current_dir = path
+        self.session.current_dir = path
         self.reader = HappyReader(path)
         samples = []
         for f in os.listdir(path):
@@ -150,10 +211,11 @@ class ViewerApp:
                 samples.append(f)
         samples.sort()
         self.var_listbox_samples.set(samples)
-        self.clear_plot()
-        if len(samples) > 0:
-            self.listbox_samples.selection_set(0)
-            self.on_listbox_samples_select()
+        if not self.updating:
+            self.clear_plot()
+            if len(samples) > 0:
+                self.listbox_samples.selection_set(0)
+                self.on_listbox_samples_select()
 
     def load_sample(self, sample):
         """
@@ -163,8 +225,8 @@ class ViewerApp:
         :type sample: str
         """
         self.log("sample: %s" % sample)
-        self.current_sample = sample
-        path = os.path.join(self.current_dir, sample)
+        self.session.current_sample = sample
+        path = os.path.join(self.session.current_dir, sample)
         repeats = []
         all_numeric = True
         for f in os.listdir(path):
@@ -185,10 +247,11 @@ class ViewerApp:
         else:
             repeats.sort(reverse=True)
         self.var_listbox_repeats.set(repeats)
-        self.clear_plot()
-        if len(repeats) > 0:
-            self.listbox_repeats.selection_set(0)
-            self.on_listbox_repeats_select()
+        if not self.updating:
+            self.clear_plot()
+            if len(repeats) > 0:
+                self.listbox_repeats.selection_set(0)
+                self.on_listbox_repeats_select()
 
     def load_repeat(self, repeat):
         """
@@ -198,7 +261,7 @@ class ViewerApp:
         :type repeat: str
         """
         self.log("repeat: %s" % repeat)
-        self.current_repeat = repeat
+        self.session.current_repeat = repeat
         self.clear_plot()
         self.load_happy_data()
 
@@ -206,21 +269,21 @@ class ViewerApp:
         """
         Loads the current dir/sample/repeat and displays the image.
         """
-        if (self.current_dir is None) or (self.current_sample is None) or (self.current_repeat is None):
+        if (self.session.current_dir is None) or (self.session.current_sample is None) or (self.session.current_repeat is None):
             return
-        full = os.path.join(self.current_dir, self.current_sample, self.current_repeat)
+        full = os.path.join(self.session.current_dir, self.session.current_sample, self.session.current_repeat)
         if not os.path.exists(full) or not os.path.isdir(full):
             return
 
         self.updating = True
-        self.stored_happy_data = self.reader.load_data(self.current_sample + ":" + self.current_repeat)
+        self.stored_happy_data = self.reader.load_data(self.session.current_sample + ":" + self.session.current_repeat)
         # Extract and store the metadata keys
         if self.stored_happy_data is not None:
             metadata_keys = list(self.stored_happy_data[0].metadata_dict.keys())
             sorted(metadata_keys)
             self.update_metadata_combobox(metadata_keys)  # Call a new method to update the Combobox
-            if self.selected_metadata_key is not None:
-                metadata_values = self.stored_happy_data[0].metadata_dict[self.selected_metadata_key]["data"]
+            if self.session.selected_metadata_key is not None:
+                metadata_values = self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key]["data"]
                 self.metadata_values = np.squeeze(metadata_values)
                 self.metadata_rgb_colors = self.map_metadata_to_rgb(self.metadata_values)
 
@@ -284,7 +347,7 @@ class ViewerApp:
 
         rgb_image = self.rgb_image
 
-        if self.selected_metadata_key is not None:
+        if self.session.selected_metadata_key is not None:
             if self.combined_image is None:
                 # Convert metadata RGB colors to a NumPy array
                 overlay_image = self.metadata_rgb_colors
@@ -351,6 +414,29 @@ class ViewerApp:
         rgb_colors = colormap[:, :, :3]  # Extract RGB channels
         return rgb_colors
 
+    def state_to_session(self):
+        """
+        Transfers the current state in the UI to the session manager.
+        """
+        self.session.scale_r = self.state_scale_r.get()
+        self.session.scale_g = self.state_scale_g.get()
+        self.session.scale_b = self.state_scale_b.get()
+        self.session.opacity = self.state_opacity.get()
+
+    def session_to_state(self):
+        """
+        Transfers the session data to the UI.
+        """
+        self.state_scale_r.set(self.session.scale_r)
+        self.on_scale_r_changed(None)
+        self.state_scale_g.set(self.session.scale_g)
+        self.on_scale_g_changed(None)
+        self.state_scale_b.set(self.session.scale_b)
+        self.on_scale_b_changed(None)
+        self.state_opacity.set(self.session.opacity)
+        self.on_scale_opacity_changed(None)
+        self.select_metadata_key(self.session.selected_metadata_key)
+
     def run(self):
         self.mainwindow.mainloop()
 
@@ -366,9 +452,9 @@ class ViewerApp:
 
     def on_metadata_select(self, event):
         self.combined_image = None
-        self.selected_metadata_key = self.combobox_metadata.get()
-        if (self.stored_happy_data is not None) and (self.selected_metadata_key is not None):
-            metadata_values = self.stored_happy_data[0].metadata_dict[self.selected_metadata_key]["data"]
+        self.session.selected_metadata_key = self.combobox_metadata.get()
+        if (self.stored_happy_data is not None) and (self.session.selected_metadata_key is not None):
+            metadata_values = self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key]["data"]
             self.metadata_values = np.squeeze(metadata_values)
             self.metadata_rgb_colors = self.map_metadata_to_rgb(self.metadata_values)
         self.update_plot()
@@ -379,7 +465,7 @@ class ViewerApp:
     def on_file_open_dir_click(self):
         sel_dir = fd.askdirectory(
             title="Select base directory",
-            initialdir=self.current_dir)
+            initialdir=self.session.current_dir)
         if sel_dir is None:
             return
 
@@ -390,20 +476,20 @@ class ViewerApp:
             messagebox.showerror("Error", "No image to export!")
             return
 
-        fname = self.current_sample + "-" + self.current_repeat + ".png"
+        fname = self.session.current_sample + "-" + self.session.current_repeat + ".png"
         filetypes = (
             ('PNG files', '*.png'),
             ('All files', '*.*')
         )
         filename = fd.asksaveasfilename(
             title="Save image",
-            initialdir=self.last_export_dir,
+            initialdir=self.session.last_export_dir,
             initialfile=fname,
             filetypes=filetypes)
         if (filename is None) or (filename == ""):
             return
 
-        self.last_export_dir = os.path.dirname(filename)
+        self.session.last_export_dir = os.path.dirname(filename)
         if self.combined_image is not None:
             self.combined_image.save(filename)
         elif self.rgb_image is not None:
@@ -412,6 +498,8 @@ class ViewerApp:
             messagebox.showerror("Error", "No image to save?")
 
     def on_file_close_click(self):
+        self.state_to_session()
+        self.session.save()
         self.mainwindow.quit()
 
     def on_scale_opacity_changed(self, scale_value):
@@ -469,16 +557,45 @@ def main():
         description="Viewer for HAPPy data folder structures.",
         prog="happy-data-viewer",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-f", "--base_folder", help="Base folder to display", default=None, required=False)
-    parser.add_argument("-d", "--delay", type=int, help="The delay in msec before displaying the base folder", default=1000, required=False)
+    parser.add_argument("--base_folder", help="Base folder to display", default=None, required=False)
+    parser.add_argument("--sample", help="The sample to load", default=None, required=False)
+    parser.add_argument("--repeat", help="The repeat to load", default=None, required=False)
+    parser.add_argument("-r", "--scale_r", metavar="INT", help="the wave length to use for the red channel", default=None, type=int, required=False)
+    parser.add_argument("-g", "--scale_g", metavar="INT", help="the wave length to use for the green channel", default=None, type=int, required=False)
+    parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel", default=None, type=int, required=False)
+    parser.add_argument("-o", "--opacity", metavar="INT", help="the opacity to use (0-100)", default=None, type=int, required=False)
     parser.add_argument("--listbox_selectbackground", type=str, help="The background color to use for selected items in listboxes", default="#4a6984", required=False)
     parser.add_argument("--listbox_selectforeground", type=str, help="The foreground color to use for selected items in listboxes", default="#ffffff", required=False)
+    parser.add_argument("-d", "--delay", type=int, help="The delay in msec before displaying the base folder", default=1000, required=False)
     parsed = parser.parse_args()
     app = ViewerApp()
+
+    # display settings
     app.set_listbox_selectbackground(parsed.listbox_selectbackground)
     app.set_listbox_selectforeground(parsed.listbox_selectforeground)
+
+    # override session data
+    app.session.load()
     if parsed.base_folder is not None:
-        app.mainwindow.after(parsed.delay, lambda: app.load_dir(parsed.base_folder))
+        app.session.current_dir = parsed.base_folder
+    if parsed.sample is not None:
+        app.session.current_sample = parsed.sample
+    if parsed.repeat is not None:
+        app.session.current_repeat = parsed.repeat
+    if parsed.scale_r is not None:
+        app.session.scale_r = parsed.scale_r
+    if parsed.scale_g is not None:
+        app.session.scale_r = parsed.scale_g
+    if parsed.scale_b is not None:
+        app.session.scale_r = parsed.scale_b
+    if parsed.opacity is not None:
+        app.session.opacity = parsed.opacity
+    app.session_to_state()
+
+    app.mainwindow.after(
+        parsed.delay,
+        lambda: app.load(app.session.current_dir, app.session.current_sample, app.session.current_repeat, app.session.selected_metadata_key))
+
     app.run()
 
 
