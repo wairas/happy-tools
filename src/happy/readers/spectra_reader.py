@@ -27,7 +27,7 @@ class SpectraReader:
     def get_spectrum(self, x, y):
         raise NotImplementedError
         
-    def get_numpy(self, x, y):
+    def get_numpy(self):
         raise NotImplementedError
         
     def default_filename_func(self, sample_id):
