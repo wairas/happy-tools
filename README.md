@@ -21,7 +21,6 @@ usage: happy-data-viewer [-h] [--base_folder BASE_FOLDER] [--sample SAMPLE]
                          [--repeat REPEAT] [-r INT] [-g INT] [-b INT] [-o INT]
                          [--listbox_selectbackground LISTBOX_SELECTBACKGROUND]
                          [--listbox_selectforeground LISTBOX_SELECTFOREGROUND]
-                         [-d DELAY]
 
 Viewer for HAPPy data folder structures.
 
@@ -48,9 +47,6 @@ optional arguments:
   --listbox_selectforeground LISTBOX_SELECTFOREGROUND
                         The foreground color to use for selected items in
                         listboxes (default: #ffffff)
-  -d DELAY, --delay DELAY
-                        The delay in msec before displaying the base folder
-                        (default: 1000)
 ```
 
 

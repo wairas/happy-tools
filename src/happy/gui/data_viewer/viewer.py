@@ -340,6 +340,16 @@ class ViewerApp:
             return
         if self.stored_happy_data is None:
             return
+
+        # Calculate canvas dimensions (only once)
+        canvas_width = self.canvas.winfo_width() - 10  # remove padding
+        canvas_height = self.canvas.winfo_height() - 10  # remove padding
+        if (canvas_width <= 0) or (canvas_height <= 0):
+            self.mainwindow.after(
+                1000,
+                lambda: self.update_plot())
+            return
+
         self.updating = True
 
         if self.rgb_image is None:
@@ -364,10 +374,6 @@ class ViewerApp:
                 # Create an Image object from the combined image
                 self.combined_image = Image.fromarray(combined_image_uint8)
             rgb_image = self.combined_image
-
-        # Calculate canvas dimensions (only once)
-        canvas_width = self.canvas.winfo_width() - 10  # remove padding
-        canvas_height = self.canvas.winfo_height() - 10  # remove padding
 
         # Calculate aspect ratio of the image
         width, height = rgb_image.size
@@ -566,7 +572,6 @@ def main():
     parser.add_argument("-o", "--opacity", metavar="INT", help="the opacity to use (0-100)", default=None, type=int, required=False)
     parser.add_argument("--listbox_selectbackground", type=str, help="The background color to use for selected items in listboxes", default="#4a6984", required=False)
     parser.add_argument("--listbox_selectforeground", type=str, help="The foreground color to use for selected items in listboxes", default="#ffffff", required=False)
-    parser.add_argument("-d", "--delay", type=int, help="The delay in msec before displaying the base folder", default=1000, required=False)
     parsed = parser.parse_args()
     app = ViewerApp()
 
@@ -591,10 +596,8 @@ def main():
     if parsed.opacity is not None:
         app.session.opacity = parsed.opacity
     app.session_to_state()
-
-    app.mainwindow.after(
-        parsed.delay,
-        lambda: app.load(app.session.current_dir, app.session.current_sample, app.session.current_repeat, app.session.selected_metadata_key))
+    app.load(app.session.current_dir, app.session.current_sample,
+             app.session.current_repeat, app.session.selected_metadata_key)
 
     app.run()
 
