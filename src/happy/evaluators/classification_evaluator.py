@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 class ClassificationEvaluator(BaseEvaluator):
     def __init__(self, happy_splitter, model, target):
+        super().__init__(happy_splitter, model, target)
         self.data = {}
         
     def accumulate_stats(self, predictions, actuals, repeat, fold):
@@ -16,8 +17,7 @@ class ClassificationEvaluator(BaseEvaluator):
         
         self.data[repeat][fold]['predictions'].append(predictions)
         self.data[repeat][fold]['actuals'].append(actuals)
-        #print(self.data)
-       
+
     def calculate_and_show_metrics(self):
         all_metrics = {'accuracy': [], 'precision': [], 'recall': [], 'f1': []}
         
