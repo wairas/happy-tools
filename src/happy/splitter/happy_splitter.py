@@ -66,9 +66,10 @@ class HappySplitter:
 
             num_train_samples = int(len(train_ids) * train_percent / 100)
             num_validation_samples = int(len(train_ids) * validation_percent / 100)
-
-            train_ids, validation_ids = train_test_split(train_ids, train_size=num_train_samples, test_size=num_validation_samples, shuffle=True)
-
+            if num_validation_samples > 0:
+                train_ids, validation_ids = train_test_split(train_ids, train_size=num_train_samples, test_size=num_validation_samples, shuffle=True)
+            else:
+                validation_ids = []
             self.splits.append({"repeats": [{
                 "train": train_ids,
                 "validation": validation_ids,
