@@ -5,6 +5,7 @@ from happy.evaluators.base_evaluator import BaseEvaluator
 
 class RegressionEvaluator(BaseEvaluator):
     def __init__(self, happy_splitter, model, target):
+        super().__init__(happy_splitter, model, target)
         self.data = {}
         
     """
