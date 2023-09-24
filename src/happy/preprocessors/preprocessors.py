@@ -165,6 +165,7 @@ class PCAPreprocessor(Preprocessor):
 class WhiteReferencePreprocessor(Preprocessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
     def apply(self, data, metadata=None):
         white_reference = self.params.get('white_reference', None)
         if white_reference is None:
@@ -183,8 +184,10 @@ class WhiteReferencePreprocessor(Preprocessor):
 class BlackReferencePreprocessor(Preprocessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
     def apply(self, data, metadata=None):
         black_reference = self.params.get('black_reference', None)
+        black_reference_file = None
         if black_reference is None:
             black_reference_file = self.params.get('black_reference_file', None)
         if black_reference_file is not None:          
@@ -209,9 +212,11 @@ class DerivativePreprocessor(Preprocessor):
         derivative_data = savgol_filter(data, window_length, polyorder, deriv=deriv, axis=2)
         return derivative_data, metadata
 
+
 class DownsamplePreprocessor(Preprocessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
     def update_pixel_data(self, meta_dict, xth, yth):
         if meta_dict is None:
             return None
@@ -219,6 +224,7 @@ class DownsamplePreprocessor(Preprocessor):
         #for key in meta_dict.items():
         #    meta_dict["key"]["data"] = meta_dict["key"]["data"][:, ::xth, :]
             
+        new_dict = {}
         for key, sub_dict in meta_dict.items():
             if "data" in sub_dict:
                 new_data = sub_dict["data"][::yth, ::xth]
@@ -242,6 +248,7 @@ class DownsamplePreprocessor(Preprocessor):
 class PadPreprocessor(Preprocessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
     def pad_array(self, array, target_height, target_width, pad_value=0):
         current_height, current_width = array.shape[:2]
 
@@ -310,6 +317,7 @@ class PadPreprocessor(Preprocessor):
 class CropPreprocessor(Preprocessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
     def pad_array(self, array, target_height, target_width, pad_value=0):
         current_height, current_width = array.shape[:2]
 
@@ -334,7 +342,6 @@ class CropPreprocessor(Preprocessor):
 
         return padded_array
 
-        
     def update_pixel_data(self, meta_dict, x, y, width, height, pad, pad_value):
         if meta_dict is None:
             return None
@@ -401,6 +408,7 @@ class StandardScalerPreprocessor(Preprocessor):
 class WavelengthSubsetPreprocessor(Preprocessor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
     def apply(self, data, metadata=None):
         subset_indices = self.params.get('subset_indices', None)
         if subset_indices is not None:
