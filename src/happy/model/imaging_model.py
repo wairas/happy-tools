@@ -1,9 +1,10 @@
+import abc
 from happy.readers.happy_reader import HappyReader
 from happy.model.happy_model import HappyModel
 import itertools
 
 
-class ImagingModel(HappyModel):
+class ImagingModel(HappyModel, abc.ABC):
     def __init__(self, data_folder, target, happy_preprocessor=None, additional_meta_data=None, region_selector=None):
         super().__init__(data_folder, target, happy_preprocessor, additional_meta_data)
         self.region_selector = region_selector
@@ -13,9 +14,11 @@ class ImagingModel(HappyModel):
         print(f"data shape: {self.data_shape}")
         return self.data_shape
 
+    def get_y(self, happy_data):
+        raise NotImplementedError()
+
     def generate_batch(self, sample_ids, batch_size, is_train=True, loop=False, return_actuals=False):
         # Get the preprocessed data
-        #X = self.preprocess_data()
         happy_reader = HappyReader(self.data_folder)
         # Apply region selection based on the sample_ids
         if self.region_selector is None:
@@ -111,4 +114,3 @@ class ImagingModel(HappyModel):
 
     def set_region_selector(self, region_selector):
         self.region_selector = region_selector
-
