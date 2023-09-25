@@ -1,7 +1,6 @@
 import os
 import json
 import random
-import argparse
 from sklearn.model_selection import train_test_split
 
 
@@ -22,7 +21,7 @@ class HappySplitter:
         return splitter
         
     def get_holdout_ids(self):
-        return(self.holdout_ids)
+        return self.holdout_ids
         
     def get_train_validation_test_splits(self, repeat_idx, fold_idx):
         if repeat_idx >= len(self.splits) or fold_idx >= len(self.splits[repeat_idx]['repeats']):
@@ -42,7 +41,6 @@ class HappySplitter:
             json.dump(split_data, f, indent=4)
             
     def _get_all_sample_ids(self, use_regions):
-        all_sample_ids = []
         if use_regions:
             all_sample_ids = [f"{sample_id}:{region}" for sample_id in os.listdir(self.happy_base_folder) for region in os.listdir(os.path.join(self.happy_base_folder, sample_id))]
         else:

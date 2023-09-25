@@ -90,7 +90,7 @@ class HappyReader:
         open = envi.open(filename)
         data = open.load()
         #print(f"for {target} type is {envi_dtype_to_numpy[int(data_type)]}")
-        return(np.asarray(data,dtype=envi_dtype_to_numpy[int(data_type)]))
+        return np.asarray(data,dtype=envi_dtype_to_numpy[int(data_type)])
         
    
     def load_json(self, json_mapping_path):

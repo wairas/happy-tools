@@ -79,7 +79,7 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
             self.num_classes = len(unique_values)
 
     def get_training_data(self):
-        return(self.training_data)
+        return self.training_data
         
     def one_hot_encode(self, data):
         if isinstance(data, list):
