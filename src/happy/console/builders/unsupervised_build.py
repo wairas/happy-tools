@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import traceback
 from happy.splitter.happy_splitter import HappySplitter
+from happy.model.sklearn_models import create_model, CLUSTERING_MODEL_MAP
 from happy.model.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer
 from happy.pixel_selectors.simple_selector import SimpleSelector
 from happy.pixel_selectors.multi_selector import MultiSelector
@@ -32,7 +33,7 @@ def main():
         prog="happy-scikit-unsupervised-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('data_folder', type=str, help='Directory containing the hyperspectral data')
-    parser.add_argument('clusterer_name', type=str, help='Clusterer name (e.g., kmeans, agglomerative, spectral, dbscan, meanshift)')
+    parser.add_argument('clusterer_name', type=str, help='Clusterer name (e.g., ' + ",".join(CLUSTERING_MODEL_MAP.keys()) + ') or full classname')
     parser.add_argument('clusterer_params', type=str, help='JSON string containing clusterer parameters')
     parser.add_argument('target_value', type=str, help='Target value column name')
     parser.add_argument('happy_splitter_file', type=str, help='Happy Splitter file')
@@ -69,7 +70,8 @@ def main():
     PCApp = PCAPreprocessor(components=5, percent_pixels=20)
     pp = MultiPreprocessor(preprocessor_list=[w, SNVpp, SGpp, PCApp])
     # Instantiate the UnsupervisedPixelClusterer
-    clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', args.clusterer_name, args.clusterer_params, pixel_selector=predict_pixel_selector, happy_preprocessor=pp )
+    cluster_model = create_model(args.clusterer_name, args.clusterer_params)
+    clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', cluster_model, pixel_selector=predict_pixel_selector, happy_preprocessor=pp )
 
     # Fit the clusterer
     clusterer.fit(train_ids)

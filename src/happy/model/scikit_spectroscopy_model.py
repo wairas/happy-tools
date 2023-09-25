@@ -1,67 +1,9 @@
 import os
-import ast
 import pickle
-from happy.model.spectroscopy_model import SpectroscopyModel
-from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, Lars
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.svm import SVR
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
-from sklearn.cross_decomposition import PLSRegression
-from sklearn.neighbors import KNeighborsRegressor
-#from xgboost import XGBClassifier
-#from lightgbm import LGBMClassifier
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import ExtraTreesClassifier
+
 import numpy as np
-from sklearn.base import BaseEstimator, RegressorMixin
 
-
-class PlsFilteredKnnRegression(BaseEstimator, RegressorMixin):
-    def __init__(self, n_components=15, n_neighbors=150):
-        self.n_components = n_components
-        self.n_neighbors = n_neighbors
-
-    def fit(self, X, y):
-        # Fit PLS regression on X and y
-        pls = PLSRegression(n_components=self.n_components)
-        pls.fit(X, y)
-        # Get the PLS components for X
-        self.X_pls = pls.transform(X)
-        self.y = np.array(y) #y
-        # Fit k-NN regression on the PLS components
-        knn = KNeighborsRegressor(n_neighbors=self.n_neighbors)
-        knn.fit(self.X_pls, y)
-        self.pls_ = pls
-        self.knn_ = knn
-        return self
-
-    def predict(self, X):
-        # Transform X using PLS
-        X_pls = self.pls_.transform(X)
-        # Find the k-nearest neighbors in the PLS-transformed space
-        _, indices = self.knn_.kneighbors(X_pls)
-        # Predict the output variables for each input example using linear regression
-        y_pred = np.empty((X_pls.shape[0], 1))
-        #print(indices)
-        for i, neighbors in enumerate(indices):
-            #print(i)
-            #print(neighbors)
-            #print(neighbors.shape)
-            #print(type(neighbors))
-            #print(len(self.y))
-            X_neighbors = self.X_pls[neighbors]
-            y_neighbors = self.y[neighbors]
-            model = LinearRegression().fit(X_neighbors, y_neighbors)
-            y_pred[i] = model.predict([X_pls[i]])
-        return y_pred
+from happy.model.spectroscopy_model import SpectroscopyModel
 
 
 class ScikitSpectroscopyModel(SpectroscopyModel):
@@ -221,58 +163,3 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
         loaded_model.model.set_params(**model_params)
 
         return loaded_model
-
-    @classmethod
-    def create_model(cls, method_name, model_params):
-        """
-        Create a scikit-learn model instance based on the given model_name and model_params.
-
-        Args:
-            model_name (str): Name of the scikit-learn model class (e.g., 'LinearRegression', 'Ridge', 'Lasso', etc.).
-            model_params (dict): Dictionary containing the model hyperparameters.
-
-        Returns:
-            BaseEstimator: An instance of the scikit-learn model.
-        """
-        model_map = {
-            # Regression models
-            'linearregression': LinearRegression,
-            'ridge': Ridge,
-            'lars': Lars,
-            'plsregression': PLSRegression, 
-            'plsneighbourregression': PlsFilteredKnnRegression, 
-            'lasso': Lasso,
-            'elasticnet': ElasticNet,
-            'decisiontreeregressor': DecisionTreeRegressor,
-            'randomforestregressor': RandomForestRegressor,
-            'svr': SVR,
-            # Classification models
-            'randomforestclassifier': RandomForestClassifier,
-            'gradientboostingclassifier': GradientBoostingClassifier,
-            'adaboostclassifier': AdaBoostClassifier,
-            'kneighborsclassifier': KNeighborsClassifier,
-            'decisiontreeclassifier': DecisionTreeClassifier,
-            'gaussiannb': GaussianNB,
-            'logisticregression': LogisticRegression,
-            'mlpclassifier': MLPClassifier,
-            "svm": SVC,
-            "random_forest": RandomForestClassifier,
-            "knn": KNeighborsClassifier,
-            "decision_tree": DecisionTreeClassifier,
-            "gradient_boosting": GradientBoostingClassifier,
-            "naive_bayes": GaussianNB,
-            "logistic_regression": LogisticRegression,
-            "neural_network": MLPClassifier,
-            "adaboost": AdaBoostClassifier,
-            "extra_trees": ExtraTreesClassifier
-            # Add more models to the map as needed
-        }
-
-        regression_params = ast.literal_eval(model_params)
-        
-        method_name = method_name.lower()
-        if method_name not in model_map:
-            raise ValueError(f"Invalid regression method: {method_name}")
-
-        regression_class = model_map[method_name]
-        return regression_class(**regression_params)

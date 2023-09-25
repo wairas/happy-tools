@@ -6,6 +6,7 @@ import traceback
 
 import argparse
 from happy.splitter.happy_splitter import HappySplitter
+from happy.model.sklearn_models import create_model, REGRESSION_MODEL_MAP
 from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
 from happy.writers.csv_training_data_writer import CSVTrainingDataWriter
 
@@ -59,7 +60,7 @@ def main():
         prog="happy-scikit-regression-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('happy_data_base_dir', type=str, help='Directory containing the Happy Data files')
-    parser.add_argument('regression_method', type=str, help='Regression method name')
+    parser.add_argument('regression_method', type=str, help='Regression method name (e.g., ' + ",".join(REGRESSION_MODEL_MAP.keys()) + ' or full classname)')
     parser.add_argument('regression_params', type=str, help='JSON string containing regression parameters')
     parser.add_argument('target_value', type=str, help='Target value column name')
     parser.add_argument('happy_splitter_file', type=str, help='Happy Splitter file')
@@ -71,7 +72,7 @@ def main():
     # Create the output folder if it doesn't exist
     os.makedirs(args.output_folder, exist_ok=True)
     
-    classification_method = ScikitSpectroscopyModel.create_model(args.regression_method, args.regression_params)
+    regression_method = create_model(args.regression_method, args.regression_params)
     happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
     
@@ -87,7 +88,7 @@ def main():
     padp = PadPreprocessor(width=128, height=128, pad_value=0)
     pp = MultiPreprocessor(preprocessor_list=[w, clean, SNVpp, SGpp, padp])
     
-    model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=pp, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=classification_method, training_data = None)
+    model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=pp, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data = None)
     model.fit(train_ids, force=True, keep_training_data=False)
     
     csv_writer = CSVTrainingDataWriter(args.output_folder)
