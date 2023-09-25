@@ -1,8 +1,9 @@
+import abc
 from happy.readers.happy_reader import HappyReader
 from happy.model.happy_model import HappyModel
 
 
-class SpectroscopyModel(HappyModel):
+class SpectroscopyModel(HappyModel, abc.ABC):
     def __init__(self, data_folder, target, happy_preprocessor=None, additional_meta_data=None, pixel_selector=None):
         super().__init__(data_folder, target, happy_preprocessor, additional_meta_data)
         self.pixel_selector = pixel_selector

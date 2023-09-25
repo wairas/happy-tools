@@ -7,12 +7,9 @@ from happy.model.spectroscopy_model import SpectroscopyModel
 
 class UnsupervisedPixelClusterer(SpectroscopyModel):
     def __init__(self, data_folder, target, clusterer_name, clusterer_params={}, happy_preprocessor=None, additional_meta_data=None, pixel_selector=None):
-        #self.num_clusters = num_clusters
         super().__init__(data_folder, target, happy_preprocessor, additional_meta_data, pixel_selector)
-        
         self.clusterer_name = clusterer_name
         self.clusterer_params = ast.literal_eval(clusterer_params)
-
         self.clusterer = None
 
     def create_clusterer(self):
@@ -52,6 +49,8 @@ class UnsupervisedPixelClusterer(SpectroscopyModel):
         predictions_list = []
         res = self._generate_full_prediction_dataset(sample_ids, return_actuals)
         plist = res["X_pred"]
+        ylist = None
+        actuals_list = None
         if return_actuals:
             ylist = res["y_pred"]
             actuals_list = []
@@ -69,7 +68,7 @@ class UnsupervisedPixelClusterer(SpectroscopyModel):
         if return_actuals:
             return predictions_list, actuals_list
         else:
-            return predictions_list,None    
+            return predictions_list, None
 
     @classmethod
     def load(cls, filepath):
