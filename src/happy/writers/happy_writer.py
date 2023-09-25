@@ -48,7 +48,7 @@ class HappyWriter:
         # Write hyperspectral data
         hyperspec_file_path = os.path.join(region_dir, f"{sample_id}.hdr")
         envi_writer = EnviWriter(region_dir)
-        envi_writer.write(happy_data.data, hyperspec_file_path, datatype=self.get_datatype_mapping_for(datatype_mapping, sample_id))
+        envi_writer.write_data(happy_data.data, hyperspec_file_path, datatype=self.get_datatype_mapping_for(datatype_mapping, sample_id))
         print(f"region happy data writer: {happy_data.data.shape}")
 
         # Write hyperspectral metadata (global)
@@ -62,7 +62,7 @@ class HappyWriter:
         for target_name, target_data in happy_data.metadata_dict.items():
             print(f"target: {target_name}")
             metadata_file_path = os.path.join(region_dir, f"{target_name}.hdr")
-            envi_writer.write(target_data['data'], metadata_file_path, datatype=self.get_datatype_mapping_for(datatype_mapping, target_name))
+            envi_writer.write_data(target_data['data'], metadata_file_path, datatype=self.get_datatype_mapping_for(datatype_mapping, target_name))
 
             # Write mapping if available
             mapping = target_data.get('mapping')
