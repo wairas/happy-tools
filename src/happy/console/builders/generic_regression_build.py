@@ -35,9 +35,11 @@ def main():
 
     model = GenericSpectroscopyModel.instantiate(args.python_file, args.python_class, args.happy_data_base_dir, args.target_value)
     model.fit(train_ids, args.target_value)
-    
-    csv_writer = CSVTrainingDataWriter(args.output_folder)
-    csv_writer.write_data(model.get_training_data(), "training_data")
+
+    # get_training_data() may not exist
+    if hasattr(model, "get_training_data"):
+        csv_writer = CSVTrainingDataWriter(args.output_folder)
+        csv_writer.write_data(model.get_training_data(), "training_data")
 
     predictions, actuals = model.predict_images(test_ids, return_actuals=True)
     
