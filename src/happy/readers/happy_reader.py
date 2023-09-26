@@ -5,6 +5,18 @@ from happy.readers.envi_reader import EnviReader
 from happy.data.happy_data import HappyData
 import spectral.io.envi as envi
 
+ENVI_DTYPE_TO_NUMPY = {
+    1: 'uint8',
+    2: 'int16',
+    3: 'int32',
+    4: 'float32',
+    5: 'float64',
+    12: 'uint16',
+    13: 'uint32',
+    14: 'complex64',
+    15: 'complex128'
+}
+
 
 class HappyReader:
     def __init__(self, base_dir, restrict_metadata=None):
@@ -45,11 +57,9 @@ class HappyReader:
         hyperspec_file_path = os.path.join(self.base_dir, sample_id, region_name, f'{sample_id}'+".hdr")
         print(f"{sample_id}:{region_name}")
         base_path = os.path.join(self.base_dir, sample_id, region_name)
-               
 
         if os.path.exists(hyperspec_file_path):
             envi_reader = EnviReader(base_path, None)
-            #print("load")
             envi_reader.load_data(sample_id)
             hyperspec_data = envi_reader.get_numpy()
 
@@ -73,26 +83,13 @@ class HappyReader:
             raise ValueError(f"Hyperspectral ENVI file not found for sample_id: {sample_id}")
 
     def load_target_metadata(self, base_dir, target):
-        envi_dtype_to_numpy = {
-            1: 'uint8',
-            2: 'int16',
-            3: 'int32',
-            4: 'float32',
-            5: 'float64',
-            12: 'uint16',
-            13: 'uint32',
-            14: 'complex64',
-            15: 'complex128'
-        }
         filename = os.path.join(base_dir,f'{target}'+".hdr")
         header = envi.read_envi_header(filename)
         data_type = header['data type']  
         open = envi.open(filename)
         data = open.load()
-        #print(f"for {target} type is {envi_dtype_to_numpy[int(data_type)]}")
-        return np.asarray(data,dtype=envi_dtype_to_numpy[int(data_type)])
+        return np.asarray(data, dtype=ENVI_DTYPE_TO_NUMPY[int(data_type)])
         
-   
     def load_json(self, json_mapping_path):
         if os.path.exists(json_mapping_path):
             with open(json_mapping_path, 'r') as f:
@@ -113,5 +110,8 @@ class HappyReader:
 
     def get_regions(self, sample_id):
         sample_dir = os.path.join(self.base_dir, sample_id)
-        region_dirs = [name for name in os.listdir(sample_dir) if os.path.isdir(os.path.join(sample_dir, name))]
+        if os.path.isdir(sample_dir):
+            region_dirs = [name for name in os.listdir(sample_dir) if os.path.isdir(os.path.join(sample_dir, name))]
+        else:
+            region_dirs = []
         return region_dirs
