@@ -22,7 +22,7 @@ def create_false_color_image(prediction):
 
 
 class UnsupervisedPixelClusterer(SpectroscopyModel):
-    def __init__(self, data_folder, target, clusterer, happy_preprocessor=None, additional_meta_data=None, pixel_selector=None):
+    def __init__(self, data_folder, target, clusterer=None, happy_preprocessor=None, additional_meta_data=None, pixel_selector=None):
         super().__init__(data_folder, target, happy_preprocessor, additional_meta_data, pixel_selector)
         self.clusterer = clusterer
 
