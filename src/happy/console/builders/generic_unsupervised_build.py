@@ -1,9 +1,11 @@
 import argparse
 import os
+import time
 import traceback
 
-from happy.model.generic import GenericSpectroscopyModel
-from happy.model.unsupervised_pixel_clusterer import create_false_color_image, create_prediction_image
+from happy.base.core import load_class
+from happy.model.generic import GenericUnsupervisedPixelClusterer
+from happy.model.unsupervised_pixel_clusterer import create_false_color_image, create_prediction_image, UnsupervisedPixelClusterer
 from happy.splitter.happy_splitter import HappySplitter
 
 
@@ -28,7 +30,11 @@ def main():
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0, 0)
 
     # Instantiate the model
-    clusterer = GenericSpectroscopyModel.instantiate(args.python_file, args.python_class, args.data_folder, 'target_variable_name')
+    c = load_class(args.python_file, "happy.generic_unsupervised." + str(int(round(time.time() * 1000))), args.python_class)
+    if issubclass(c, UnsupervisedPixelClusterer):
+        clusterer = GenericUnsupervisedPixelClusterer.instantiate(c, args.data_folder, 'target_variable_name')
+    else:
+        raise Exception("Unsupported base model class: %s" % str(c))
 
     # Fit the clusterer
     clusterer.fit(train_ids, 'target_variable_name')
