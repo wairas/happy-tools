@@ -33,8 +33,8 @@ def main():
         description='Generate datasets as numpy cubes, to be loaded into deep learning datasets.',
         prog="happy-generate-image-regions-objects",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('source_folder', type=str, help='Path to source folder containing HDR files')
-    parser.add_argument('output_folder', type=str, help='Path to output folder')
+    parser.add_argument('-i', '--input_folder', type=str, help='Path to source folder containing HDR files', required=True)
+    parser.add_argument('-o', '--output_folder', type=str, help='Path to output folder', required=True)
     args = parser.parse_args()
 
     # Load sample IDs using the get_sample_ids method

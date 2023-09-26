@@ -136,15 +136,17 @@ optional arguments:
 ### HDR Info
 
 ```
-usage: happy-hdr-info [-h] hdrfile
+usage: happy-hdr-info [-h] -i INPUT_FILE [-o OUTPUT_FILE]
 
 Load and print information about an HDR file.
 
-positional arguments:
-  hdrfile     Path to the HDR file
-
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -i INPUT_FILE, --input_file INPUT_FILE
+                        Path to the HDR file (default: None)
+  -o OUTPUT_FILE, --output_file OUTPUT_FILE
+                        Path to output file; prints to stdout if omitted
+                        (default: None)
 ```
 
 ### HSI to CSV
@@ -226,15 +228,17 @@ optional arguments:
 ### Matlab file Info
 
 ```
-usage: happy-mat-info [-h] matfile
+usage: happy-mat-info [-h] -i INPUT_FILE [-o OUTPUT_FILE]
 
 Load and display structs from a MATLAB file.
 
-positional arguments:
-  matfile     Path to the MATLAB file
-
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -i INPUT_FILE, --input_file INPUT_FILE
+                        Path to the MATLAB file (default: None)
+  -o OUTPUT_FILE, --output_file OUTPUT_FILE
+                        Path to the output file; outputs to stdout if omitted
+                        (default: None)
 ```
 
 
@@ -270,16 +274,16 @@ optional arguments:
 ### Plot pre-processors
 
 ```
-usage: happy-plot-preproc [-h] [--pixels PIXELS] foldername
+usage: happy-plot-preproc [-h] -i INPUT_DIR [-p PIXELS]
 
 Plot set of pixels with various pre-processing.
 
-positional arguments:
-  foldername       Folder containing HappyData files
-
 optional arguments:
-  -h, --help       show this help message and exit
-  --pixels PIXELS  Number of random pixels to select (default: 100)
+  -h, --help            show this help message and exit
+  -i INPUT_DIR, --input_dir INPUT_DIR
+                        Folder containing HAPPy data files (default: None)
+  -p PIXELS, --pixels PIXELS
+                        Number of random pixels to select (default: 100)
 ```
 
 
@@ -348,34 +352,31 @@ optional arguments:
 ### Splitter
 
 ```
-usage: happy-splitter [-h] [--num_repeats NUM_REPEATS] [--num_folds NUM_FOLDS]
-                      [--train_percent TRAIN_PERCENT]
-                      [--validation_percent VALIDATION_PERCENT]
-                      [--use_regions] [--holdout_percent HOLDOUT_PERCENT]
-                      [--output_file OUTPUT_FILE]
-                      happy_base_folder
+usage: happy-splitter [-h] -d HAPPY_BASE_FOLDER [-r NUM_REPEATS]
+                      [-f NUM_FOLDS] [-t TRAIN_PERCENT]
+                      [-v VALIDATION_PERCENT] [-R] [-H HOLDOUT_PERCENT] -o
+                      OUTPUT_FILE
 
 Generate train/validation/test splits for Happy data.
 
-positional arguments:
-  happy_base_folder     Path to the Happy base folder
-
 optional arguments:
   -h, --help            show this help message and exit
-  --num_repeats NUM_REPEATS
+  -d HAPPY_BASE_FOLDER, --happy_base_folder HAPPY_BASE_FOLDER
+                        Path to the Happy base folder (default: None)
+  -r NUM_REPEATS, --num_repeats NUM_REPEATS
                         Number of repeats (default: 1)
-  --num_folds NUM_FOLDS
+  -f NUM_FOLDS, --num_folds NUM_FOLDS
                         Number of folds (default: 1)
-  --train_percent TRAIN_PERCENT
+  -t TRAIN_PERCENT, --train_percent TRAIN_PERCENT
                         Percentage of data in the training set (default: 70.0)
-  --validation_percent VALIDATION_PERCENT
+  -v VALIDATION_PERCENT, --validation_percent VALIDATION_PERCENT
                         Percentage of data in the validation set (default:
                         10.0)
-  --use_regions         Use regions in generating splits (default: False)
-  --holdout_percent HOLDOUT_PERCENT
+  -R, --use_regions     Use regions in generating splits (default: False)
+  -H HOLDOUT_PERCENT, --holdout_percent HOLDOUT_PERCENT
                         Percentage of data to hold out as a holdout set
                         (default: None)
-  --output_file OUTPUT_FILE
+  -o OUTPUT_FILE, --output_file OUTPUT_FILE
                         Path to the output split file (default:
                         output_split.json)
 ```
