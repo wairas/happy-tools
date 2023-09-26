@@ -44,6 +44,9 @@ class GenericScikitSpectroscopyModel(ScikitSpectroscopyModel):
     def fit(self, sample_ids, force=False, keep_training_data=False):
         self.base_model.fit(sample_ids, force=force, keep_training_data=keep_training_data)
 
+    def get_training_data(self):
+        return self.base_model.get_training_data()
+
     def predict(self, sample_ids, prediction_pixel_selector=None, prediction_data=None):
         return self.base_model.predict(sample_ids, prediction_pixel_selector=prediction_pixel_selector, prediction_data=prediction_data)
 
