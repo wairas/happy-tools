@@ -40,7 +40,7 @@ def main():
     # cluster algorithm
     cluster_model = create_model(args.clusterer_method, args.clusterer_params)
     # Instantiate the UnsupervisedPixelClusterer
-    clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', cluster_model, pixel_selector=predict_pixel_selector, happy_preprocessor=pp)
+    clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', clusterer=cluster_model, pixel_selector=predict_pixel_selector, happy_preprocessor=pp)
 
     # Fit the clusterer
     clusterer.fit(train_ids)
