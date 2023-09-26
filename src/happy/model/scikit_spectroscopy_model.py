@@ -7,7 +7,7 @@ from happy.model.spectroscopy_model import SpectroscopyModel
 
 
 class ScikitSpectroscopyModel(SpectroscopyModel):
-    def __init__(self, data_folder, target, happy_preprocessor=None, additional_meta_data=None, pixel_selector=None, model=None, training_data = None, mapping=None):
+    def __init__(self, data_folder, target, happy_preprocessor=None, additional_meta_data=None, pixel_selector=None, model=None, training_data=None, mapping=None):
         super().__init__(data_folder, target, happy_preprocessor, additional_meta_data, pixel_selector)
         self.model = model
         self.training_data = training_data
@@ -28,7 +28,6 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
             print(len(data))
             print(data[0].shape)
             data = [self._one_hot_encode_array(arr) for arr in data]
-            #data = np.stack(data)
         else:
             data = self._one_hot_encode_array(data)
         
@@ -82,6 +81,8 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
         predictions_list = []
         res = self._generate_full_prediction_dataset(sample_ids, return_actuals)
         plist = res["X_pred"]
+        ylist = None
+        actuals_list = None
         if return_actuals:
             ylist = res["y_pred"]
             actuals_list = []
