@@ -1,4 +1,5 @@
-import importlib
+import time
+from happy.base.core import load_class
 from happy.model.spectroscopy_model import SpectroscopyModel
 from happy.model.imaging_model import ImagingModel
 
@@ -27,8 +28,7 @@ class GenericSpectroscopyModel(SpectroscopyModel):
 
     @classmethod
     def instantiate(cls, model_path, model_class_name, data_folder, target, happy_preprocessor=None, additional_meta_data=None, region_selector=None):
-        m = importlib.import_module(model_path)
-        c = getattr(m, model_class_name)
+        c = load_class(model_path, "happy.generic_spectroscopy_model." + str(int(round(time.time() * 1000))), model_class_name)
         if not issubclass(c, SpectroscopyModel):
             raise Exception("Class '%s' in '%s' not of type '%s'!" % (model_class_name, model_path, str(SpectroscopyModel)))
         base_model = c(data_folder, target, happy_preprocessor, additional_meta_data, region_selector)
@@ -72,8 +72,7 @@ class GenericImagingModel(ImagingModel):
 
     @classmethod
     def instantiate(cls, model_path, model_class_name, data_folder, target, happy_preprocessor=None, additional_meta_data=None, region_selector=None):
-        m = importlib.import_module(model_path)
-        c = getattr(m, model_class_name)
+        c = load_class(model_path, "happy.generic_imaging_model." + str(int(round(time.time() * 1000))), model_class_name)
         if not issubclass(c, ImagingModel):
             raise Exception("Class '%s' in '%s' not of type '%s'!" % (model_class_name, model_path, str(ImagingModel)))
         base_model = c(data_folder, target, happy_preprocessor, additional_meta_data, region_selector)
