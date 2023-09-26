@@ -27,11 +27,11 @@ class GenericSpectroscopyModel(SpectroscopyModel):
         return self.base_model.generate_prediction_dataset(sample_ids, pixel_selector, return_actuals)
 
     @classmethod
-    def instantiate(cls, model_path, model_class_name, data_folder, target, happy_preprocessor=None, additional_meta_data=None, region_selector=None):
+    def instantiate(cls, model_path, model_class_name, data_folder, target):
         c = load_class(model_path, "happy.generic_spectroscopy_model." + str(int(round(time.time() * 1000))), model_class_name)
         if not issubclass(c, SpectroscopyModel):
             raise Exception("Class '%s' in '%s' not of type '%s'!" % (model_class_name, model_path, str(SpectroscopyModel)))
-        base_model = c(data_folder, target, happy_preprocessor, additional_meta_data, region_selector)
+        base_model = c(data_folder, target)
         return GenericSpectroscopyModel(base_model, model_path, model_class_name)
 
 
@@ -71,9 +71,9 @@ class GenericImagingModel(ImagingModel):
         return self.base_model.predict(id_list, return_actuals)
 
     @classmethod
-    def instantiate(cls, model_path, model_class_name, data_folder, target, happy_preprocessor=None, additional_meta_data=None, region_selector=None):
+    def instantiate(cls, model_path, model_class_name, data_folder, target):
         c = load_class(model_path, "happy.generic_imaging_model." + str(int(round(time.time() * 1000))), model_class_name)
         if not issubclass(c, ImagingModel):
             raise Exception("Class '%s' in '%s' not of type '%s'!" % (model_class_name, model_path, str(ImagingModel)))
-        base_model = c(data_folder, target, happy_preprocessor, additional_meta_data, region_selector)
+        base_model = c(data_folder, target)
         return GenericImagingModel(base_model, model_path, model_class_name)
