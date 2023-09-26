@@ -34,7 +34,7 @@ def main():
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0, 0)
 
     model = GenericSpectroscopyModel.instantiate(args.python_file, args.python_class, args.happy_data_base_dir, args.target_value)
-    model.fit(train_ids)
+    model.fit(train_ids, args.target_value)
     
     csv_writer = CSVTrainingDataWriter(args.output_folder)
     csv_writer.write_data(model.get_training_data(), "training_data")

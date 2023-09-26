@@ -31,7 +31,7 @@ def main():
     clusterer = GenericSpectroscopyModel.instantiate(args.python_file, args.python_class, args.data_folder, 'target_variable_name')
 
     # Fit the clusterer
-    clusterer.fit(train_ids)
+    clusterer.fit(train_ids, 'target_variable_name')
 
     # Predict cluster labels
     predictions, actuals = clusterer.predict_images(test_ids)
