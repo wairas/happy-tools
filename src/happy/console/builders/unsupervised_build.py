@@ -1,28 +1,11 @@
-from PIL import Image
 import argparse
 import os
-import numpy as np
-import matplotlib.pyplot as plt
 import traceback
 from happy.splitter.happy_splitter import HappySplitter
 from happy.model.sklearn_models import create_model, CLUSTERING_MODEL_MAP
-from happy.model.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer
+from happy.model.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer, create_false_color_image, create_prediction_image
 from happy.pixel_selectors.simple_selector import SimpleSelector
 from happy.preprocessors.preprocessors import PCAPreprocessor, SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
-
-
-def create_prediction_image(prediction):
-    # Create a grayscale prediction image
-    prediction_image = Image.fromarray((prediction * 255).astype(np.uint8))
-    return prediction_image
-
-
-def create_false_color_image(prediction):
-    # Create a false color prediction image
-    cmap = plt.get_cmap('viridis', np.max(prediction) + 1)
-    false_color = cmap(prediction)
-    false_color_image = Image.fromarray((false_color[:, :, :3] * 255).astype(np.uint8))
-    return false_color_image
 
 
 def main():
@@ -91,4 +74,3 @@ def sys_main() -> int:
 
 if __name__ == "__main__":
     main()
-

@@ -1,4 +1,6 @@
 import abc
+import numpy as np
+from PIL import Image
 from happy.readers.happy_reader import HappyReader
 from happy.model.happy_model import HappyModel
 
@@ -79,3 +81,45 @@ class SpectroscopyModel(HappyModel, abc.ABC):
             pixel_selector = self.pixel_selector
 
         return self._generate_dataset(sample_ids, is_train=False)
+
+
+def create_false_color_image(predictions, min_actual, max_actual):
+    # Find the minimum and maximum values of actuals
+    if len(predictions.shape) == 2:
+        predictions = predictions[:, :]
+    elif len(predictions.shape) == 3:
+        predictions = predictions[:, :, 0]
+    else:
+        raise Exception("Unhandled number of dimensions in predictions array: %d" % len(predictions.shape))
+
+    # Create an empty array for the false color image
+    false_color = np.zeros((predictions.shape[0], predictions.shape[1], 4), dtype=np.uint8)
+
+    max_actual = max_actual * 1.15
+    for i in range(predictions.shape[0]):
+        for j in range(predictions.shape[1]):
+            prediction = predictions[i, j]
+
+            if prediction <= 0:
+                # Zero value is transparent
+                # color = [0, 0, 0, 0]
+                color = [0, 0, 255, 255]
+            elif prediction < min_actual:
+                # Values below the minimum are blue
+                color = [0, 0, 255, 255]
+            elif prediction > max_actual:
+                # Values above the maximum are red
+                color = [255, 0, 0, 255]
+            else:
+                # Calculate the gradient color based on the range of actual values
+                gradient = (prediction - min_actual) / (max_actual - min_actual)
+                r = int(255 * (1 - gradient))
+                g = int(255 * (1 - gradient))
+                b = int(128 * gradient)
+                color = [r, g, b, 255]
+
+            # Assign the color to the false color image
+            false_color[i, j] = color
+
+    false_color_image = Image.fromarray(false_color)
+    return false_color_image

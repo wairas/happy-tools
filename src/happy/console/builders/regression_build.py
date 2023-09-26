@@ -1,57 +1,20 @@
-from PIL import Image
-
+import argparse
 import os
-import numpy as np
 import traceback
 
-import argparse
-from happy.splitter.happy_splitter import HappySplitter
-from happy.model.sklearn_models import create_model, REGRESSION_MODEL_MAP
-from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
-from happy.writers.csv_training_data_writer import CSVTrainingDataWriter
+import numpy as np
 
-from happy.pixel_selectors.simple_selector import SimpleSelector
-from happy.pixel_selectors.multi_selector import MultiSelector
-from happy.evaluators.regression_evaluator import RegressionEvaluator
 from happy.evaluators.prediction_actual_handler import PredictionActualHandler
-from happy.preprocessors.preprocessors import SpectralNoiseInterpolator, PadPreprocessor, SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
-
-
-def create_false_color_image(predictions, min_actual, max_actual):
-    # Find the minimum and maximum values of actuals
-    predictions = predictions[:, :]
-
-    # Create an empty array for the false color image
-    false_color = np.zeros((predictions.shape[0], predictions.shape[1], 4), dtype=np.uint8)
-
-    max_actual = max_actual * 1.15
-    for i in range(predictions.shape[0]):
-        for j in range(predictions.shape[1]):
-            prediction = predictions[i, j]
-
-            if prediction <= 0:
-                # Zero value is transparent
-                # color = [0, 0, 0, 0]
-                color = [0, 0, 255, 255]
-            elif prediction < min_actual:
-                # Values below the minimum are blue
-                color = [0, 0, 255, 255]
-            elif prediction > max_actual:
-                # Values above the maximum are red
-                color = [255, 0, 0, 255]
-            else:
-                # Calculate the gradient color based on the range of actual values
-                gradient = (prediction - min_actual) / (max_actual - min_actual)
-                r = int(255 * (1 - gradient))
-                g = int(255 * (1 - gradient))
-                b = int(128 * gradient)
-                color = [r, g, b, 255]
-
-            # Assign the color to the false color image
-            false_color[i, j] = color
-
-    false_color_image = Image.fromarray(false_color)
-    return false_color_image
+from happy.evaluators.regression_evaluator import RegressionEvaluator
+from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
+from happy.model.sklearn_models import create_model, REGRESSION_MODEL_MAP
+from happy.model.spectroscopy_model import create_false_color_image
+from happy.pixel_selectors.multi_selector import MultiSelector
+from happy.pixel_selectors.simple_selector import SimpleSelector
+from happy.preprocessors.preprocessors import SpectralNoiseInterpolator, PadPreprocessor, SNVPreprocessor, \
+    MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
+from happy.splitter.happy_splitter import HappySplitter
+from happy.writers.csv_training_data_writer import CSVTrainingDataWriter
 
 
 def main():
@@ -97,7 +60,7 @@ def main():
 
     predictions, actuals = model.predict_images(test_ids, return_actuals=True)
     
-    eval = RegressionEvaluator(happy_splitter, model, args.target_value)
+    evl = RegressionEvaluator(happy_splitter, model, args.target_value)
 
     predictions = PredictionActualHandler.to_list(predictions,remove_last_dim=True)
     actuals = PredictionActualHandler.to_list(actuals,remove_last_dim=True)
@@ -109,13 +72,13 @@ def main():
 
     # Save the predictions as PNG images
     for i, prediction in enumerate(predictions):
-        eval.accumulate_stats(np.array(predictions[i]),actuals[i],0,0)
+        evl.accumulate_stats(np.array(predictions[i]),actuals[i],0,0)
         if np.isnan(min_actual) or np.isnan(max_actual) or min_actual==max_actual:
             print("NaN value detected. Cannot proceed with gradient calculation.")
             continue
         false_color_image = create_false_color_image(prediction, min_actual, max_actual)
         false_color_image.save(os.path.join(args.output_folder, f'false_color_{i}.png'))
-    eval.calculate_and_show_metrics()
+    evl.calculate_and_show_metrics()
 
 
 def sys_main() -> int:
@@ -135,4 +98,3 @@ def sys_main() -> int:
 
 if __name__ == "__main__":
     main()
-

@@ -1,8 +1,24 @@
 import pickle
 
 import numpy as np
+import matplotlib.pyplot as plt
 
+from PIL import Image
 from happy.model.spectroscopy_model import SpectroscopyModel
+
+
+def create_prediction_image(prediction):
+    # Create a grayscale prediction image
+    prediction_image = Image.fromarray((prediction * 255).astype(np.uint8))
+    return prediction_image
+
+
+def create_false_color_image(prediction):
+    # Create a false color prediction image
+    cmap = plt.get_cmap('viridis', np.max(prediction) + 1)
+    false_color = cmap(prediction)
+    false_color_image = Image.fromarray((false_color[:, :, :3] * 255).astype(np.uint8))
+    return false_color_image
 
 
 class UnsupervisedPixelClusterer(SpectroscopyModel):
