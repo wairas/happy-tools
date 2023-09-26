@@ -59,13 +59,13 @@ def main():
         description='Evaluate regression model on Happy Data using specified splits and pixel selector.',
         prog="happy-scikit-regression-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('happy_data_base_dir', type=str, help='Directory containing the Happy Data files')
-    parser.add_argument('regression_method', type=str, help='Regression method name (e.g., ' + ",".join(REGRESSION_MODEL_MAP.keys()) + ' or full classname)')
-    parser.add_argument('regression_params', type=str, help='JSON string containing regression parameters')
-    parser.add_argument('target_value', type=str, help='Target value column name')
-    parser.add_argument('happy_splitter_file', type=str, help='Happy Splitter file')
-    parser.add_argument('output_folder', type=str, help='Output JSON file to store the predictions')
-    parser.add_argument('--repeat_num', type=int, default=0, help='Repeat number (default: 1)')
+    parser.add_argument('-d', '--happy_data_base_dir', type=str, help='Directory containing the Happy Data files', required=True)
+    parser.add_argument('-m', '--regression_method', type=str, default="linearregression", help='Regression method name (e.g., ' + ",".join(REGRESSION_MODEL_MAP.keys()) + ' or full class name)')
+    parser.add_argument('-p', '--regression_params', type=str, default="{}", help='JSON string containing regression parameters')
+    parser.add_argument('-t', '--target_value', type=str, help='Target value column name', required=True)
+    parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
+    parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions', required=True)
+    parser.add_argument('-r', '--repeat_num', type=int, default=0, help='Repeat number (default: 0)')
 
     args = parser.parse_args()
 
@@ -79,15 +79,16 @@ def main():
     pixel_selector0 = SimpleSelector(64, criteria=None)
     train_pixel_selectors = MultiSelector([pixel_selector0])
 
+    # preprocessing
     subset_indices = list(range(60, 190))
     w = WavelengthSubsetPreprocessor(subset_indices=subset_indices)
-
     clean = SpectralNoiseInterpolator()
     SNVpp = SNVPreprocessor()
     SGpp = DerivativePreprocessor(window_length=15)
     padp = PadPreprocessor(width=128, height=128, pad_value=0)
     pp = MultiPreprocessor(preprocessor_list=[w, clean, SNVpp, SGpp, padp])
-    
+
+    # model
     model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=pp, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data = None)
     model.fit(train_ids, force=True, keep_training_data=False)
     

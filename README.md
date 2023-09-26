@@ -286,26 +286,37 @@ optional arguments:
 ### Scikit Regression Build 
 
 ```
-usage: happy-scikit-regression-build [-h] [--repeat_num REPEAT_NUM]
-                                     happy_data_base_dir regression_method
-                                     regression_params target_value
-                                     happy_splitter_file output_folder
+usage: happy-scikit-regression-build [-h] -d HAPPY_DATA_BASE_DIR
+                                     [-m REGRESSION_METHOD]
+                                     [-p REGRESSION_PARAMS] -t TARGET_VALUE -s
+                                     HAPPY_SPLITTER_FILE -o OUTPUT_FOLDER
+                                     [-r REPEAT_NUM]
 
 Evaluate regression model on Happy Data using specified splits and pixel
 selector.
 
-positional arguments:
-  happy_data_base_dir   Directory containing the Happy Data files
-  regression_method     Regression method name
-  regression_params     JSON string containing regression parameters
-  target_value          Target value column name
-  happy_splitter_file   Happy Splitter file
-  output_folder         Output JSON file to store the predictions
-
 optional arguments:
   -h, --help            show this help message and exit
-  --repeat_num REPEAT_NUM
-                        Repeat number (default: 1) (default: 0)
+  -d HAPPY_DATA_BASE_DIR, --happy_data_base_dir HAPPY_DATA_BASE_DIR
+                        Directory containing the Happy Data files (default:
+                        None)
+  -m REGRESSION_METHOD, --regression_method REGRESSION_METHOD
+                        Regression method name (e.g., linearregression,ridge,l
+                        ars,plsregression,plsneighbourregression,lasso,elastic
+                        net,decisiontreeregressor,randomforestregressor,svr or
+                        full class name) (default: linearregression)
+  -p REGRESSION_PARAMS, --regression_params REGRESSION_PARAMS
+                        JSON string containing regression parameters (default:
+                        {})
+  -t TARGET_VALUE, --target_value TARGET_VALUE
+                        Target value column name (default: None)
+  -s HAPPY_SPLITTER_FILE, --happy_splitter_file HAPPY_SPLITTER_FILE
+                        Happy Splitter file (default: None)
+  -o OUTPUT_FOLDER, --output_folder OUTPUT_FOLDER
+                        Output JSON file to store the predictions (default:
+                        None)
+  -r REPEAT_NUM, --repeat_num REPEAT_NUM
+                        Repeat number (default: 0) (default: 0)
 ```
 
 ### Scikit Unsupervised Build

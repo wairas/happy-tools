@@ -8,8 +8,6 @@ from happy.splitter.happy_splitter import HappySplitter
 from happy.model.sklearn_models import create_model, CLUSTERING_MODEL_MAP
 from happy.model.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer
 from happy.pixel_selectors.simple_selector import SimpleSelector
-from happy.pixel_selectors.multi_selector import MultiSelector
-from happy.criteria.criteria import Criteria
 from happy.preprocessors.preprocessors import PCAPreprocessor, SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
 
 
@@ -32,13 +30,12 @@ def main():
         description='Evaluate clustering on hyperspectral data using specified clusterer and pixel selector.',
         prog="happy-scikit-unsupervised-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('data_folder', type=str, help='Directory containing the hyperspectral data')
-    parser.add_argument('clusterer_name', type=str, help='Clusterer name (e.g., ' + ",".join(CLUSTERING_MODEL_MAP.keys()) + ') or full classname')
-    parser.add_argument('clusterer_params', type=str, help='JSON string containing clusterer parameters')
-    parser.add_argument('target_value', type=str, help='Target value column name')
-    parser.add_argument('happy_splitter_file', type=str, help='Happy Splitter file')
-    parser.add_argument('output_folder', type=str, help='Output JSON file to store the predictions')
-    parser.add_argument('--repeat_num', type=int, default=0, help='Repeat number (default: 1)')
+    parser.add_argument('-d', '--data_folder', type=str, help='Directory containing the hyperspectral data', required=True)
+    parser.add_argument('-m', '--clusterer_method', type=str, default="kmeans", help='Clusterer name (e.g., ' + ",".join(CLUSTERING_MODEL_MAP.keys()) + ') or full class name')
+    parser.add_argument('-p', '--clusterer_params', type=str, default="{}", help='JSON string containing clusterer parameters')
+    parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
+    parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions', required=True)
+    parser.add_argument('-r', '--repeat_num', type=int, default=0, help='Repeat number (default: 0)')
 
     args = parser.parse_args()
     
@@ -47,31 +44,20 @@ def main():
     
     happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
-    
-    crit0 = Criteria("in", key="mask", value=[0])
-    pixel_selector0 = SimpleSelector(32, criteria=crit0, include_background=True)
-    
-    crit1 = Criteria("in", key="mask", value=[1])
-    pixel_selector1 = SimpleSelector(32, criteria=crit1)
-    
-    crit2 = Criteria("in", key="mask", value=[2])
-    pixel_selector2 = SimpleSelector(32, criteria=crit2)
-    
-    crit3 = Criteria("in", key="mask", value=[3])
-    pixel_selector3 = SimpleSelector(32, criteria=crit3)
-    
-    train_pixel_selectors = MultiSelector([pixel_selector0, pixel_selector1, pixel_selector2, pixel_selector3])
+
     predict_pixel_selector = SimpleSelector(32, criteria=None, include_background=True)
+
+    # preprocessing
     subset_indices = list(range(60, 190))
     w = WavelengthSubsetPreprocessor(subset_indices=subset_indices)
-
     SNVpp = SNVPreprocessor()
     SGpp = DerivativePreprocessor()
     PCApp = PCAPreprocessor(components=5, percent_pixels=20)
     pp = MultiPreprocessor(preprocessor_list=[w, SNVpp, SGpp, PCApp])
+    # cluster algorithm
+    cluster_model = create_model(args.clusterer_method, args.clusterer_params)
     # Instantiate the UnsupervisedPixelClusterer
-    cluster_model = create_model(args.clusterer_name, args.clusterer_params)
-    clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', cluster_model, pixel_selector=predict_pixel_selector, happy_preprocessor=pp )
+    clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', cluster_model, pixel_selector=predict_pixel_selector, happy_preprocessor=pp)
 
     # Fit the clusterer
     clusterer.fit(train_ids)
