@@ -40,13 +40,24 @@ class HappySplitter:
         split_data = {"happy_base_folder": self.happy_base_folder, "splits": self.splits, "holdout_ids": self.holdout_ids}
         with open(json_file, "w") as f:
             json.dump(split_data, f, indent=4)
-            
+
     def _get_all_sample_ids(self, use_regions):
         all_sample_ids = []
+
         if use_regions:
-            all_sample_ids = [f"{sample_id}:{region}" for sample_id in os.listdir(self.happy_base_folder) for region in os.listdir(os.path.join(self.happy_base_folder, sample_id))]
+            for sample_id in os.listdir(self.happy_base_folder):
+                sample_path = os.path.join(self.happy_base_folder, sample_id)
+                if os.path.isdir(sample_path):
+                    for region in os.listdir(sample_path):
+                        region_path = os.path.join(sample_path, region)
+                        if os.path.isdir(region_path):
+                            all_sample_ids.append(f"{sample_id}:{region}")
         else:
-            all_sample_ids = os.listdir(self.happy_base_folder)
+            for entry in os.listdir(self.happy_base_folder):
+                entry_path = os.path.join(self.happy_base_folder, entry)
+                if os.path.isdir(entry_path):
+                    all_sample_ids.append(entry)
+
         return all_sample_ids
 
     def generate_splits(self, num_repeats, num_folds, train_percent, validation_percent, use_regions, holdout_percent=None):
