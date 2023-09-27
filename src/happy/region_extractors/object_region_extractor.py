@@ -4,7 +4,7 @@ from happy.preprocessors.preprocessors import CropPreprocessor
 
 
 class ObjectRegionExtractor(RegionExtractor):
-    def __init__(self, object_key, region_size = (128,128), target_name=None, obj_values=None, base_criteria=[]):
+    def __init__(self, object_key, region_size=(128,128), target_name=None, obj_values=None, base_criteria=[]):
         super().__init__(region_size, target_name)
         self.object_key = object_key
         self.obj_values = obj_values

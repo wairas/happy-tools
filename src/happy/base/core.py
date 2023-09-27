@@ -1,5 +1,7 @@
+import importlib.util
 import inspect
 import json
+import sys
 
 
 def get_class(classname):
@@ -59,6 +61,26 @@ def get_funcname(func):
     :return: the name
     """
     return func.__module__ + "." + func.__name__
+
+
+def load_class(path, module_name, class_name):
+    """
+    Loads the specified class from the Python file.
+    Based on: https://stackoverflow.com/a/67692/4698227
+
+    :param path: the Python file to load
+    :type path: str
+    :param module_name: the name of the module to load the Python file as
+    :type module_name: str
+    :param class_name: the name of the class within the module
+    :type class_name: str
+    :return: the class
+    """
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return getattr(module, class_name)
 
 
 class ConfigurableObject:

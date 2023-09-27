@@ -26,16 +26,16 @@ class EnviReader(SpectraReader):
         return self.data[y, x, :]
 
     def get_wavelengths(self):
-        return(self.wavelengths)
+        return self.wavelengths
         
     def get_numpy_xy(self):
-        return(np.transpose(self.data, (1, 0, 2)))
+        return np.transpose(self.data, (1, 0, 2))
     
     def get_numpy_yx(self):
-        return(self.data)
+        return self.data
         
     def get_numpy(self):
-        return(np.asarray(self.data))
+        return np.asarray(self.data)
         
     def default_filename_func(self, base_dir, sample_id):
         return os.path.join(base_dir, sample_id + '.hdr')

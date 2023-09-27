@@ -38,10 +38,10 @@ class MatReader(SpectraReader):
         self.base_dir = base_dir
         
     def get_numpy(self):
-        return(self.data)
+        return self.data
     
     def get_numpy_of(self, sname):
-        return(self.mat_file[sname])
+        return self.mat_file[sname]
         
     def get_wavelengths(self):
         return self.wavelengths.flatten()

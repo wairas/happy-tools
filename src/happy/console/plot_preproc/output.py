@@ -18,10 +18,10 @@ def main():
         description="Plot set of pixels with various pre-processing.",
         prog="happy-plot-preproc",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("foldername", type=str, help="Folder containing HappyData files")
-    parser.add_argument("--pixels", type=int, default=100, help="Number of random pixels to select")
+    parser.add_argument('-i', "--input_dir", type=str, help="Folder containing HAPPy data files", required=True)
+    parser.add_argument('-p', "--pixels", type=int, default=100, help="Number of random pixels to select")
     args = parser.parse_args()
-    foldername = args.foldername
+    foldername = args.input_dir
     num_pixels = args.pixels
     
     parent_folder = os.path.basename(os.path.dirname(foldername))

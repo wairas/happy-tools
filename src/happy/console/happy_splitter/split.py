@@ -8,14 +8,14 @@ def main():
         description='Generate train/validation/test splits for Happy data.',
         prog="happy-splitter",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('happy_base_folder', type=str, help='Path to the Happy base folder')
-    parser.add_argument('--num_repeats', type=int, default=1, help='Number of repeats')
-    parser.add_argument('--num_folds', type=int, default=1, help='Number of folds')
-    parser.add_argument('--train_percent', type=float, default=70.0, help='Percentage of data in the training set')
-    parser.add_argument('--validation_percent', type=float, default=10.0, help='Percentage of data in the validation set')
-    parser.add_argument('--use_regions', action='store_true', help='Use regions in generating splits')
-    parser.add_argument('--holdout_percent', type=float, default=None, help='Percentage of data to hold out as a holdout set')
-    parser.add_argument('--output_file', type=str, default='output_split.json', help='Path to the output split file')
+    parser.add_argument('-d', '--happy_base_folder', type=str, help='Path to the Happy base folder', required=True)
+    parser.add_argument('-r', '--num_repeats', type=int, default=1, help='Number of repeats')
+    parser.add_argument('-f', '--num_folds', type=int, default=1, help='Number of folds')
+    parser.add_argument('-t', '--train_percent', type=float, default=70.0, help='Percentage of data in the training set')
+    parser.add_argument('-v', '--validation_percent', type=float, default=10.0, help='Percentage of data in the validation set')
+    parser.add_argument('-R', '--use_regions', action='store_true', help='Use regions in generating splits')
+    parser.add_argument('-H', '--holdout_percent', type=float, default=None, help='Percentage of data to hold out as a holdout set')
+    parser.add_argument('-o', '--output_file', type=str, default='output_split.json', help='Path to the output split file', required=True)
     args = parser.parse_args()
 
     splitter = HappySplitter(args.happy_base_folder)

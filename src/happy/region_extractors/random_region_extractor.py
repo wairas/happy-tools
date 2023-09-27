@@ -14,7 +14,7 @@ class GridRegionExtractor(RegionExtractor):
         width, height = happy_data.width, happy_data.height
 
         for y in range(0, height, self.region_size[1]):
-            for x in range(0, width, self.region_size)[0]:
+            for x in range(0, width, self.region_size[0]):
                 x_min, x_max = x, x + self.region_size[0]
                 y_min, y_max = y, y + self.region_size[1]
 

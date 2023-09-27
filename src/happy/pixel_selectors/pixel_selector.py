@@ -12,16 +12,16 @@ class PixelSelector:
     #    self.happy_data = happy_data
         
     def get_n(self):
-        return(self.n)
+        return self.n
         
     def set_criteria(self, criteria):
         self.criteria = criteria
         
     def check(self, happy_data, x,y,):
         if self.criteria is None:
-            return(True)
+            return True
         else:
-            return(self.criteria.check(happy_data, x, y))
+            return self.criteria.check(happy_data, x, y)
           
     def to_dict(self):
         return {

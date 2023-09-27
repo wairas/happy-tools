@@ -95,7 +95,7 @@ class HappyData:
                 #print(criteria.to_dict())
                 
         if len(return_pairs ) == 0:
-            return([],(None, None))
+            return [],(None, None)
             
         # Calculate the centroid based on the extents of x and y coordinates
         if calculate_centroid:
@@ -111,10 +111,10 @@ class HappyData:
         
     def get_spectrum(self, x=None, y=None):
         if x is None or y is None:
-            return (None)
+            return None
         x = int(x)
         y = int(y)
-        return (self.data[y, x, :])
+        return self.data[y, x, :]
         
     def get_meta_data(self, x=None, y=None, key="type"):
         if key == "x":
@@ -126,7 +126,7 @@ class HappyData:
             #print(self.metadata_dict[key]["data"].shape)
             #print (type(self.metadata_dict[key]["data"]))
             if x is None and y is None:
-                return(self.metadata_dict[key]["data"])
+                return self.metadata_dict[key]["data"]
                 #print("return full array")
             else:
                 #print(f"return element {self.metadata_dict[key]['data'][int(y),int(x),0]}")
