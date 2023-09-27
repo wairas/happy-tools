@@ -51,7 +51,7 @@ class GenericScikitSpectroscopyModel(ScikitSpectroscopyModel):
         return self.base_model.predict(sample_ids, prediction_pixel_selector=prediction_pixel_selector, prediction_data=prediction_data)
 
     def predict_images(self, sample_ids, return_actuals=False):
-        return self.base_model.predict_images(self, sample_ids, return_actuals=return_actuals)
+        return self.base_model.predict_images(sample_ids, return_actuals=return_actuals)
 
     def generate_training_dataset(self, sample_ids):
         return self.base_model.generate_training_dataset(sample_ids)
