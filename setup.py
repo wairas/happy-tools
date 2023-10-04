@@ -54,6 +54,7 @@ setup(
         "console_scripts": [
             "envi-viewer=happy.gui.envi_viewer.viewer:sys_main",  # deprecated
             "happy-envi-viewer=happy.gui.envi_viewer.viewer:sys_main",
+            "happy-entry-points=happy.console.entry_points.generate:sys_main",
             "happy-data-viewer=happy.gui.data_viewer.viewer:sys_main",
             "happy-generate-image-regions-objects=happy.console.image_regions_objects.generate:sys_main",
             "happy-generic-regression-build=happy.console.builders.generic_regression_build:sys_main",
@@ -74,15 +75,15 @@ setup(
             "derivative=happy.preprocessors.preprocessors:DerivativePreprocessor",
             "down-sample=happy.preprocessors.preprocessors:DownsamplePreprocessor",
             "multi=happy.preprocessors.preprocessors:MultiPreprocessor",
+            "pca=happy.preprocessors.preprocessors:PCAPreprocessor",
             "pad=happy.preprocessors.preprocessors:PadPreprocessor",
             "pass-through=happy.preprocessors.preprocessors:PassThrough",
-            "pca=happy.preprocessors.preprocessors:PCAPreprocessor",
             "snv=happy.preprocessors.preprocessors:SNVPreprocessor",
             "sni=happy.preprocessors.preprocessors:SpectralNoiseInterpolator",
             "std-scaler=happy.preprocessors.preprocessors:StandardScalerPreprocessor",
             "wavelength-subset=happy.preprocessors.preprocessors:WavelengthSubsetPreprocessor",
-            "white-ref=happy.preprocessors.preprocessors:WhiteReferencePreprocessor",
-        ],
+            "white-ref=happy.preprocessors.preprocessors:WhiteReferencePreprocessor"
+        ]
     },
     version="0.0.1",
     author='Dale Fletcher',

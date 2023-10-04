@@ -20,9 +20,10 @@ class HappyRegistry(Registry):
     Custom Registry class for the HAPPy tools.
     """
 
-    def __init__(self):
-        super().__init__(default_modules=HAPPY_DEFAULT_MODULES,
-                         env_modules=HAPPY_ENV_MODULES,
+    def __init__(self, default_modules=HAPPY_DEFAULT_MODULES,
+                 env_modules=HAPPY_ENV_MODULES):
+        super().__init__(default_modules=default_modules,
+                         env_modules=env_modules,
                          enforce_uniqueness=True)
 
     def preprocessors(self) -> Dict[str, Plugin]:
