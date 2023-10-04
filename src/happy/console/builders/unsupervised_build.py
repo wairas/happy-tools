@@ -5,7 +5,18 @@ from happy.splitter.happy_splitter import HappySplitter
 from happy.model.sklearn_models import create_model, CLUSTERING_MODEL_MAP
 from happy.model.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer, create_false_color_image, create_prediction_image
 from happy.pixel_selectors.simple_selector import SimpleSelector
-from happy.preprocessors.preprocessors import PCAPreprocessor, SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
+from happy.preprocessors.preprocessor import Preprocessor
+from happy.preprocessors.preprocessors import MultiPreprocessor
+
+
+def default_preprocessors() -> str:
+    args = [
+        "wavelength-subset -f 60 -t 189",
+        "snv",
+        "derivative",
+        "pca -n 5 -p 20",
+    ]
+    return " ".join(args)
 
 
 def main():
@@ -14,6 +25,7 @@ def main():
         prog="happy-scikit-unsupervised-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--data_folder', type=str, help='Directory containing the hyperspectral data', required=True)
+    parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data', required=False, default=default_preprocessors())
     parser.add_argument('-m', '--clusterer_method', type=str, default="kmeans", help='Clusterer name (e.g., ' + ",".join(CLUSTERING_MODEL_MAP.keys()) + ') or full class name')
     parser.add_argument('-p', '--clusterer_params', type=str, default="{}", help='JSON string containing clusterer parameters')
     parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
@@ -31,16 +43,11 @@ def main():
     predict_pixel_selector = SimpleSelector(32, criteria=None, include_background=True)
 
     # preprocessing
-    subset_indices = list(range(60, 190))
-    w = WavelengthSubsetPreprocessor(subset_indices=subset_indices)
-    SNVpp = SNVPreprocessor()
-    SGpp = DerivativePreprocessor()
-    PCApp = PCAPreprocessor(components=5, percent_pixels=20)
-    pp = MultiPreprocessor(preprocessor_list=[w, SNVpp, SGpp, PCApp])
+    preproc = MultiPreprocessor(preprocessor_list=Preprocessor.parse_preprocessors(args.preprocessors))
     # cluster algorithm
     cluster_model = create_model(args.clusterer_method, args.clusterer_params)
     # Instantiate the UnsupervisedPixelClusterer
-    clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', clusterer=cluster_model, pixel_selector=predict_pixel_selector, happy_preprocessor=pp)
+    clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', clusterer=cluster_model, pixel_selector=predict_pixel_selector, happy_preprocessor=preproc)
 
     # Fit the clusterer
     clusterer.fit(train_ids)

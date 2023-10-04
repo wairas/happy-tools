@@ -1,16 +1,35 @@
+import argparse
+import copy
 from sklearn.decomposition import PCA
+from happy.base.registry import REGISTRY
 from happy.preprocessors.preprocessor import Preprocessor
 from sklearn.preprocessing import StandardScaler
 import spectral.io.envi as envi
 import numpy as np
 from scipy.signal import savgol_filter
+from seppl import split_cmdline, split_args
 
 
 class SpectralNoiseInterpolator(Preprocessor):
-    def __init__(self, threshold=0.8, neighborhood_size=2, **kwargs):
-        super().__init__(**kwargs)
-        self.threshold = threshold
-        self.neighborhood_size = neighborhood_size
+
+    def name(self) -> str:
+        return "sni"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-t", "--threshold", type=float, help="TODO", required=False, default=0.8)
+        # TODO not used?
+        #parser.add_argument("-n", "--neighborhood_size", type=int, help="TODO", required=False, default=2)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params['threshold'] = ns.threshold
+        # TODO not used?
+        #self.params['neighborhood_size'] = ns.neighborhood_size
 
     def calculate_gradient(self, data):
         # Calculate the gradient along the spectral dimension
@@ -22,7 +41,7 @@ class SpectralNoiseInterpolator(Preprocessor):
         #gradient_diff = np.abs(gradient_data - np.mean(gradient_data, axis=(0, 1), keepdims=True))
         #gradient_diff = np.abs(gradient_data - np.mean(gradient_data, axis=2, keepdims=True))
         gradient_diff = np.abs(gradient_data - np.median(gradient_data, axis=(0, 1), keepdims=True))
-        noisy_pixel_indices = gradient_diff > self.threshold
+        noisy_pixel_indices = gradient_diff > self.params.get('threshold', 0.8)
         return noisy_pixel_indices
 
     def interpolate_noisy_pixels(self, data, noisy_pixel_indices, gradient_data):
@@ -50,7 +69,7 @@ class SpectralNoiseInterpolator(Preprocessor):
 
         return interpolated_data
 
-    def apply(self, data, metadata=None):
+    def _do_apply(self, data, metadata=None):
         gradient_data = self.calculate_gradient(data)
         noisy_pixel_indices = self.identify_noisy_pixels(gradient_data)
         interpolated_data = self.interpolate_noisy_pixels(data, noisy_pixel_indices, gradient_data)
@@ -94,21 +113,27 @@ def print_shape(data):
 
 
 class PassThrough(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)  # Call the base class constructor to handle kwargs
-        # Initialize any additional instance variables here
-        
-    def apply(self, data, metadata=None):
+
+    def name(self) -> str:
+        return "pass-through"
+
+    def description(self) -> str:
+        return "Dummy, just passes through the data"
+
+    def _do_apply(self, data, metadata=None):
         # Apply Standard Normal Variate (SNV) correction along the wavelength dimension
         return data, metadata
 
 
 class SNVPreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)  # Call the base class constructor to handle kwargs
-        # Initialize any additional instance variables here
-        
-    def apply(self, data, metadata=None):
+
+    def name(self) -> str:
+        return "snv"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _do_apply(self, data, metadata=None):
         #is_ragged = check_ragged_data(data)
         mean = np.mean(data, axis=2, keepdims=True)
         std = np.std(data, axis=2, keepdims=True)
@@ -117,15 +142,31 @@ class SNVPreprocessor(Preprocessor):
 
 
 class PCAPreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.n_components  = self.params.get('components', 5)
-        self.percent_pixels  = self.params.get('percent_pixels', 100)
+
+    def name(self) -> str:
+        return "pca"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-n", "--components", type=int, help="TODO", required=False, default=5)
+        parser.add_argument("-p", "--percent_pixels", type=float, help="TODO", required=False, default=100.0)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params["components"] = ns.components
+        self.params["percent_pixels"] = ns.percent_pixels
+
+    def _initialize(self):
+        super()._initialize()
         self.pca = None
 
-    def fit(self, data, metadata=None):
+    def _do_fit(self, data, metadata=None):
         num_pixels = data.shape[0] * data.shape[1]
-        num_samples = int(num_pixels * (self.percent_pixels/100))
+        num_samples = int(num_pixels * (self.params.get('percent_pixels', 100)/100))
         # Flatten the data for dimensionality reduction
         flattened_data = np.reshape(data, (num_pixels, data.shape[2]))
         # Randomly sample pixels
@@ -133,12 +174,12 @@ class PCAPreprocessor(Preprocessor):
         sampled_data = flattened_data[sampled_indices]
 
         # Perform PCA fit on the sampled data
-        self.pca = PCA(n_components=self.n_components)
+        self.pca = PCA(n_components=self.params.get('components', 5))
         self.pca.fit(sampled_data)
 
         return self
 
-    def apply(self, data, metadata=None):
+    def _do_apply(self, data, metadata=None):
         if self.pca is None:
             raise ValueError("PCA model has not been fitted. Call the 'fit' method first.")
 
@@ -163,16 +204,30 @@ class PCAPreprocessor(Preprocessor):
 
 
 class WhiteReferencePreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
-    def apply(self, data, metadata=None):
+    def name(self) -> str:
+        return "white-ref"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-f", "--white_reference_file", type=str, help="TODO", required=True)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params["white_reference_file"] = ns.white_reference_file
+
+    def _do_apply(self, data, metadata=None):
         white_reference = self.params.get('white_reference', None)
+        white_reference_file = None
         if white_reference is None:
             white_reference_file = self.params.get('white_reference_file', None)
-            filename = self.filename_func(self.base_dir, self.sample_id)
-            open = envi.open(filename)
-            white_reference = open.load()
+        if white_reference_file is not None:
+            ref = envi.open(white_reference_file)
+            white_reference = ref.load()
         if white_reference is not None:
             # Apply white reference correction by dividing the data by the provided white reference
             corrected_data = data / white_reference
@@ -182,18 +237,30 @@ class WhiteReferencePreprocessor(Preprocessor):
 
 
 class BlackReferencePreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
-    def apply(self, data, metadata=None):
+    def name(self) -> str:
+        return "black-ref"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-f", "--black_reference_file", type=str, help="TODO", required=True)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params["black_reference_file"] = ns.black_reference_file
+
+    def _do_apply(self, data, metadata=None):
         black_reference = self.params.get('black_reference', None)
         black_reference_file = None
         if black_reference is None:
             black_reference_file = self.params.get('black_reference_file', None)
         if black_reference_file is not None:          
-            open = envi.open(black_reference_file)
-            black_reference = open.load()
-            
+            ref = envi.open(black_reference_file)
+            black_reference = ref.load()
         if black_reference is not None:
             # Apply black reference correction by subtracting the provided black reference from the data
             corrected_data = data - black_reference
@@ -203,7 +270,27 @@ class BlackReferencePreprocessor(Preprocessor):
 
 
 class DerivativePreprocessor(Preprocessor):
-    def apply(self, data, metadata=None, **kwargs):
+
+    def name(self) -> str:
+        return "derivative"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-w", "--window_length", type=int, help="TODO", required=False, default=5)
+        parser.add_argument("-p", "--polyorder", type=int, help="TODO", required=False, default=2)
+        parser.add_argument("-d", "--deriv", type=int, help="TODO", required=False, default=1)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params["window_length"] = ns.window_length
+        self.params["polyorder"] = ns.polyorder
+        self.params["deriv"] = ns.deriv
+
+    def _do_apply(self, data, metadata=None):
         window_length = self.params.get('window_length', 5)
         polyorder = self.params.get('polyorder', 2)
         deriv = self.params.get('deriv', 1)
@@ -214,8 +301,23 @@ class DerivativePreprocessor(Preprocessor):
 
 
 class DownsamplePreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+
+    def name(self) -> str:
+        return "down-sample"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-x", "--xth", type=int, help="TODO", required=False, default=2)
+        parser.add_argument("-y", "--yth", type=int, help="TODO", required=False, default=2)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params["xth"] = ns.xth
+        self.params["yth"] = ns.yth
 
     def update_pixel_data(self, meta_dict, xth, yth):
         if meta_dict is None:
@@ -236,7 +338,7 @@ class DownsamplePreprocessor(Preprocessor):
         
         return new_dict
         
-    def apply(self, data, metadata=None):
+    def _do_apply(self, data, metadata=None):
         xth = self.params.get('xth', 2)
         yth = self.params.get('yth', 2)
         downsampled_data = data[:, ::xth, :]
@@ -246,8 +348,25 @@ class DownsamplePreprocessor(Preprocessor):
 
 
 class PadPreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+
+    def name(self) -> str:
+        return "pad"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-W", "--width", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-H", "--height", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-v", "--pad_value", type=int, help="TODO", required=False, default=0)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params["width"] = ns.width
+        self.params["height"] = ns.height
+        self.params["pad_value"] = ns.pad_value
 
     def pad_array(self, array, target_height, target_width, pad_value=0):
         current_height, current_width = array.shape[:2]
@@ -295,9 +414,8 @@ class PadPreprocessor(Preprocessor):
         
         return new_dict
         
-    def apply(self, data, metadata=None):
+    def _do_apply(self, data, metadata=None):
         # Crop the numpy array
-        
         height = self.params.get('height', 0)
         width = self.params.get('width', 0)
         pad_value = self.params.get('pad_value', 0)
@@ -315,8 +433,31 @@ class PadPreprocessor(Preprocessor):
 
 
 class CropPreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+
+    def name(self) -> str:
+        return "crop"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-x", "--x", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-y", "--y", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-W", "--width", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-H", "--height", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-p", "--pad", action="store_true", help="TODO", required=False)
+        parser.add_argument("-v", "--pad_value", type=int, help="TODO", required=False, default=0)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params["x"] = ns.x
+        self.params["y"] = ns.y
+        self.params["width"] = ns.width
+        self.params["height"] = ns.height
+        self.params["pad"] = ns.pad
+        self.params["pad_value"] = ns.pad_value
 
     def pad_array(self, array, target_height, target_width, pad_value=0):
         current_height, current_width = array.shape[:2]
@@ -366,7 +507,7 @@ class CropPreprocessor(Preprocessor):
         
         return new_dict
         
-    def apply(self, data, metadata=None):
+    def _do_apply(self, data, metadata=None):
         # Crop the numpy array
         x = self.params.get('x', 0)
         y = self.params.get('y', 0)
@@ -394,10 +535,14 @@ class CropPreprocessor(Preprocessor):
 
 
 class StandardScalerPreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)  # Call the base class constructor to handle kwargs
-        
-    def apply(self, data, metadata=None):
+
+    def name(self) -> str:
+        return "std-scaler"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _do_apply(self, data, metadata=None):
         scaler = StandardScaler()
         reshaped_data = data.reshape(-1, data.shape[-1])  # Flatten the data along the last dimension
         scaled_data = scaler.fit_transform(reshaped_data)
@@ -406,11 +551,33 @@ class StandardScalerPreprocessor(Preprocessor):
 
 
 class WavelengthSubsetPreprocessor(Preprocessor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
-    def apply(self, data, metadata=None):
+    def name(self) -> str:
+        return "wavelength-subset"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-s", "--subset_indices", type=int, help="The explicit 0-based wavelength indices to use", required=False, nargs="+")
+        parser.add_argument("-f", "--from_index", type=int, help="The first 0-based wavelength to include", required=False, default=60)
+        parser.add_argument("-t", "--to_index", type=int, help="The last 0-based wavelength to include", required=False, default=189)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.params["subset_indices"] = ns.subset_indices
+        self.params["from_index"] = ns.from_index
+        self.params["to_index"] = ns.to_index
+
+    def _do_apply(self, data, metadata=None):
         subset_indices = self.params.get('subset_indices', None)
+        from_index = self.params.get('from_index', None)
+        to_index = self.params.get('to_index', None)
+        if subset_indices is None:
+            if (from_index is not None) and (to_index is not None):
+                subset_indices = list(range(from_index, to_index + 1))
         if subset_indices is not None:
             # Select the subset of wavelengths from the data
             subset_data = data[:, :, subset_indices]
@@ -420,18 +587,44 @@ class WavelengthSubsetPreprocessor(Preprocessor):
 
 
 class MultiPreprocessor(Preprocessor):
-    def __init__(self, **kwargs):#, preprocessor_list=preprocessor_list):
-        super().__init__(**kwargs)  # Call the base class constructor to handle kwargs
 
+    def name(self) -> str:
+        return "multi"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-p", "--preprocessors", type=str, help="TODO", required=False, nargs="*")
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        preprocessor_list = []
+        all = REGISTRY.preprocessors()
+        for preprocessor in ns.preprocessors:
+            plugins = split_args(split_cmdline(preprocessor), all.keys())
+            for key in plugins:
+                if key == "":
+                    continue
+                name = all[key][0]
+                plugin = copy.deepcopy(all[name])
+                plugin.parse_args(plugins[key][1:])
+                preprocessor_list.append(plugin)
+        self.params["preprocessor_list"] = preprocessor_list
+
+    def _initialize(self):
+        super()._initialize()
         self.preprocessor_list = self.params.get('preprocessor_list', [])
 
-    def fit(self, data, metadata=None):
+    def _do_fit(self, data, metadata=None):
         for preprocessor in self.preprocessor_list:
             preprocessor.fit(data, metadata)
             data, metadata = preprocessor.apply(data, metadata)
         return self
 
-    def apply(self, data, metadata=None):
+    def _do_apply(self, data, metadata=None):
         for preprocessor in self.preprocessor_list:
             data, metadata = preprocessor.apply(data, metadata)
         return data, metadata

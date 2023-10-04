@@ -39,6 +39,7 @@ setup(
         "shapely",
         "scikit-learn",
         "matplotlib",
+        "seppl>=0.0.2",
     ],
     package_dir={
         '': 'src'
@@ -66,7 +67,22 @@ setup(
             "happy-scikit-regression-build=happy.console.builders.regression_build:sys_main",
             "happy-scikit-unsupervised-build=happy.console.builders.unsupervised_build:sys_main",
             "happy-splitter=happy.console.happy_splitter.split:sys_main",
-        ]
+        ],
+        "happy.preprocessors": [
+            "black-ref=happy.preprocessors.preprocessors:BlackReferencePreprocessor",
+            "crop=happy.preprocessors.preprocessors:CropPreprocessor",
+            "derivative=happy.preprocessors.preprocessors:DerivativePreprocessor",
+            "down-sample=happy.preprocessors.preprocessors:DownsamplePreprocessor",
+            "multi=happy.preprocessors.preprocessors:MultiPreprocessor",
+            "pad=happy.preprocessors.preprocessors:PadPreprocessor",
+            "pass-through=happy.preprocessors.preprocessors:PassThrough",
+            "pca=happy.preprocessors.preprocessors:PCAPreprocessor",
+            "snv=happy.preprocessors.preprocessors:SNVPreprocessor",
+            "sni=happy.preprocessors.preprocessors:SpectralNoiseInterpolator",
+            "std-scaler=happy.preprocessors.preprocessors:StandardScalerPreprocessor",
+            "wavelength-subset=happy.preprocessors.preprocessors:WavelengthSubsetPreprocessor",
+            "white-ref=happy.preprocessors.preprocessors:WhiteReferencePreprocessor",
+        ],
     },
     version="0.0.1",
     author='Dale Fletcher',

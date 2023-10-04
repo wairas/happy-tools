@@ -11,10 +11,21 @@ from happy.model.sklearn_models import create_model, REGRESSION_MODEL_MAP
 from happy.model.spectroscopy_model import create_false_color_image
 from happy.pixel_selectors.multi_selector import MultiSelector
 from happy.pixel_selectors.simple_selector import SimpleSelector
-from happy.preprocessors.preprocessors import SpectralNoiseInterpolator, PadPreprocessor, SNVPreprocessor, \
-    MultiPreprocessor, DerivativePreprocessor, WavelengthSubsetPreprocessor
+from happy.preprocessors.preprocessor import Preprocessor
+from happy.preprocessors.preprocessors import MultiPreprocessor
 from happy.splitter.happy_splitter import HappySplitter
 from happy.writers.csv_training_data_writer import CSVTrainingDataWriter
+
+
+def default_preprocessors() -> str:
+    args = [
+        "wavelength-subset -f 60 -t 189",
+        "sni",
+        "snv",
+        "derivative -w 15",
+        "pad -W 128 -H 128 -v 0",
+    ]
+    return " ".join(args)
 
 
 def main():
@@ -23,6 +34,7 @@ def main():
         prog="happy-scikit-regression-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--happy_data_base_dir', type=str, help='Directory containing the Happy Data files', required=True)
+    parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data', required=False, default=default_preprocessors())
     parser.add_argument('-m', '--regression_method', type=str, default="linearregression", help='Regression method name (e.g., ' + ",".join(REGRESSION_MODEL_MAP.keys()) + ' or full class name)')
     parser.add_argument('-p', '--regression_params', type=str, default="{}", help='JSON string containing regression parameters')
     parser.add_argument('-t', '--target_value', type=str, help='Target value column name', required=True)
@@ -43,16 +55,10 @@ def main():
     train_pixel_selectors = MultiSelector([pixel_selector0])
 
     # preprocessing
-    subset_indices = list(range(60, 190))
-    w = WavelengthSubsetPreprocessor(subset_indices=subset_indices)
-    clean = SpectralNoiseInterpolator()
-    SNVpp = SNVPreprocessor()
-    SGpp = DerivativePreprocessor(window_length=15)
-    padp = PadPreprocessor(width=128, height=128, pad_value=0)
-    pp = MultiPreprocessor(preprocessor_list=[w, clean, SNVpp, SGpp, padp])
+    preproc = MultiPreprocessor(preprocessor_list=Preprocessor.parse_preprocessors(args.preprocessors))
 
     # model
-    model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=pp, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data = None)
+    model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=preproc, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data = None)
     model.fit(train_ids, force=True, keep_training_data=False)
     
     csv_writer = CSVTrainingDataWriter(args.output_folder)
@@ -62,7 +68,7 @@ def main():
     
     evl = RegressionEvaluator(happy_splitter, model, args.target_value)
 
-    predictions = PredictionActualHandler.to_list(predictions,remove_last_dim=True)
+    predictions = PredictionActualHandler.to_list(predictions, remove_last_dim=True)
     actuals = PredictionActualHandler.to_list(actuals,remove_last_dim=True)
     print(f"predictions.shape:{predictions[0].shape}  actuals.shape:{actuals[0].shape}")
     
