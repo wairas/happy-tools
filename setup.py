@@ -60,6 +60,7 @@ setup(
             "happy-generic-regression-build=happy.console.builders.generic_regression_build:sys_main",
             "happy-generic-unsupervised-build=happy.console.builders.generic_unsupervised_build:sys_main",
             "happy-hdr-info=happy.console.hdr_info.output:sys_main",
+            "happy-help=happy.console.help.generate:sys_main",
             "happy-hsi2csv=happy.console.hsi_to_csv.generate:sys_main",
             "happy-hsi2rgb=happy.console.hsi_to_rgb.generate:sys_main",
             "happy-mat-info=happy.console.mat_info.output:sys_main",
