@@ -5,9 +5,9 @@ import traceback
 import numpy as np
 
 from happy.evaluators import PredictionActualHandler, RegressionEvaluator
-from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
-from happy.model.sklearn_models import create_model, REGRESSION_MODEL_MAP
-from happy.model.spectroscopy_model import create_false_color_image
+from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
+from happy.models.sklearn import create_model, REGRESSION_MODEL_MAP
+from happy.models.spectroscopy import create_false_color_image
 from happy.pixel_selectors import MultiSelector, SimpleSelector
 from happy.preprocessors import Preprocessor, MultiPreprocessor
 from happy.splitters import HappySplitter

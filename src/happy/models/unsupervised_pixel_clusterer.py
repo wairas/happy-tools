@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from PIL import Image
-from happy.model.spectroscopy_model import SpectroscopyModel
+from happy.models.spectroscopy import SpectroscopyModel
 
 
 def create_prediction_image(prediction):
@@ -75,7 +75,7 @@ class UnsupervisedPixelClusterer(SpectroscopyModel):
             return pickle.load(file)
 """
 # Example usage
-from happy.model.sklearn_models import create_model
+from happy.models.sklearn import create_model
 num_clusters = 5
 data_folder = "path/to/your/data"
 target = "target_variable_name"

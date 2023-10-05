@@ -2,7 +2,7 @@ import abc
 import numpy as np
 from PIL import Image
 from happy.readers import HappyReader
-from happy.model.happy_model import HappyModel
+from happy.models.happy import HappyModel
 
 
 class SpectroscopyModel(HappyModel, abc.ABC):

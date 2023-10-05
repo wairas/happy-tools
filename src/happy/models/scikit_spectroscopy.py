@@ -3,7 +3,7 @@ import pickle
 
 import numpy as np
 
-from happy.model.spectroscopy_model import SpectroscopyModel
+from happy.models.spectroscopy import SpectroscopyModel
 
 
 class ScikitSpectroscopyModel(SpectroscopyModel):

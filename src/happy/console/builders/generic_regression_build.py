@@ -7,9 +7,9 @@ import numpy as np
 
 from happy.base.core import load_class
 from happy.evaluators import PredictionActualHandler, RegressionEvaluator
-from happy.model.generic import GenericSpectroscopyModel, GenericScikitSpectroscopyModel
-from happy.model.spectroscopy_model import create_false_color_image, SpectroscopyModel
-from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
+from happy.models.generic import GenericSpectroscopyModel, GenericScikitSpectroscopyModel
+from happy.models.spectroscopy import create_false_color_image, SpectroscopyModel
+from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
 from happy.splitters import HappySplitter
 from happy.writers import CSVTrainingDataWriter
 

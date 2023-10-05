@@ -1,7 +1,7 @@
-from happy.model.spectroscopy_model import SpectroscopyModel
-from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
-from happy.model.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer
-from happy.model.imaging_model import ImagingModel
+from happy.models.spectroscopy import SpectroscopyModel
+from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
+from happy.models.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer
+from happy.models.imaging import ImagingModel
 
 
 class GenericSpectroscopyModel(SpectroscopyModel):
