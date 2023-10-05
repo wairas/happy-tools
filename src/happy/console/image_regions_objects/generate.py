@@ -3,7 +3,7 @@ import argparse
 import traceback
 from happy.readers.happy_reader import HappyReader
 from happy.writers.happy_writer import HappyWriter
-from happy.criteria.criteria import Criteria
+from happy.criteria import Criteria
 from happy.region_extractors.object_region_extractor import ObjectRegionExtractor
 
 
