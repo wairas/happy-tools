@@ -1,5 +1,5 @@
 import numpy as np
-from .pixel_selector import PixelSelector
+from ._pixel_selector import PixelSelector
 
 
 class AveragedGridSelector(PixelSelector):

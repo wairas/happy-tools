@@ -1,4 +1,4 @@
-from .pixel_selector import PixelSelector
+from ._pixel_selector import PixelSelector
 import random
 import numpy as np
 

@@ -9,8 +9,7 @@ import pandas as pd
 
 from happy.base.core import get_classname
 from happy.criteria import Criteria
-from happy.pixel_selectors.averaged_grid_pixel_selector import AveragedGridSelector
-from happy.pixel_selectors.column_wise_pixel_selector import ColumnWisePixelSelector
+from happy.pixel_selectors import AveragedGridSelector, ColumnWisePixelSelector
 from happy.readers.mat_reader import MatReader
 
 
