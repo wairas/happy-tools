@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from happy.evaluators.base_evaluator import BaseEvaluator
+from happy.evaluators import BaseEvaluator
 
 
 class RegressionEvaluator(BaseEvaluator):

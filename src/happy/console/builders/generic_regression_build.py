@@ -6,8 +6,7 @@ import traceback
 import numpy as np
 
 from happy.base.core import load_class
-from happy.evaluators.prediction_actual_handler import PredictionActualHandler
-from happy.evaluators.regression_evaluator import RegressionEvaluator
+from happy.evaluators import PredictionActualHandler, RegressionEvaluator
 from happy.model.generic import GenericSpectroscopyModel, GenericScikitSpectroscopyModel
 from happy.model.spectroscopy_model import create_false_color_image, SpectroscopyModel
 from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
