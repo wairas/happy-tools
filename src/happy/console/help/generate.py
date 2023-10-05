@@ -36,7 +36,7 @@ def main():
         description='Generates the help screens for the plugins.',
         prog="happy-help",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-m", "--modules", metavar="PACKAGE", help="The names of the module packages, uses the default ones if not provided.", default=HAPPY_DEFAULT_MODULES, type=str, required=False, nargs="*")
+    parser.add_argument("-m", "--modules", metavar="PACKAGE", help="The names of the module packages, uses the default ones if not provided.", default=HAPPY_DEFAULT_MODULES.split(","), type=str, required=False, nargs="*")
     parser.add_argument("-f", "--help_format", metavar="FORMAT", help="The output format to generate", choices=HELP_FORMATS, default=HELP_FORMAT_TEXT, required=False)
     parser.add_argument("-L", "--heading_level", metavar="INT", help="The level to use for the heading", default=1, type=int, required=False)
     parser.add_argument("-o", "--output", metavar="PATH", help="The directory or file to store the help in; outputs it to stdout if not supplied; if pointing to a directory, automatically generates file name from plugin name and help format", type=str, default=None, required=False)
