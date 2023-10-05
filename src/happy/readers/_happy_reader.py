@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-from happy.readers.envi_reader import EnviReader
+from happy.readers import EnviReader
 from happy.data import HappyData
 import spectral.io.envi as envi
 

@@ -1,4 +1,4 @@
-from .spectra_reader import SpectraReader
+from ._spectra_reader import SpectraReader
 import spectral.io.envi as envi
 import os
 import numpy as np

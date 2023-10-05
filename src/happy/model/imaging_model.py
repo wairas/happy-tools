@@ -1,5 +1,5 @@
 import abc
-from happy.readers.happy_reader import HappyReader
+from happy.readers import HappyReader
 from happy.model.happy_model import HappyModel
 import itertools
 

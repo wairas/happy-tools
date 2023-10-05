@@ -1,4 +1,4 @@
-from happy.readers.json_reader import JsonReader
+from happy.readers import JsonReader
 
 
 class SpectraReader:

@@ -9,7 +9,7 @@ from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 
 from PIL import Image, ImageTk  # Import Image and ImageTk from the PIL library
-from happy.readers.happy_reader import HappyReader
+from happy.readers import HappyReader
 from happy.data import SampleIDHandler
 
 

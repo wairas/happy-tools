@@ -12,7 +12,7 @@ from PIL import Image, ImageTk
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.readers.happy_reader import HappyReader
+from happy.readers import HappyReader
 from happy.gui.data_viewer import SessionManager, PROPERTIES
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize

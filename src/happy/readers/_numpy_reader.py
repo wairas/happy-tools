@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import json
-from .spectra_reader import SpectraReader
+from ._spectra_reader import SpectraReader
 
 
 class NumpyReader(SpectraReader):

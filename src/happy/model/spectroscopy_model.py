@@ -1,7 +1,7 @@
 import abc
 import numpy as np
 from PIL import Image
-from happy.readers.happy_reader import HappyReader
+from happy.readers import HappyReader
 from happy.model.happy_model import HappyModel
 
 

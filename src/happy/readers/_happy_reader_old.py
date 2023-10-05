@@ -1,7 +1,6 @@
 import numpy as np
 import os
-from happy.readers.envi_reader import EnviReader
-from happy.readers.json_reader import JsonReader
+from happy.readers import EnviReader, JsonReader
 from happy.data import HappyData
 from PIL import Image
 
