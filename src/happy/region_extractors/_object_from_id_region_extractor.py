@@ -1,4 +1,4 @@
-from happy.region_extractors.object_region_extractor import ObjectRegionExtractor
+from ._object_region_extractor import ObjectRegionExtractor
 
 
 class ObjectFromIDRegionExtractor(ObjectRegionExtractor):

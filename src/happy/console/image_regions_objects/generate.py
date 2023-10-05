@@ -4,7 +4,7 @@ import traceback
 from happy.readers import HappyReader
 from happy.writers.happy_writer import HappyWriter
 from happy.criteria import Criteria
-from happy.region_extractors.object_region_extractor import ObjectRegionExtractor
+from happy.region_extractors import ObjectRegionExtractor
 
 
 def process_ids(ids, reader, region_extractor, output_dir):

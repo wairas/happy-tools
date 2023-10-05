@@ -1,4 +1,4 @@
-from happy.region_extractors.region_extractor import RegionExtractor
+from ._region_extractor import RegionExtractor
 from happy.criteria import Criteria, CriteriaGroup
 from happy.preprocessors import CropPreprocessor
 
