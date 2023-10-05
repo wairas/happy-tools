@@ -1,5 +1,5 @@
 from ._region_extractor import RegionExtractor
-from happy.criteria import Criteria, CriteriaGroup
+from happy.criteria import Criteria, CriteriaGroup, OP_NOT_MISSING, OP_IN
 from happy.preprocessors import CropPreprocessor
 
 
@@ -22,13 +22,13 @@ class ObjectRegionExtractor(RegionExtractor):
       
         criteria_list = self.base_criteria
         if self.target_name is not None:
-            criteria_list.extend([Criteria("not_missing", key=self.target_name)])
+            criteria_list.extend([Criteria(OP_NOT_MISSING, key=self.target_name)])
         
         regions = []
         for obj_value in object_values:
             # Skip 0 value, which represents background
             
-            object_criteria = criteria_list + [Criteria("in", key=self.object_key, value=[obj_value])]
+            object_criteria = criteria_list + [Criteria(OP_IN, key=self.object_key, value=[obj_value])]
             pixel_list, (centroid_x, centroid_y) = happy_data.find_pixels_with_criteria(CriteriaGroup(object_criteria))
 
             if len(pixel_list) == 0:

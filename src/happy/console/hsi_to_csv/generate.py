@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from happy.base.core import get_classname
-from happy.criteria import Criteria
+from happy.criteria import Criteria, OP_IN
 from happy.pixel_selectors import AveragedGridSelector, ColumnWisePixelSelector
 from happy.readers import MatReader
 
@@ -149,7 +149,7 @@ def generate(data_dir, metadata_dir, sample_ids, output_dir, metadata_values, ta
                            wavelengths_struct="lambda")
 
     # TODO turn into command-line options (json file? from_dict(...))
-    crit = Criteria("in", key="type", value=[2, 3], spectra_reader=mat_reader)
+    crit = Criteria(OP_IN, key="type", value=[2, 3])
 
     # TODO turn into command-line options (json file? from_dict(...))
     pixel_selectors = [AveragedGridSelector(mat_reader, 32, crit, 4), AveragedGridSelector(mat_reader, 4, crit, 4),

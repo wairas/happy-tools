@@ -3,7 +3,7 @@ import argparse
 import traceback
 from happy.readers import HappyReader
 from happy.writers import HappyWriter
-from happy.criteria import Criteria
+from happy.criteria import Criteria, OP_NOT_IN
 from happy.region_extractors import ObjectRegionExtractor
 
 
@@ -44,7 +44,7 @@ def main():
     happy_reader = HappyReader(args.source_folder)
 
     object_key = "object"
-    not_background_criteria = Criteria("not_in", key=object_key, value=[0,"0"])
+    not_background_criteria = Criteria(OP_NOT_IN, key=object_key, value=[0, "0"])
     # Initialize the region extractor object
     # Use SimpleRegionExtractor to get the whole image
     region_extractor = ObjectRegionExtractor(object_key, target_name=None, base_criteria=[not_background_criteria])

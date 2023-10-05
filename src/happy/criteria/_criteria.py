@@ -1,23 +1,23 @@
 import re
 import numpy as np
 
-OPERATION_NOT_MISSING = "not_missing"
-OPERATION_EQUALS = "equals"
-OPERATION_GREATER_THAN = "greater_than"
-OPERATION_NOT_IN = "not_in"
-OPERATION_IN = "in"
-OPERATION_MATCHES = "matches"
-OPERATION_SPECTRUM_NOT_ZERO = "spectrum_not_zero"
-OPERATION_NOT_OUTLIER = "not_outlier"
+OP_NOT_MISSING = "not_missing"
+OP_EQUALS = "equals"
+OP_GREATER_THAN = "greater_than"
+OP_NOT_IN = "not_in"
+OP_IN = "in"
+OP_MATCHES = "matches"
+OP_SPECTRUM_NOT_ZERO = "spectrum_not_zero"
+OP_NOT_OUTLIER = "not_outlier"
 OPERATIONS = [
-    OPERATION_NOT_MISSING,
-    OPERATION_EQUALS,
-    OPERATION_GREATER_THAN,
-    OPERATION_NOT_IN,
-    OPERATION_IN,
-    OPERATION_MATCHES,
-    OPERATION_SPECTRUM_NOT_ZERO,
-    OPERATION_NOT_OUTLIER,
+    OP_NOT_MISSING,
+    OP_EQUALS,
+    OP_GREATER_THAN,
+    OP_NOT_IN,
+    OP_IN,
+    OP_MATCHES,
+    OP_SPECTRUM_NOT_ZERO,
+    OP_NOT_OUTLIER,
 ]
 
 
@@ -48,21 +48,21 @@ class Criteria:
         if z_data is None:
             return False
         value = happy_data.get_meta_data(x=x, y=y, key=self.key)
-        if self.operation == OPERATION_NOT_MISSING:
+        if self.operation == OP_NOT_MISSING:
             return value is not None
-        if self.operation == OPERATION_EQUALS:
+        if self.operation == OP_EQUALS:
             return value == self.value
-        elif self.operation == OPERATION_GREATER_THAN:
+        elif self.operation == OP_GREATER_THAN:
             return value > self.value
-        elif self.operation == OPERATION_NOT_IN:
+        elif self.operation == OP_NOT_IN:
             return value not in self.value
-        elif self.operation == OPERATION_IN:
+        elif self.operation == OP_IN:
             return value in self.value
-        elif self.operation == OPERATION_MATCHES:
+        elif self.operation == OP_MATCHES:
             return bool(re.search(self.value, value))
-        elif self.operation == OPERATION_SPECTRUM_NOT_ZERO:
+        elif self.operation == OP_SPECTRUM_NOT_ZERO:
             return (z_data != 0).all()
-        elif self.operation == OPERATION_NOT_OUTLIER:
+        elif self.operation == OP_NOT_OUTLIER:
             z_data_mean = np.mean(z_data)
             z_data_std = np.std(z_data)
             return np.abs(z_data - z_data_mean) <= 2 * z_data_std
