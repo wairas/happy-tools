@@ -1,7 +1,7 @@
 import argparse
 import os
 import traceback
-from happy.splitter.happy_splitter import HappySplitter
+from happy.splitters import HappySplitter
 from happy.model.sklearn_models import create_model, CLUSTERING_MODEL_MAP
 from happy.model.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer, create_false_color_image, create_prediction_image
 from happy.pixel_selectors import SimpleSelector

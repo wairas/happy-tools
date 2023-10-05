@@ -1,6 +1,6 @@
 import argparse
 import traceback
-from happy.splitter.happy_splitter import HappySplitter
+from happy.splitters import HappySplitter
 
             
 def main():

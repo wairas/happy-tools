@@ -6,7 +6,7 @@ import traceback
 from happy.base.core import load_class
 from happy.model.generic import GenericUnsupervisedPixelClusterer
 from happy.model.unsupervised_pixel_clusterer import create_false_color_image, create_prediction_image, UnsupervisedPixelClusterer
-from happy.splitter.happy_splitter import HappySplitter
+from happy.splitters import HappySplitter
 
 
 def main():
