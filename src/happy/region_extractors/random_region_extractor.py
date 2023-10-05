@@ -1,5 +1,5 @@
 from happy.region_extractors.region_extractor import RegionExtractor
-from happy.preprocessors.preprocessors import CropPreprocessor
+from happy.preprocessors import CropPreprocessor
 
 
 class GridRegionExtractor(RegionExtractor):

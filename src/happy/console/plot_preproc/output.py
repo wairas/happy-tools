@@ -4,7 +4,7 @@ import os
 import traceback
 from happy.readers.happy_reader import HappyReader
 from happy.pixel_selectors.simple_selector import SimpleSelector
-from happy.preprocessors.preprocessors import SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, PassThrough, WavelengthSubsetPreprocessor, SpectralNoiseInterpolator
+from happy.preprocessors import SNVPreprocessor, MultiPreprocessor, DerivativePreprocessor, PassThrough, WavelengthSubsetPreprocessor, SpectralNoiseInterpolator
 
 """
    Use this script to display a set of pixels with various pre-processing

@@ -5,7 +5,7 @@ from seppl import Registry, Plugin
 # the default modules to look for plugins
 HAPPY_DEFAULT_MODULES = ",".join(
     [
-        "happy.preprocessors.preprocessors",
+        "happy.preprocessors",
     ])
 
 # the environment variable to use for overriding the default modules

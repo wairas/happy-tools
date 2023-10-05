@@ -11,8 +11,7 @@ from happy.model.sklearn_models import create_model, REGRESSION_MODEL_MAP
 from happy.model.spectroscopy_model import create_false_color_image
 from happy.pixel_selectors.multi_selector import MultiSelector
 from happy.pixel_selectors.simple_selector import SimpleSelector
-from happy.preprocessors.preprocessor import Preprocessor
-from happy.preprocessors.preprocessors import MultiPreprocessor
+from happy.preprocessors import Preprocessor, MultiPreprocessor
 from happy.splitter.happy_splitter import HappySplitter
 from happy.writers.csv_training_data_writer import CSVTrainingDataWriter
 
