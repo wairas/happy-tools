@@ -11,7 +11,7 @@ from happy.model.spectroscopy_model import create_false_color_image
 from happy.pixel_selectors import MultiSelector, SimpleSelector
 from happy.preprocessors import Preprocessor, MultiPreprocessor
 from happy.splitters import HappySplitter
-from happy.writers.csv_training_data_writer import CSVTrainingDataWriter
+from happy.writers import CSVTrainingDataWriter
 
 
 def default_preprocessors() -> str:

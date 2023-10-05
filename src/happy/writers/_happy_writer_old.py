@@ -1,5 +1,5 @@
 import os
-from happy.writers.envi_writer import EnviWriter
+from happy.writers import EnviWriter
 from happy.data import HappyData
 from PIL import Image
 import json

@@ -1,6 +1,6 @@
 import os
 import json
-from happy.writers.envi_writer import EnviWriter
+from happy.writers import EnviWriter
 from happy.data import HappyData
 
 

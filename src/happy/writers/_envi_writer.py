@@ -1,6 +1,6 @@
 import os
 import spectral.io.envi as envi
-from .base_writer import BaseWriter
+from ._base_writer import BaseWriter
 
 
 class EnviWriter(BaseWriter):

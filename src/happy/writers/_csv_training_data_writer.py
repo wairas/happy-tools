@@ -1,6 +1,6 @@
 import csv
 import numpy as np
-from happy.writers.base_writer import BaseWriter
+from happy.writers import BaseWriter
 
 
 class CSVTrainingDataWriter(BaseWriter):

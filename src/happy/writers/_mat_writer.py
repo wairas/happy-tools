@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import scipy.io as sio
-from happy.writers.base_writer import BaseWriter
+from happy.writers import BaseWriter
 
 
 class MatWriter(BaseWriter):

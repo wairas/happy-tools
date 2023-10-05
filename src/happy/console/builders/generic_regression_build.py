@@ -11,7 +11,7 @@ from happy.model.generic import GenericSpectroscopyModel, GenericScikitSpectrosc
 from happy.model.spectroscopy_model import create_false_color_image, SpectroscopyModel
 from happy.model.scikit_spectroscopy_model import ScikitSpectroscopyModel
 from happy.splitters import HappySplitter
-from happy.writers.csv_training_data_writer import CSVTrainingDataWriter
+from happy.writers import CSVTrainingDataWriter
 
 
 def main():

@@ -1,7 +1,7 @@
 import json
 import os
 import numpy as np
-from .base_writer import BaseWriter
+from ._base_writer import BaseWriter
 
 
 def check_ragged_data(data):
