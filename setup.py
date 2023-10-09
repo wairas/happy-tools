@@ -54,7 +54,6 @@ setup(
         "console_scripts": [
             "envi-viewer=happy.gui.envi_viewer.viewer:sys_main",  # deprecated
             "happy-envi-viewer=happy.gui.envi_viewer.viewer:sys_main",
-            "happy-entry-points=happy.console.entry_points.generate:sys_main",
             "happy-data-viewer=happy.gui.data_viewer.viewer:sys_main",
             "happy-generate-image-regions-objects=happy.console.image_regions_objects.generate:sys_main",
             "happy-generic-regression-build=happy.console.builders.generic_regression_build:sys_main",
