@@ -39,7 +39,7 @@ setup(
         "shapely",
         "scikit-learn",
         "matplotlib",
-        "seppl>=0.0.3",
+        "seppl>=0.0.4",
     ],
     package_dir={
         '': 'src'
@@ -71,19 +71,7 @@ setup(
             "happy-splitter=happy.console.happy_splitter.split:sys_main",
         ],
         "happy.preprocessors": [
-            "black-ref=happy.preprocessors:BlackReferencePreprocessor",
-            "crop=happy.preprocessors:CropPreprocessor",
-            "derivative=happy.preprocessors:DerivativePreprocessor",
-            "down-sample=happy.preprocessors:DownsamplePreprocessor",
-            "multi=happy.preprocessors:MultiPreprocessor",
-            "pca=happy.preprocessors:PCAPreprocessor",
-            "pad=happy.preprocessors:PadPreprocessor",
-            "pass-through=happy.preprocessors:PassThrough",
-            "snv=happy.preprocessors:SNVPreprocessor",
-            "sni=happy.preprocessors:SpectralNoiseInterpolator",
-            "std-scaler=happy.preprocessors:StandardScalerPreprocessor",
-            "wavelength-subset=happy.preprocessors:WavelengthSubsetPreprocessor",
-            "white-ref=happy.preprocessors:WhiteReferencePreprocessor"
+            "happy_preprocessors=happy.preprocessors:happy.preprocessors.Preprocessor",
         ]
     },
     version="0.0.1",

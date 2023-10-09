@@ -1,5 +1,5 @@
 from typing import Dict
-from seppl import Registry, Plugin
+from seppl import Registry, Plugin, MODE_DYNAMIC
 
 
 # the default modules to look for plugins
@@ -22,7 +22,8 @@ class HappyRegistry(Registry):
 
     def __init__(self, default_modules=HAPPY_DEFAULT_MODULES,
                  env_modules=HAPPY_ENV_MODULES):
-        super().__init__(default_modules=default_modules,
+        super().__init__(mode=MODE_DYNAMIC,
+                         default_modules=default_modules,
                          env_modules=env_modules,
                          enforce_uniqueness=True)
 
@@ -37,3 +38,4 @@ class HappyRegistry(Registry):
 
 # singleton of the Registry
 REGISTRY = HappyRegistry()
+
