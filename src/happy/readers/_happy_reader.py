@@ -5,6 +5,8 @@ from happy.readers import EnviReader
 from happy.data import HappyData
 import spectral.io.envi as envi
 
+from typing import List, Optional, Tuple, Dict
+
 ENVI_DTYPE_TO_NUMPY = {
     1: 'uint8',
     2: 'int16',
@@ -19,11 +21,11 @@ ENVI_DTYPE_TO_NUMPY = {
 
 
 class HappyReader:
-    def __init__(self, base_dir, restrict_metadata=None):
+    def __init__(self, base_dir: str, restrict_metadata: Optional[List] = None):
         self.base_dir = base_dir
         self.restrict_metadata = restrict_metadata
 
-    def get_sample_ids(self):
+    def get_sample_ids(self) -> List[str]:
         sample_ids = []
         for sample_id in os.listdir(self.base_dir):
             sample_path = os.path.join(self.base_dir, sample_id)
@@ -31,7 +33,7 @@ class HappyReader:
                 sample_ids.append(sample_id)
         return sample_ids
         
-    def split_sample_id(self, sample_id):
+    def split_sample_id(self, sample_id: str) -> Tuple[str, Optional[str]]:
         parts = sample_id.split(":")
         if len(parts) == 1:
             return parts[0], None
@@ -40,7 +42,7 @@ class HappyReader:
         else:
             raise ValueError(f"Invalid sample_id format: {sample_id}")
 
-    def load_data(self, sample_id):
+    def load_data(self, sample_id: str) -> List[HappyData]:
         sample_id, region_dir = self.split_sample_id(sample_id)
 
         if region_dir is not None:
@@ -53,7 +55,7 @@ class HappyReader:
 
         return happy_data_list
 
-    def load_region(self, sample_id, region_name):
+    def load_region(self, sample_id: str, region_name: str) -> HappyData:
         hyperspec_file_path = os.path.join(self.base_dir, sample_id, region_name, f'{sample_id}'+".hdr")
         print(f"{sample_id}:{region_name}")
         base_path = os.path.join(self.base_dir, sample_id, region_name)
@@ -82,22 +84,22 @@ class HappyReader:
         else:
             raise ValueError(f"Hyperspectral ENVI file not found for sample_id: {sample_id}")
 
-    def load_target_metadata(self, base_dir, target):
-        filename = os.path.join(base_dir,f'{target}'+".hdr")
+    def load_target_metadata(self, base_dir: str, target: str) -> np.ndarray:
+        filename = os.path.join(base_dir, f'{target}' + ".hdr")
         header = envi.read_envi_header(filename)
         data_type = header['data type']  
         open = envi.open(filename)
         data = open.load()
         return np.asarray(data, dtype=ENVI_DTYPE_TO_NUMPY[int(data_type)])
         
-    def load_json(self, json_mapping_path):
+    def load_json(self, json_mapping_path) -> Dict:
         if os.path.exists(json_mapping_path):
             with open(json_mapping_path, 'r') as f:
                 return json.load(f)
         else:
             return {}
 
-    def get_metadata_file_paths(self, base_path):
+    def get_metadata_file_paths(self, base_path: str) -> List[str]:
         metadata_file_paths = []
         
         for root, dirs, files in os.walk(base_path):
@@ -108,7 +110,7 @@ class HappyReader:
         
         return metadata_file_paths
 
-    def get_regions(self, sample_id):
+    def get_regions(self, sample_id: str) -> List[str]:
         sample_dir = os.path.join(self.base_dir, sample_id)
         if os.path.isdir(sample_dir):
             region_dirs = [name for name in os.listdir(sample_dir) if os.path.isdir(os.path.join(sample_dir, name))]
