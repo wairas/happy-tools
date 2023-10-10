@@ -9,10 +9,10 @@ def default_filename_func(base_dir, sample_id):
 
 
 class EnviReader(SpectraReader):
-    def __init__(self, base_dir, json_folder, filename_func=None):
+    def __init__(self, base_dir, filename_func=None):
         if filename_func is None:
             filename_func = default_filename_func
-        super().__init__(base_dir, json_folder, filename_func)
+        super().__init__(base_dir, filename_func)
         self.wavelengths = None
 
     def load_data(self, sample_id):

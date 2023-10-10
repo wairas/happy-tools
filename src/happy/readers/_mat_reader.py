@@ -9,10 +9,10 @@ def default_filename_func(base_dir, sample_id):
 
 
 class MatReader(SpectraReader):
-    def __init__(self, base_dir, json_dir, filename_func, struct_name, wavelengths_struct=None):
+    def __init__(self, base_dir, filename_func, struct_name, wavelengths_struct=None):
         if filename_func is None:
             filename_func = default_filename_func
-        super().__init__(base_dir, json_dir, filename_func)
+        super().__init__(base_dir, filename_func)
         self.struct_name = struct_name
         self.wavelengths_struct_name = wavelengths_struct
         self.wavelengths = None

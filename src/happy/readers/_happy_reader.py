@@ -63,7 +63,7 @@ class HappyReader:
         base_path = os.path.join(self.base_dir, sample_id, region_name)
 
         if os.path.exists(hyperspec_file_path):
-            envi_reader = EnviReader(base_path, None)
+            envi_reader = EnviReader(base_path)
             envi_reader.load_data(sample_id)
             hyperspec_data = envi_reader.get_numpy()
 
