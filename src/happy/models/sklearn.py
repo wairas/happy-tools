@@ -1,5 +1,5 @@
 import ast
-from happy.base.core import get_class
+from seppl import get_class
 from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 from sklearn.linear_model import Lasso
@@ -134,7 +134,7 @@ def create_model(model_name, model_params=None):
 
     # class name?
     try:
-        c = get_class(model_name)
+        c = get_class(full_class_name=model_name)
     except:
         # in model map?
         key = model_name.lower()

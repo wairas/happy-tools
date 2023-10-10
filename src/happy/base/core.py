@@ -1,40 +1,8 @@
 import importlib.util
-import inspect
 import json
 import sys
 
-
-def get_class(classname):
-    """
-    Returns the class object associated with the dot-notation classname.
-
-    Taken from here: http://stackoverflow.com/a/452981
-
-    :param classname: the classname
-    :type classname: str
-    :return: the class object
-    """
-    parts = classname.split('.')
-    module = ".".join(parts[:-1])
-    m = __import__(module)
-    for comp in parts[1:]:
-        m = getattr(m, comp)
-    return m
-
-
-def get_classname(obj):
-    """
-    Returns the classname of the JB_Object, Python class or object.
-
-    :param obj: the java object or Python class/object to get the classname for
-    :type obj: object
-    :return: the classname
-    :rtype: str
-    """
-    if inspect.isclass(obj):
-        return obj.__module__ + "." + obj.__name__
-    else:
-        return get_classname(obj.__class__)
+from seppl import get_class_name, get_class
 
 
 def get_func(funcname):
@@ -96,7 +64,7 @@ class ConfigurableObject:
         :return: the parameters
         :rtype: dict
         """
-        return {"class": get_classname(self)}
+        return {"class": get_class_name(self)}
 
     def from_dict(self, d):
         """
@@ -104,8 +72,10 @@ class ConfigurableObject:
 
         :param d: the parameters
         :type d: dict
+        :return: returns itself
+        :rtype: ConfigurableObject
         """
-        pass
+        return self
 
     @classmethod
     def create_from_dict(cls, d):
@@ -117,7 +87,7 @@ class ConfigurableObject:
         :return: the pixel selector
         :rtype: PixelSelector
         """
-        c = get_class(d["class"])
+        c = get_class(full_class_name=d["class"])
         obj = c()
         obj.from_dict(d)
         return obj
@@ -131,9 +101,9 @@ class ConfigurableObject:
         :return: the instantiated object
         """
         if isinstance(f, str):
+            d = json.loads(f)
+            return cls.create_from_dict(d)
+        else:
             with open(f, "r") as fp:
                 d = json.load(fp)
                 return cls.create_from_dict(d)
-        else:
-            d = json.load(f)
-            return cls.create_from_dict(d)

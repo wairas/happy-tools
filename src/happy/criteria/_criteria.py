@@ -1,6 +1,9 @@
 import re
 import numpy as np
 
+from happy.base.core import ConfigurableObject
+
+
 OP_NOT_MISSING = "not_missing"
 OP_EQUALS = "equals"
 OP_GREATER_THAN = "greater_than"
@@ -21,22 +24,29 @@ OPERATIONS = [
 ]
 
 
-class Criteria:
-    def __init__(self, operation, value=None, key=None):
-        if operation not in OPERATIONS:
+class Criteria(ConfigurableObject):
+    def __init__(self, operation=None, value=None, key=None):
+        if (operation is not None) and (operation not in OPERATIONS):
             raise Exception("Unknown operation: %s" % operation)
         self.operation = operation
         self.value = value
         self.key = key
 
     def to_dict(self):
-        return {
-            'class': self.__class__.__name__,
+        result = super().to_dict()
+        result.update({
             'operation': self.operation,
             'value': self.value,
             'key': self.key
-        }
-        
+        })
+        return result
+
+    def from_dict(self, d):
+        self.operation = d["operation"]
+        self.value = d["value"]
+        self.key = d["key"]
+        return self
+
     def __str__(self):
         return str(self.to_dict())
         
@@ -70,18 +80,24 @@ class Criteria:
             raise ValueError(f"Unsupported operation: {self.operation}")
 
 
-class CriteriaGroup:
+class CriteriaGroup(ConfigurableObject):
     def __init__(self, criteria_list=None):
         self.criteria_list = criteria_list or []
 
     def to_dict(self):
-        json_dict = {
-            'class': self.__class__.__name__,
-        }
+        result = super().to_dict()
         if self.criteria_list:
-            json_dict["criteria_list"] = [criteria.to_dict() for criteria in self.criteria_list]
-        return json_dict
-        
+            result["criteria_list"] = [criteria.to_dict() for criteria in self.criteria_list]
+        return result
+
+    def from_dict(self, d):
+        self.criteria_list = []
+        if "criteria_list" in d:
+            for dc in d["criteria_list"]:
+                c = Criteria.create_from_dict(dc)
+                self.criteria_list.append(c)
+        return self
+
     def __str__(self):
         return str(self.to_dict())
         
