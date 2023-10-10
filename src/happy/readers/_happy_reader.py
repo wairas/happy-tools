@@ -21,9 +21,11 @@ ENVI_DTYPE_TO_NUMPY = {
 
 
 class HappyReader:
-    def __init__(self, base_dir: str, restrict_metadata: Optional[List] = None):
+    def __init__(self, base_dir: str, restrict_metadata: Optional[List] = None,
+                 wavelength_override: Optional[List[float]] = None):
         self.base_dir = base_dir
         self.restrict_metadata = restrict_metadata
+        self.wavelength_override = wavelength_override
 
     def get_sample_ids(self) -> List[str]:
         sample_ids = []
@@ -78,7 +80,12 @@ class HappyReader:
                 metadata_dict[target_name] = {"data": metadata, "mapping": mapping}
 
             # Create HappyData object for this region
-            happy_data = HappyData(sample_id, region_name, hyperspec_data, hyperspec_metadata, metadata_dict, envi_reader.get_wavelengths())
+            # apply wavelength_override if present
+            if self.wavelength_override is not None:
+                wavelengths = self.wavelength_override
+            else:
+                wavelengths = envi_reader.get_wavelengths()
+            happy_data = HappyData(sample_id, region_name, hyperspec_data, hyperspec_metadata, metadata_dict, wavelengths)
 
             return happy_data
         else:
