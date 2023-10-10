@@ -29,6 +29,7 @@ class BlackReferencePreprocessor(Preprocessor):
         if black_reference_file is not None:
             ref = envi.open(black_reference_file)
             black_reference = ref.load()
+            self.params['black_reference'] = black_reference
         if black_reference is not None:
             # Apply black reference correction by subtracting the provided black reference from the data
             corrected_data = data - black_reference
