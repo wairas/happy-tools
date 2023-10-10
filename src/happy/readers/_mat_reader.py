@@ -4,8 +4,14 @@ import argparse
 import numpy as np
 
 
+def default_filename_func(base_dir, sample_id):
+    return base_dir + "/" + sample_id + '.mat'
+
+
 class MatReader(SpectraReader):
     def __init__(self, base_dir, json_dir, filename_func, struct_name, wavelengths_struct=None):
+        if filename_func is None:
+            filename_func = default_filename_func
         super().__init__(base_dir, json_dir, filename_func)
         self.struct_name = struct_name
         self.wavelengths_struct_name = wavelengths_struct
@@ -30,10 +36,7 @@ class MatReader(SpectraReader):
         #print(self.height)
         #print(self.width)
         super().load_data(sample_id)
-        
-    def default_filename_func(self, sample_id):
-        return sample_id + '.mat'
-        
+
     def set_base_dir(self, base_dir):
         self.base_dir = base_dir
         

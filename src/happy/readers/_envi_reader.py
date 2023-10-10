@@ -4,8 +4,14 @@ import os
 import numpy as np
 
 
+def default_filename_func(base_dir, sample_id):
+    return os.path.join(base_dir, sample_id + '.hdr')
+
+
 class EnviReader(SpectraReader):
     def __init__(self, base_dir, json_folder, filename_func=None):
+        if filename_func is None:
+            filename_func = default_filename_func
         super().__init__(base_dir, json_folder, filename_func)
         self.wavelengths = None
 
@@ -36,6 +42,3 @@ class EnviReader(SpectraReader):
         
     def get_numpy(self):
         return np.asarray(self.data)
-        
-    def default_filename_func(self, base_dir, sample_id):
-        return os.path.join(base_dir, sample_id + '.hdr')

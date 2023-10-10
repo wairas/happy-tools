@@ -4,7 +4,7 @@ from happy.readers import JsonReader
 class SpectraReader:
     def __init__(self, base_dir, json_dir, filename_func):
         self.base_dir = base_dir
-        self.filename_func = filename_func or self.default_filename_func
+        self.filename_func = filename_func
         self.data = None
         self.json_dir = json_dir
         self.json_reader = None
@@ -29,10 +29,7 @@ class SpectraReader:
         
     def get_numpy(self):
         raise NotImplementedError
-        
-    def default_filename_func(self, sample_id):
-        raise NotImplementedError
-    
+
     def get_wavelengths(self):
         raise NotImplementedError
         
