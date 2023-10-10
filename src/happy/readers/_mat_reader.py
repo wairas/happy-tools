@@ -1,4 +1,4 @@
-from happy.readers import SpectraReader
+from ._spectra_reader import SpectraReader
 import scipy.io as sio
 import argparse
 import numpy as np
