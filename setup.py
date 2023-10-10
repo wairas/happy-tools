@@ -60,7 +60,6 @@ setup(
             "happy-generic-unsupervised-build=happy.console.builders.generic_unsupervised_build:sys_main",
             "happy-hdr-info=happy.console.hdr_info.output:sys_main",
             "happy-help=happy.console.help.generate:sys_main",
-            "happy-hsi2csv=happy.console.hsi_to_csv.generate:sys_main",
             "happy-hsi2rgb=happy.console.hsi_to_rgb.generate:sys_main",
             "happy-mat-info=happy.console.mat_info.output:sys_main",
             "happy-opex2happy=happy.console.opex_to_happy.generate:sys_main",
