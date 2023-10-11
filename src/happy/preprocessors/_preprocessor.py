@@ -1,6 +1,7 @@
 import abc
 from seppl import Plugin, split_args, split_cmdline, args_to_objects
 from happy.base.registry import REGISTRY
+from typing import List
 
 
 class Preprocessor(Plugin, abc.ABC):
@@ -29,10 +30,10 @@ class Preprocessor(Plugin, abc.ABC):
         self._initialize()
         return self._do_apply(data, metadata=metadata)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self) -> str:
         # Get the class name
         class_name = self.__class__.__name__
 
@@ -42,7 +43,7 @@ class Preprocessor(Plugin, abc.ABC):
         return f"{class_name}({arguments})"
 
     @classmethod
-    def parse_preprocessors(cls, cmdline):
+    def parse_preprocessors(cls, cmdline: str) -> List:
         """
         Splits the command-line, parses the arguments, instantiates and returns the preprocessors.
 
