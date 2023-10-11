@@ -70,6 +70,9 @@ setup(
         ],
         "happy.preprocessors": [
             "happy_preprocessors=happy.preprocessors:happy.preprocessors.Preprocessor",
+        ],
+        "happy.readers": [
+            "happy_readers=happy.readers:happy.readers.BaseReader",
         ]
     },
     version="0.0.1",

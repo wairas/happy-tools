@@ -5,6 +5,7 @@ from seppl import Registry, Plugin, MODE_DYNAMIC
 # the default modules to look for plugins
 HAPPY_DEFAULT_MODULES = ",".join(
     [
+        "happy.readers",
         "happy.preprocessors",
     ])
 
@@ -12,6 +13,7 @@ HAPPY_DEFAULT_MODULES = ",".join(
 HAPPY_ENV_MODULES = "HAPPY_MODULES"
 
 # the known entrypoints in setup.py
+ENTRYPOINT_READERS = "happy.readers"
 ENTRYPOINT_PREPROCESSORS = "happy.preprocessors"
 
 
@@ -26,6 +28,14 @@ class HappyRegistry(Registry):
                          default_modules=default_modules,
                          env_modules=env_modules,
                          enforce_uniqueness=True)
+
+    def readers(self) -> Dict[str, Plugin]:
+        """
+        Returns all the readers.
+
+        :return: dict
+        """
+        return self.plugins(ENTRYPOINT_READERS, Plugin)
 
     def preprocessors(self) -> Dict[str, Plugin]:
         """
