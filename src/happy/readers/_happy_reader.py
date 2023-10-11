@@ -38,7 +38,7 @@ class HappyReader(HappyDataReader):
         return "happy-reader"
 
     def description(self) -> str:
-        return "Reads data in happy format."
+        return "Reads data in HAPPy format."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()

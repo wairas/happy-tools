@@ -1,11 +1,11 @@
 # happy-reader
 
-Reads data in happy format.
+Reads data in HAPPy format.
 
 ```
 usage: happy-reader [-h] -b BASE_DIR [-r [FILENAME [FILENAME ...]]] [-w FILE]
 
-Reads data in happy format.
+Reads data in HAPPy format.
 
 optional arguments:
   -h, --help            show this help message and exit

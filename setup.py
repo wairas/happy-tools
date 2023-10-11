@@ -73,7 +73,10 @@ setup(
         ],
         "happy.happydata_readers": [
             "happy_happydata_readers=happy.readers:happy.readers.HappyDataReader",
-        ]
+        ],
+        "happy.happydata_writers": [
+            "happy_happydata_writers=happy.writers:happy.writers.HappyDataWriter",
+        ],
     },
     version="0.0.1",
     author='Dale Fletcher',

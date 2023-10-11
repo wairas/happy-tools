@@ -7,6 +7,7 @@ HAPPY_DEFAULT_MODULES = ",".join(
     [
         "happy.readers",
         "happy.preprocessors",
+        "happy.writers",
     ])
 
 # the environment variable to use for overriding the default modules
@@ -15,6 +16,7 @@ HAPPY_ENV_MODULES = "HAPPY_MODULES"
 # the known entrypoints in setup.py
 ENTRYPOINT_HAPPYDATA_READERS = "happy.happydata_readers"
 ENTRYPOINT_PREPROCESSORS = "happy.preprocessors"
+ENTRYPOINT_HAPPYDATA_WRITERS = "happy.happydata_writers"
 
 
 class HappyRegistry(Registry):
@@ -44,6 +46,14 @@ class HappyRegistry(Registry):
         :return: dict
         """
         return self.plugins(ENTRYPOINT_PREPROCESSORS, Plugin)
+
+    def happydata_writers(self) -> Dict[str, Plugin]:
+        """
+        Returns all the writers for happydata data structure.
+
+        :return: dict
+        """
+        return self.plugins(ENTRYPOINT_HAPPYDATA_WRITERS, Plugin)
 
 
 # singleton of the Registry

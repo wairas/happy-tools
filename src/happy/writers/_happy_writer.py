@@ -1,14 +1,19 @@
 import os
 import json
-from happy.writers import EnviWriter
+from ._envi_writer import EnviWriter
+from ._happydata_writer import HappyDataWriter
 from happy.data import HappyData
 
 
-class HappyWriter:
-    def __init__(self, base_dir):
-        self.base_dir = base_dir
+class HappyWriter(HappyDataWriter):
 
-    def write_data(self, happy_data_or_list, datatype_mapping=None):
+    def name(self) -> str:
+        return "happy-writer"
+
+    def description(self) -> str:
+        return "Writes data in HAPPy format."
+
+    def _write_data(self, happy_data_or_list, datatype_mapping=None):
         print(f"write_data {datatype_mapping}")
         if isinstance(happy_data_or_list, list):
             for happy_data in happy_data_or_list:
