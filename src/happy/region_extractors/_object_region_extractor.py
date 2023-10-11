@@ -4,19 +4,20 @@ from happy.preprocessors import CropPreprocessor
 
 
 class ObjectRegionExtractor(RegionExtractor):
-    def __init__(self, object_key, region_size=(128,128), target_name=None, obj_values=None, base_criteria=[]):
+    def __init__(self, object_key, region_size=(128, 128), target_name=None, obj_values=None, base_criteria=[]):
         super().__init__(region_size, target_name)
         self.object_key = object_key
         self.obj_values = obj_values
         self.base_criteria = base_criteria
 
     def get_object_value(self, happy_data):
+        # TODO undefined member?
         return self.obj_name
         
-    def extract_regions_impl(self, happy_data):
-        
-        if self.obj_values is None:
-            object_values=happy_data.get_unique_values(self.object_key)
+    def _extract_regions(self, happy_data):
+        object_values = self.obj_values
+        if object_values is None:
+            object_values = happy_data.get_unique_values(self.object_key)
         
         print(object_values)
       

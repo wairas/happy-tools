@@ -8,7 +8,7 @@ class GridRegionExtractor(RegionExtractor):
         
         self.truncate_regions = truncate_regions
 
-    def extract_regions_impl(self, happy_data):
+    def _extract_regions(self, happy_data):
         regions = []
 
         width, height = happy_data.width, happy_data.height
