@@ -14,18 +14,18 @@ class MultiSelector(PixelSelector):
         return "multi-ps"
 
     def description(self) -> str:
-        return "TODO"
+        return "Combines multiple pixel-selectors."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-s", "--selectors", type=str, help="TODO", required=False, nargs="*")
+        parser.add_argument("-s", "--selectors", type=str, help="The command-lines of the base pixel-selectors to use.", required=False, nargs="*")
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
         super()._apply_args(ns)
         self.selectors = []
         if (ns.selectors is not None) and (len(ns.selectors) > 0):
-            self.selectors = [ConfigurableObject.from_json(selector) for selector in ns.selectors]
+            self.selectors = [PixelSelector.parse_pixel_selector(selector) for selector in ns.selectors]
         self._calc_n()
 
     def _calc_n(self):
