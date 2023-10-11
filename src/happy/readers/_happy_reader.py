@@ -2,7 +2,7 @@ import argparse
 import os
 import json
 import numpy as np
-from ._base_reader import BaseReader
+from ._happydata_reader import HappyDataReader
 from ._envi_reader import EnviReader
 from happy.data import HappyData
 import spectral.io.envi as envi
@@ -25,7 +25,7 @@ ENVI_DTYPE_TO_NUMPY = {
 }
 
 
-class HappyReader(BaseReader):
+class HappyReader(HappyDataReader):
 
     def __init__(self, base_dir: str = None, restrict_metadata: Optional[List] = None,
                  wavelength_override: Optional[List[float]] = None, wavelength_override_file: str = None):

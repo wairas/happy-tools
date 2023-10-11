@@ -39,7 +39,7 @@ setup(
         "shapely",
         "scikit-learn",
         "matplotlib",
-        "seppl>=0.0.5",
+        "seppl>=0.0.6",
     ],
     package_dir={
         '': 'src'
@@ -71,8 +71,8 @@ setup(
         "happy.preprocessors": [
             "happy_preprocessors=happy.preprocessors:happy.preprocessors.Preprocessor",
         ],
-        "happy.readers": [
-            "happy_readers=happy.readers:happy.readers.BaseReader",
+        "happy.happydata_readers": [
+            "happy_happydata_readers=happy.readers:happy.readers.HappyDataReader",
         ]
     },
     version="0.0.1",

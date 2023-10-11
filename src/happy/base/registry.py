@@ -13,7 +13,7 @@ HAPPY_DEFAULT_MODULES = ",".join(
 HAPPY_ENV_MODULES = "HAPPY_MODULES"
 
 # the known entrypoints in setup.py
-ENTRYPOINT_READERS = "happy.readers"
+ENTRYPOINT_HAPPYDATA_READERS = "happy.happydata_readers"
 ENTRYPOINT_PREPROCESSORS = "happy.preprocessors"
 
 
@@ -29,13 +29,13 @@ class HappyRegistry(Registry):
                          env_modules=env_modules,
                          enforce_uniqueness=True)
 
-    def readers(self) -> Dict[str, Plugin]:
+    def happydata_readers(self) -> Dict[str, Plugin]:
         """
-        Returns all the readers.
+        Returns all the readers for happydata data structure.
 
         :return: dict
         """
-        return self.plugins(ENTRYPOINT_READERS, Plugin)
+        return self.plugins(ENTRYPOINT_HAPPYDATA_READERS, Plugin)
 
     def preprocessors(self) -> Dict[str, Plugin]:
         """

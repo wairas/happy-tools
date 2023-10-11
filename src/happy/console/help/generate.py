@@ -2,7 +2,7 @@ import argparse
 import traceback
 
 from seppl import generate_help, HELP_FORMATS, HELP_FORMAT_TEXT
-from happy.base.registry import HappyRegistry, ENTRYPOINT_PREPROCESSORS, HAPPY_DEFAULT_MODULES
+from happy.base.registry import HappyRegistry, ENTRYPOINT_PREPROCESSORS, ENTRYPOINT_HAPPYDATA_READERS, HAPPY_DEFAULT_MODULES
 from typing import List
 
 
@@ -27,6 +27,7 @@ def output_help(modules: List[str] = None, help_format: str = HELP_FORMAT_TEXT, 
     # generate entry points
     entry_points = dict()
     entry_points[ENTRYPOINT_PREPROCESSORS] = list(registry.preprocessors().values())
+    entry_points[ENTRYPOINT_HAPPYDATA_READERS] = list(registry.happydata_readers().values())
     generate_help(list(registry.preprocessors().values()), help_format=help_format, heading_level=heading_level,
                   output_path=output_path)
 
