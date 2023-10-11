@@ -1,4 +1,3 @@
-import argparse
 from ._base_pixel_selector import BasePixelSelector
 
 
