@@ -1,14 +1,32 @@
+import abc
+import argparse
 import random
 from happy.base.core import ConfigurableObject
+from happy.criteria import Criteria
 from ._pixel_selector import PixelSelector
 
 
-class BasePixelSelector(PixelSelector):
+class BasePixelSelector(PixelSelector, abc.ABC):
 
     def __init__(self, n=0, criteria=None, include_background=False):
         self.n = n
         self.criteria = criteria
         self.include_background = include_background
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-n", type=int, help="The number of pixels", required=True)
+        parser.add_argument("-c", "--criteria", type=str, help="The JSON string defining the criteria to apply", required=False, default=None)
+        parser.add_argument("-b", "--include_background", action="store_true", help="Whether to include the background", required=False)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.n = ns.n
+        self.criteria = None
+        if ns.criteria is not None:
+            self.criteria = Criteria.from_json(ns.criteria)
+        self.include_background = ns.include_background
 
     def get_n(self):
         return self.n

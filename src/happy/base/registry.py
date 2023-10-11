@@ -8,6 +8,7 @@ HAPPY_DEFAULT_MODULES = ",".join(
         "happy.readers",
         "happy.preprocessors",
         "happy.writers",
+        "happy.pixel_selectors",
     ])
 
 # the environment variable to use for overriding the default modules
@@ -17,6 +18,7 @@ HAPPY_ENV_MODULES = "HAPPY_MODULES"
 ENTRYPOINT_HAPPYDATA_READERS = "happy.happydata_readers"
 ENTRYPOINT_PREPROCESSORS = "happy.preprocessors"
 ENTRYPOINT_HAPPYDATA_WRITERS = "happy.happydata_writers"
+ENTRYPOINT_PIXEL_SELECTORS = "happy.pixel_selectors"
 
 
 class HappyRegistry(Registry):
@@ -54,6 +56,14 @@ class HappyRegistry(Registry):
         :return: dict
         """
         return self.plugins(ENTRYPOINT_HAPPYDATA_WRITERS, Plugin)
+
+    def pixel_selectors(self) -> Dict[str, Plugin]:
+        """
+        Returns all the pixel selectors.
+
+        :return: dict
+        """
+        return self.plugins(ENTRYPOINT_PIXEL_SELECTORS, Plugin)
 
 
 # singleton of the Registry

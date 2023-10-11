@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 from ._base_pixel_selector import BasePixelSelector
 
@@ -7,6 +8,21 @@ class AveragedGridSelector(BasePixelSelector):
     def __init__(self, n=0, grid_size=0, criteria=None, include_background=False):
         super().__init__(n, criteria=criteria,include_background=include_background)
         self.grid_size = grid_size
+
+    def name(self) -> str:
+        return "grid-wise-ps"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-g", "--grid_size", type=int, help="TODO", required=False, default=0)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.grid_size = ns.grid_size
 
     def to_dict(self):
         data = super().to_dict()

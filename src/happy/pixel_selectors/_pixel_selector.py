@@ -1,7 +1,10 @@
+import abc
+
 from happy.base.core import ConfigurableObject
+from seppl import Plugin
 
 
-class PixelSelector(ConfigurableObject):
+class PixelSelector(ConfigurableObject, Plugin, abc.ABC):
 
     def get_n(self):
         raise NotImplementedError()

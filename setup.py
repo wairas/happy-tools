@@ -77,6 +77,9 @@ setup(
         "happy.happydata_writers": [
             "happy_happydata_writers=happy.writers:happy.writers.HappyDataWriter",
         ],
+        "happy.pixel_selectors": [
+            "happy_pixel_selectors=happy.pixel_selectors:happy.pixel_selectors.PixelSelector",
+        ],
     },
     version="0.0.1",
     author='Dale Fletcher',
