@@ -1,10 +1,11 @@
-from ._pixel_selector import PixelSelector
+from ._base_pixel_selector import BasePixelSelector
 import random
 import numpy as np
 
 
-class ColumnWisePixelSelector(PixelSelector):
-    def __init__(self, n, c, criteria=None):
+class ColumnWisePixelSelector(BasePixelSelector):
+
+    def __init__(self, n=0, c=0, criteria=None):
         super().__init__(n, criteria)
         self.c = c
 

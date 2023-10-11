@@ -1,9 +1,10 @@
 import numpy as np
-from ._pixel_selector import PixelSelector
+from ._base_pixel_selector import BasePixelSelector
 
 
-class AveragedGridSelector(PixelSelector):
-    def __init__(self, n, grid_size, criteria=None, include_background=False):
+class AveragedGridSelector(BasePixelSelector):
+
+    def __init__(self, n=0, grid_size=0, criteria=None, include_background=False):
         super().__init__(n, criteria=criteria,include_background=include_background)
         self.grid_size = grid_size
 
