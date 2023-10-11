@@ -13,7 +13,12 @@ class ColumnWisePixelSelector(BasePixelSelector):
         data = super().to_dict()
         data['c'] = self.c
         return data
-        
+
+    def from_dict(self, d):
+        super().from_dict(d)
+        self.c = d["c"]
+        return self
+
     def get_at(self, happy_data, x, y):
         # Get the pixel data at the specified location (x, y) from the happy_data
         # Find some random pixels in the column and average them
