@@ -2,10 +2,11 @@ import importlib.util
 import json
 import sys
 
+from typing import Dict
 from seppl import get_class_name, get_class
 
 
-def get_func(funcname):
+def get_func(funcname: str):
     """
     Turns the function name into a function and returns it.
 
@@ -21,7 +22,7 @@ def get_func(funcname):
     return m
 
 
-def get_funcname(func):
+def get_funcname(func: str):
     """
     Returns a string representation of a function name.
 
@@ -31,7 +32,7 @@ def get_funcname(func):
     return func.__module__ + "." + func.__name__
 
 
-def load_class(path, module_name, class_name):
+def load_class(path: str, module_name: str, class_name: str) -> type:
     """
     Loads the specified class from the Python file.
     Based on: https://stackoverflow.com/a/67692/4698227
@@ -57,7 +58,7 @@ class ConfigurableObject:
     from a dictionary as well.
     """
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         """
         Returns a dictionary with its parameters.
 
@@ -66,7 +67,16 @@ class ConfigurableObject:
         """
         return {"class": get_class_name(self)}
 
-    def from_dict(self, d):
+    def to_json(self) -> str:
+        """
+        Returns the its representation as json string.
+
+        :return: the generated json
+        :rtype: str
+        """
+        return json.dumps(self.to_dict())
+
+    def from_dict(self, d: Dict) -> 'ConfigurableObject':
         """
         Initializes its parameters from the provided dictionary.
 
@@ -78,7 +88,7 @@ class ConfigurableObject:
         return self
 
     @classmethod
-    def create_from_dict(cls, d):
+    def create_from_dict(cls, d: Dict) -> 'ConfigurableObject':
         """
         Instantiates the pixel selector from the dictionary and returns it.
 
@@ -93,7 +103,7 @@ class ConfigurableObject:
         return obj
 
     @classmethod
-    def from_json(cls, f):
+    def from_json(cls, f) -> 'ConfigurableObject':
         """
         Instantiates and returns an object from the json data.
 
