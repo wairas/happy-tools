@@ -245,16 +245,29 @@ optional arguments:
 ### Plot pre-processors
 
 ```
-usage: happy-plot-preproc [-h] -i INPUT_DIR [-p PIXELS]
+usage: happy-plot-preproc [-h] -i INPUT_DIR [-f FROM_INDEX] [-t TO_INDEX]
+                          [-P PREPROCESSORS] [-S PIXEL_SELECTORS]
 
-Plot set of pixels with various pre-processing.
+Plot set of pixels with various pre-processing setups.
 
 optional arguments:
   -h, --help            show this help message and exit
   -i INPUT_DIR, --input_dir INPUT_DIR
                         Folder containing HAPPy data files (default: None)
-  -p PIXELS, --pixels PIXELS
-                        Number of random pixels to select (default: 100)
+  -f FROM_INDEX, --from_index FROM_INDEX
+                        The first wavelength index to include (0-based)
+                        (default: 60)
+  -t TO_INDEX, --to_index TO_INDEX
+                        The last wavelength index to include (0-based)
+                        (default: 189)
+  -P PREPROCESSORS, --preprocessors PREPROCESSORS
+                        The preprocessors to apply to the data separately; use
+                        "multi-pp" if you need to combine multiple steps
+                        (default: pass-through multi-pp -p 'derivative -w 15
+                        -d 0 snv' derivative -w 15 -d 0 sni)
+  -S PIXEL_SELECTORS, --pixel_selectors PIXEL_SELECTORS
+                        The pixel selectors to use. (default: simple-ps -n 100
+                        -b)
 ```
 
 
@@ -262,7 +275,8 @@ optional arguments:
 
 ```
 usage: happy-scikit-regression-build [-h] -d HAPPY_DATA_BASE_DIR
-                                     [-P PREPROCESSORS] [-m REGRESSION_METHOD]
+                                     [-P PREPROCESSORS] [-S PIXEL_SELECTORS]
+                                     [-m REGRESSION_METHOD]
                                      [-p REGRESSION_PARAMS] -t TARGET_VALUE -s
                                      HAPPY_SPLITTER_FILE -o OUTPUT_FOLDER
                                      [-r REPEAT_NUM]
@@ -279,6 +293,8 @@ optional arguments:
                         The preprocessors to apply to the data (default:
                         wavelength-subset -f 60 -t 189 sni snv derivative -w
                         15 pad -W 128 -H 128 -v 0)
+  -S PIXEL_SELECTORS, --pixel_selectors PIXEL_SELECTORS
+                        The pixel selectors to use. (default: simple-ps -n 64)
   -m REGRESSION_METHOD, --regression_method REGRESSION_METHOD
                         Regression method name (e.g., linearregression,ridge,l
                         ars,plsregression,plsneighbourregression,lasso,elastic
@@ -302,6 +318,7 @@ optional arguments:
 
 ```
 usage: happy-scikit-unsupervised-build [-h] -d DATA_FOLDER [-P PREPROCESSORS]
+                                       [-S PIXEL_SELECTORS]
                                        [-m CLUSTERER_METHOD]
                                        [-p CLUSTERER_PARAMS] -s
                                        HAPPY_SPLITTER_FILE -o OUTPUT_FOLDER
@@ -319,6 +336,9 @@ optional arguments:
                         The preprocessors to apply to the data (default:
                         wavelength-subset -f 60 -t 189 snv derivative pca -n 5
                         -p 20)
+  -S PIXEL_SELECTORS, --pixel_selectors PIXEL_SELECTORS
+                        The pixel selectors to use. (default: simple-ps -n 32
+                        -b)
   -m CLUSTERER_METHOD, --clusterer_method CLUSTERER_METHOD
                         Clusterer name (e.g.,
                         kmeans,agglomerative,spectral,dbscan,meanshift) or

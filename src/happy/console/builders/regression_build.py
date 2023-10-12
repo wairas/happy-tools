@@ -8,7 +8,7 @@ from happy.evaluators import PredictionActualHandler, RegressionEvaluator
 from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
 from happy.models.sklearn import create_model, REGRESSION_MODEL_MAP
 from happy.models.spectroscopy import create_false_color_image
-from happy.pixel_selectors import MultiSelector, SimpleSelector
+from happy.pixel_selectors import MultiSelector, PixelSelector
 from happy.preprocessors import Preprocessor, MultiPreprocessor
 from happy.splitters import HappySplitter
 from happy.writers import CSVTrainingDataWriter
@@ -25,6 +25,13 @@ def default_preprocessors() -> str:
     return " ".join(args)
 
 
+def default_pixel_selectors() -> str:
+    args = [
+        "simple-ps -n 64",
+    ]
+    return " ".join(args)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Evaluate regression model on Happy Data using specified splits and pixel selector.',
@@ -32,6 +39,7 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--happy_data_base_dir', type=str, help='Directory containing the Happy Data files', required=True)
     parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data', required=False, default=default_preprocessors())
+    parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use.', required=False, default=default_pixel_selectors())
     parser.add_argument('-m', '--regression_method', type=str, default="linearregression", help='Regression method name (e.g., ' + ",".join(REGRESSION_MODEL_MAP.keys()) + ' or full class name)')
     parser.add_argument('-p', '--regression_params', type=str, default="{}", help='JSON string containing regression parameters')
     parser.add_argument('-t', '--target_value', type=str, help='Target value column name', required=True)
@@ -48,8 +56,7 @@ def main():
     happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
     
-    pixel_selector0 = SimpleSelector(64, criteria=None)
-    train_pixel_selectors = MultiSelector([pixel_selector0])
+    train_pixel_selectors = MultiSelector(PixelSelector.parse_pixel_selectors(args.pixel_selectors))
 
     # preprocessing
     preproc = MultiPreprocessor(preprocessor_list=Preprocessor.parse_preprocessors(args.preprocessors))
