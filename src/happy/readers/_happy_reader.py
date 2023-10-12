@@ -127,7 +127,10 @@ class HappyReader(HappyDataReader):
         if len(parts) == 1:
             return parts[0], None
         elif len(parts) == 2:
-            return parts[0], parts[1]
+            if len(parts[1]) == 0:
+                return parts[0], None
+            else:
+                return parts[0], parts[1]
         else:
             raise ValueError(f"Invalid sample_id format: {sample_id}")
 
