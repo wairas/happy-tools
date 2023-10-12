@@ -80,6 +80,9 @@ setup(
         "happy.pixel_selectors": [
             "happy_pixel_selectors=happy.pixel_selectors:happy.pixel_selectors.PixelSelector",
         ],
+        "happy.region_extractors": [
+            "happy_region_extractors=happy.region_extractors:happy.region_extractors.RegionExtractor",
+        ],
     },
     version="0.0.1",
     author='Dale Fletcher',

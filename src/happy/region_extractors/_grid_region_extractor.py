@@ -1,12 +1,29 @@
+import argparse
 from ._region_extractor import RegionExtractor
 from happy.preprocessors import CropPreprocessor
 
 
 class GridRegionExtractor(RegionExtractor):
-    def __init__(self, region_size, truncate_regions=False, target_name="THCA"):
-        super().__init__(target_name, region_size)
-        
+
+    def __init__(self, region_size=None, truncate_regions=False, target_name="THCA"):
+        super().__init__(target_name=target_name, region_size=region_size)
         self.truncate_regions = truncate_regions
+
+    def name(self) -> str:
+        return "grid-re"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        self._add_argparse_region_size(parser=parser, t=int, h="The width and height of the region", d=None)
+        parser.add_argument("-T", "--truncate_regions", action="store_true", help="Whether to truncate the regions", required=False)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.truncate_regions = ns.truncate_regions
 
     def _extract_regions(self, happy_data):
         regions = []

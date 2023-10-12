@@ -1,14 +1,39 @@
+import argparse
 from ._region_extractor import RegionExtractor
 from happy.criteria import Criteria, CriteriaGroup, OP_NOT_MISSING, OP_IN
 from happy.preprocessors import CropPreprocessor
 
 
 class ObjectRegionExtractor(RegionExtractor):
-    def __init__(self, object_key, region_size=(128, 128), target_name=None, obj_values=None, base_criteria=[]):
+
+    def __init__(self, object_key=None, region_size=(128, 128), target_name=None, obj_values=None, base_criteria=[]):
         super().__init__(region_size, target_name)
         self.object_key = object_key
         self.obj_values = obj_values
         self.base_criteria = base_criteria
+
+    def name(self) -> str:
+        return "object-re"
+
+    def description(self) -> str:
+        return "TODO"
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        self._add_argparse_region_size(parser=parser, t=int, h="The width and height of the region", d=[128, 128])
+        parser.add_argument("-k", "--object_key", type=str, help="The object key in the meta-data", required=False, default=None)
+        # TODO type for obj_values other than str? extra option with choices?
+        parser.add_argument("-o", "--obj_values", type=str, help="The object values to look for", required=False, nargs="*", default=[])
+        parser.add_argument("-c", "--base_criteria", type=str, help="The criteria (in JSON notation) to apply", required=False, nargs="*", default=[])
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self.truncate_regions = ns.truncate_regions
+        self.object_key = ns.object_key
+        # TODO convert strings to actual types?
+        self.obj_values = ns.obj_values
+        self.base_criteria = [Criteria.from_json(c) for c in ns.base_criteria]
 
     def get_object_value(self, happy_data):
         # TODO undefined member?

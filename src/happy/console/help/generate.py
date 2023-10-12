@@ -4,7 +4,7 @@ import traceback
 from seppl import generate_help, HELP_FORMATS, HELP_FORMAT_TEXT
 from happy.base.registry import HappyRegistry, HAPPY_DEFAULT_MODULES
 from happy.base.registry import ENTRYPOINT_PREPROCESSORS, ENTRYPOINT_HAPPYDATA_READERS, ENTRYPOINT_HAPPYDATA_WRITERS, \
-    ENTRYPOINT_PIXEL_SELECTORS
+    ENTRYPOINT_PIXEL_SELECTORS, ENTRYPOINT_REGION_EXTRACTORS
 from typing import List
 
 
@@ -32,6 +32,7 @@ def output_help(modules: List[str] = None, help_format: str = HELP_FORMAT_TEXT, 
     entry_points[ENTRYPOINT_HAPPYDATA_READERS] = list(registry.happydata_readers().values())
     entry_points[ENTRYPOINT_HAPPYDATA_WRITERS] = list(registry.happydata_writers().values())
     entry_points[ENTRYPOINT_PIXEL_SELECTORS] = list(registry.pixel_selectors().values())
+    entry_points[ENTRYPOINT_REGION_EXTRACTORS] = list(registry.region_extractors().values())
     generate_help(list(registry.preprocessors().values()), help_format=help_format, heading_level=heading_level,
                   output_path=output_path)
 
