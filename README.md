@@ -271,6 +271,24 @@ optional arguments:
 ```
 
 
+### Preprocess data
+
+```
+usage: happy-preprocess [-h] -p PIPELINE
+
+Preprocesses data using the specified pipeline ('reader [preprocessor(s)]
+writer').
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PIPELINE, --pipeline PIPELINE
+                        The processing pipeline: reader [preprocessor(s)]
+                        writer, e.g.: happy-reader -b input_dir wavelength-
+                        subset -f 60 -t 189 sni happy-writer -b output_dir
+                        (default: None)
+```
+
+
 ### Scikit Regression Build 
 
 ```
