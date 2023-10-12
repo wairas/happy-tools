@@ -49,9 +49,6 @@ def main():
     # Use SimpleRegionExtractor to get the whole image
     region_extractor = ObjectRegionExtractor(object_key, target_name=None, base_criteria=[not_background_criteria])
 
-    # Or use JsonRegionExtractor to get regions based on a JSON file
-    #region_extractor = JsonRegionExtractor(mat_reader, 'regions.json')
-
     # Process the IDs and save the regions
 
     if not os.path.exists(args.output_folder):
