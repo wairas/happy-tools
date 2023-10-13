@@ -88,32 +88,37 @@ class ConfigurableObject:
         return self
 
     @classmethod
-    def create_from_dict(cls, d: Dict) -> 'ConfigurableObject':
+    def create_from_dict(cls, d: Dict, c: type = None) -> 'ConfigurableObject':
         """
-        Instantiates the pixel selector from the dictionary and returns it.
+        Instantiates the ConfigurableObject from the dictionary and returns it.
 
         :param d: the dictionary with the parameters
         :type d: dict
-        :return: the pixel selector
-        :rtype: PixelSelector
+        :param c: the class to use instead of any stored in the dictionary
+        :type c: type
+        :return: the ConfigurableObject instance
+        :rtype: ConfigurableObject
         """
-        c = get_class(full_class_name=d["class"])
+        if c is None:
+            c = get_class(full_class_name=d["class"])
         obj = c()
         obj.from_dict(d)
         return obj
 
     @classmethod
-    def from_json(cls, f) -> 'ConfigurableObject':
+    def from_json(cls, f, c: type = None) -> 'ConfigurableObject':
         """
-        Instantiates and returns an object from the json data.
+        Instantiates and returns a ConfigurableObject from the json data.
 
         :param f: the filename (str) or file-like object
+        :param c: the class to use instead of any stored in the json
+        :type c: type
         :return: the instantiated object
         """
         if isinstance(f, str):
             d = json.loads(f)
-            return cls.create_from_dict(d)
+            return cls.create_from_dict(d, c=c)
         else:
             with open(f, "r") as fp:
                 d = json.load(fp)
-                return cls.create_from_dict(d)
+                return cls.create_from_dict(d, c=c)
