@@ -10,18 +10,18 @@ from happy.writers import HappyDataWriter
 
 def default_pipeline() -> str:
     args = [
-        "happy-reader -b input_dir",
+        "happy-reader -b INPUT_DIR",
         "wavelength-subset -f 60 -t 189",
         "sni",
-        "happy-writer -b output_dir",
+        "happy-writer -b OUTPUT_DIR",
     ]
     return " ".join(args)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Preprocesses data using the specified pipeline ('reader [preprocessor(s)] writer').",
-        prog="happy-preprocess",
+        description="Processes data using the specified pipeline ('reader [preprocessor(s)] writer').",
+        prog="happy-process-data",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-p', "--pipeline", type=str, help="The processing pipeline: reader [preprocessor(s)] writer, e.g.: " + default_pipeline(), required=True, default=None)
     args = parser.parse_args()
@@ -59,10 +59,11 @@ def main():
 
     # execute pipeline
     for sample_id in reader.get_sample_ids():
-        print(sample_id)
-        data = reader.load_data(sample_id)
-        preprocessed = preprocessors.apply(data)
-        writer.write_data(preprocessed)
+        print("\n--> Processing:", sample_id)
+        data_list = reader.load_data(sample_id)
+        for data in data_list:
+            processed = data.apply_preprocess(preprocessors)
+            writer.write_data(processed)
 
 
 def sys_main() -> int:
