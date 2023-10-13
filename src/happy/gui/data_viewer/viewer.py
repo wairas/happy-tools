@@ -235,9 +235,7 @@ class ViewerApp:
             full = os.path.join(path, f)
             if os.path.isdir(full):
                 repeats.append(f)
-                try:
-                    int(f)
-                except:
+                if not f.isnumeric():
                     all_numeric = False
         # all numeric?
         if all_numeric:
