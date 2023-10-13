@@ -1,4 +1,5 @@
 import argparse
+import json
 from ._region_extractor import RegionExtractor
 from happy.criteria import Criteria, CriteriaGroup, OP_NOT_MISSING, OP_IN
 from happy.preprocessors import CropPreprocessor
@@ -22,8 +23,7 @@ class ObjectRegionExtractor(RegionExtractor):
         parser = super()._create_argparser()
         self._add_argparse_region_size(parser=parser, t=int, h="The width and height of the region", d=[128, 128])
         parser.add_argument("-k", "--object_key", type=str, help="The object key in the meta-data", required=False, default=None)
-        # TODO type for obj_values other than str? extra option with choices?
-        parser.add_argument("-o", "--obj_values", type=str, help="The object values to look for", required=False, nargs="*", default=[])
+        parser.add_argument("-o", "--obj_values", type=str, help="The object values to look for (supplied as JSON array string)", required=False, default="[]")
         parser.add_argument("-c", "--base_criteria", type=str, help="The criteria (in JSON notation) to apply", required=False, nargs="*", default=[])
         return parser
 
@@ -31,8 +31,10 @@ class ObjectRegionExtractor(RegionExtractor):
         super()._apply_args(ns)
         self.truncate_regions = ns.truncate_regions
         self.object_key = ns.object_key
-        # TODO convert strings to actual types?
-        self.obj_values = ns.obj_values
+        obj_values = json.loads(ns.obj_values)
+        if not isinstance(obj_values, list):
+            raise Exception("Expected list for the object values, but got instead: %s" % type(ns.obj_values))
+        self.obj_values = obj_values
         self.base_criteria = [Criteria.from_json(c) for c in ns.base_criteria]
 
     def get_object_value(self, happy_data):
@@ -53,7 +55,6 @@ class ObjectRegionExtractor(RegionExtractor):
         regions = []
         for obj_value in object_values:
             # Skip 0 value, which represents background
-            
             object_criteria = criteria_list + [Criteria(OP_IN, key=self.object_key, value=[obj_value])]
             pixel_list, (centroid_x, centroid_y) = happy_data.find_pixels_with_criteria(CriteriaGroup(object_criteria))
 
@@ -64,9 +65,6 @@ class ObjectRegionExtractor(RegionExtractor):
             region_center_x = int(centroid_x)
             region_center_y = int(centroid_y)
 
-            # Determine the size of the output region
-            #region_size = 64  # example size, adjust as needed
-            print(self.region_size)
             # Calculate the coordinates of the output region
             x_min = max(0, region_center_x - self.region_size[0] // 2)
             x_max = min(happy_data.width, region_center_x + self.region_size[0] // 2)
@@ -77,7 +75,6 @@ class ObjectRegionExtractor(RegionExtractor):
             
             new_happy_data.append_region_name(str(obj_value))
             regions.append(new_happy_data)
-            #exit(0)
         return regions
     
     def add_target_data(self, regions):

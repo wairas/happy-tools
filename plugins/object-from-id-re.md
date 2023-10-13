@@ -4,7 +4,7 @@ TODO
 
 ```
 usage: object-from-id-re [-h] [-t TARGET_NAME] [-r REGION_SIZE]
-                         [-k OBJECT_KEY] [-o [OBJ_VALUES [OBJ_VALUES ...]]]
+                         [-k OBJECT_KEY] [-o OBJ_VALUES]
                          [-c [BASE_CRITERIA [BASE_CRITERIA ...]]]
 
 TODO
@@ -18,8 +18,9 @@ optional arguments:
                         128])
   -k OBJECT_KEY, --object_key OBJECT_KEY
                         The object key in the meta-data (default: None)
-  -o [OBJ_VALUES [OBJ_VALUES ...]], --obj_values [OBJ_VALUES [OBJ_VALUES ...]]
-                        The object values to look for (default: [])
+  -o OBJ_VALUES, --obj_values OBJ_VALUES
+                        The object values to look for (supplied as JSON array
+                        string) (default: [])
   -c [BASE_CRITERIA [BASE_CRITERIA ...]], --base_criteria [BASE_CRITERIA [BASE_CRITERIA ...]]
                         The criteria (in JSON notation) to apply (default: [])
 ```
