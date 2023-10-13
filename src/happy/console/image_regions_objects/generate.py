@@ -33,15 +33,15 @@ def main():
         description='Generate datasets as numpy cubes, to be loaded into deep learning datasets.',
         prog="happy-generate-image-regions-objects",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--input_folder', type=str, help='Path to source folder containing HDR files', required=True)
-    parser.add_argument('-o', '--output_folder', type=str, help='Path to output folder', required=True)
+    parser.add_argument('-i', '--input_dir', type=str, help='Path to source folder containing HDR files', required=True)
+    parser.add_argument('-o', '--output_dir', type=str, help='Path to output folder', required=True)
     args = parser.parse_args()
 
     # Load sample IDs using the get_sample_ids method
-    ids = get_sample_ids(args.source_folder)
+    ids = get_sample_ids(args.input_dir)
 
     # Initialize the spectra reader object for reading .mat files
-    happy_reader = HappyReader(args.source_folder)
+    happy_reader = HappyReader(args.input_dir)
 
     object_key = "object"
     not_background_criteria = Criteria(OP_NOT_IN, key=object_key, value=[0, "0"])
@@ -51,12 +51,12 @@ def main():
 
     # Process the IDs and save the regions
 
-    if not os.path.exists(args.output_folder):
-        os.makedirs(args.output_folder)
-        print(f"Folder '{args.output_folder}' created successfully!")
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
+        print(f"Folder '{args.output_dir}' created successfully!")
     else:
-        print(f"Folder '{args.output_folder}' already exists.")
-    process_ids(ids, happy_reader, region_extractor, args.output_folder)
+        print(f"Folder '{args.output_dir}' already exists.")
+    process_ids(ids, happy_reader, region_extractor, args.output_dir)
 
 
 def sys_main() -> int:
