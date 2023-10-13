@@ -29,7 +29,6 @@ class ObjectRegionExtractor(RegionExtractor):
 
     def _apply_args(self, ns: argparse.Namespace):
         super()._apply_args(ns)
-        self.truncate_regions = ns.truncate_regions
         self.object_key = ns.object_key
         obj_values = json.loads(ns.obj_values)
         if not isinstance(obj_values, list):
