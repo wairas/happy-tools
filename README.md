@@ -120,16 +120,17 @@ optional arguments:
 ### Generate image regions objects
 
 ```
-usage: happy-generate-image-regions-objects [-h] source_folder output_folder
+usage: happy-generate-image-regions-objects [-h] -i INPUT_DIR -o OUTPUT_DIR
 
 Generate datasets as numpy cubes, to be loaded into deep learning datasets.
 
-positional arguments:
-  source_folder  Path to source folder containing HDR files
-  output_folder  Path to output folder
-
 optional arguments:
-  -h, --help     show this help message and exit
+  -h, --help            show this help message and exit
+  -i INPUT_DIR, --input_dir INPUT_DIR
+                        Path to source folder containing HDR files (default:
+                        None)
+  -o OUTPUT_DIR, --output_dir OUTPUT_DIR
+                        Path to output folder (default: None)
 ```
 
 
