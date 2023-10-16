@@ -1,11 +1,13 @@
-import argparse
+import sys
 import traceback
 
-from seppl import split_args, split_cmdline, args_to_objects, get_class_name
-from happy.base.registry import REGISTRY
+from seppl import split_args, args_to_objects, get_class_name, is_help_requested
+from happy.base.registry import REGISTRY, print_help, print_help_all
 from happy.readers import HappyDataReader
 from happy.preprocessors import Preprocessor, MultiPreprocessor
 from happy.writers import HappyDataWriter
+
+PROG = "happy-process-data"
 
 
 def default_pipeline() -> str:
@@ -19,19 +21,28 @@ def default_pipeline() -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Processes data using the specified pipeline ('reader [preprocessor(s)] writer').",
-        prog="happy-process-data",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-p', "--pipeline", type=str, help="The processing pipeline: reader [preprocessor(s)] writer, e.g.: " + default_pipeline(), required=True, default=None)
-    args = parser.parse_args()
+    args = sys.argv[1:]
+    help_requested, help_all, help_plugin = is_help_requested(args)
+    if help_requested:
+        if help_all:
+            print_help_all()
+        elif help_plugin is not None:
+            print_help(help_plugin)
+        else:
+            print("usage: " + PROG + " reader [preprocessor(s)] writer [-h|--help]")
+            print()
+            print("readers: " + ", ".join(REGISTRY.happydata_readers().keys()))
+            print("preprocessors: " + ", ".join(REGISTRY.preprocessors().keys()))
+            print("writers: " + ", ".join(REGISTRY.happydata_writers().keys()))
+            print()
+        sys.exit(0)
 
     # create pipeline
     plugins = {}
     plugins.update(REGISTRY.happydata_readers())
     plugins.update(REGISTRY.preprocessors())
     plugins.update(REGISTRY.happydata_writers())
-    split = split_args(split_cmdline(args.pipeline), list(plugins.keys()))
+    split = split_args(args, list(plugins.keys()))
     objs = args_to_objects(split, plugins, allow_global_options=False)
 
     # check pipeline
