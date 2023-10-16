@@ -29,11 +29,19 @@ def main():
         elif help_plugin is not None:
             print_help(help_plugin)
         else:
-            print("usage: " + PROG + " reader [preprocessor(s)] writer [-h|--help]")
+            print("usage: " + PROG + " reader [preprocessor(s)] writer [-h|--help|--help-all|--help-plugin NAME]")
+            print()
+            print("Processes data using the specified pipeline.")
             print()
             print("readers: " + ", ".join(REGISTRY.happydata_readers().keys()))
             print("preprocessors: " + ", ".join(REGISTRY.preprocessors().keys()))
             print("writers: " + ", ".join(REGISTRY.happydata_writers().keys()))
+            print()
+            print("optional arguments:")
+            print("  -h, --help            show this help message and exit")
+            print("  --help-all            show the help for all plugins and exit")
+            print("  --help-plugin NAME    show the help for plugin NAME and exit")
+            print("")
             print()
         sys.exit(0)
 

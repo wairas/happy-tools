@@ -275,18 +275,14 @@ optional arguments:
 ### Process data
 
 ```
-usage: happy-process-data [-h] -p PIPELINE
+usage: happy-process-data reader [preprocessor(s)] writer [-h|--help|--help-all|--help-plugin NAME]
 
-Processes data using the specified pipeline ('reader [preprocessor(s)]
-writer').
+Processes data using the specified pipeline.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -p PIPELINE, --pipeline PIPELINE
-                        The processing pipeline: reader [preprocessor(s)]
-                        writer, e.g.: happy-reader -b INPUT_DIR wavelength-
-                        subset -f 60 -t 189 sni happy-writer -b OUTPUT_DIR
-                        (default: None)
+  --help-all            show the help for all plugins and exit
+  --help-plugin NAME    show the help for plugin NAME and exit
 ```
 
 
