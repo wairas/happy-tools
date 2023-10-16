@@ -1,5 +1,5 @@
-from typing import Dict
-from seppl import Registry, Plugin, MODE_DYNAMIC
+from typing import Dict, List
+from seppl import Registry, Plugin, MODE_DYNAMIC, get_class
 
 
 # the default modules to look for plugins
@@ -21,6 +21,13 @@ ENTRYPOINT_PREPROCESSORS = "happy.preprocessors"
 ENTRYPOINT_HAPPYDATA_WRITERS = "happy.happydata_writers"
 ENTRYPOINT_PIXEL_SELECTORS = "happy.pixel_selectors"
 ENTRYPOINT_REGION_EXTRACTORS = "happy.region_extractors"
+ENTRYPOINTS = [
+    ENTRYPOINT_HAPPYDATA_READERS,
+    ENTRYPOINT_PREPROCESSORS,
+    ENTRYPOINT_HAPPYDATA_WRITERS,
+    ENTRYPOINT_PIXEL_SELECTORS,
+    ENTRYPOINT_REGION_EXTRACTORS,
+]
 
 
 class HappyRegistry(Registry):
@@ -35,47 +42,106 @@ class HappyRegistry(Registry):
                          env_modules=env_modules,
                          enforce_uniqueness=True)
 
+    def all_plugins(self) -> Dict[str, Plugin]:
+        """
+        Returns all available plugins.
+
+        :return: the dictionary of all plugins (name / plugin)
+        :rtype: dict
+        """
+        result = dict()
+        for entrypoint in ENTRYPOINTS:
+            plugins = self.plugins(entrypoint)
+            result.update(plugins)
+        return result
+
     def happydata_readers(self) -> Dict[str, Plugin]:
         """
         Returns all the readers for happydata data structure.
 
-        :return: dict
+        :return: the dictionary of readers (name / plugin)
+        :rtype: dict
         """
-        return self.plugins(ENTRYPOINT_HAPPYDATA_READERS, Plugin)
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_HAPPYDATA_READERS, get_class("happy.readers._happydata_reader.HappyDataReader"))
 
     def preprocessors(self) -> Dict[str, Plugin]:
         """
         Returns all the preprocessors.
 
-        :return: dict
+        :return: the dictionary of preprocessors (name / plugin)
+        :rtype: dict
         """
-        return self.plugins(ENTRYPOINT_PREPROCESSORS, Plugin)
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_PREPROCESSORS, get_class("happy.preprocessors._preprocessor.Preprocessor"))
 
     def happydata_writers(self) -> Dict[str, Plugin]:
         """
         Returns all the writers for happydata data structure.
 
-        :return: dict
+        :return: the dictionary of writers (name / plugin)
+        :rtype: dict
         """
-        return self.plugins(ENTRYPOINT_HAPPYDATA_WRITERS, Plugin)
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_HAPPYDATA_WRITERS, get_class("happy.writers._happydata_writer.HappyDataWriter"))
 
     def pixel_selectors(self) -> Dict[str, Plugin]:
         """
         Returns all the pixel selectors.
 
-        :return: dict
+        :return: the dictionary of pixel selectors (name / plugin)
+        :rtype: dict
         """
-        return self.plugins(ENTRYPOINT_PIXEL_SELECTORS, Plugin)
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_PIXEL_SELECTORS, get_class("happy.pixel_selectors._pixel_selector.PixelSelector"))
 
     def region_extractors(self) -> Dict[str, Plugin]:
         """
-        Returns all the pixel selectors.
+        Returns all the region extractors.
 
-        :return: dict
+        :return: the dictionary of region extractors (name / plugin)
+        :rtype: dict
         """
-        return self.plugins(ENTRYPOINT_REGION_EXTRACTORS, Plugin)
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_REGION_EXTRACTORS, get_class("happy.region_extractors._region_extractor.RegionExtractor"))
 
 
 # singleton of the Registry
 REGISTRY = HappyRegistry()
 
+
+def print_help_all():
+    """
+    Prints the help for all plugins.
+    """
+    plugins = REGISTRY.all_plugins()
+    keys = sorted(plugins.keys())
+    for key in keys:
+        print()
+        print(plugins[key].name())
+        print("=" * len(plugins[key].name()))
+        print()
+        print(plugins[key].format_help())
+
+
+def print_help(plugin_name: str):
+    """
+    Prints the help for the specified plugin.
+
+    :param plugin_name: the name of the plugin to print the help for
+    :type plugin_name: str
+    """
+    plugins = REGISTRY.all_plugins()
+    if plugin_name in plugins:
+        print()
+        print(plugins[plugin_name].name())
+        print("=" * len(plugins[plugin_name].name()))
+        print()
+        print(plugins[plugin_name].format_help())
+    else:
+        keys = sorted(plugins.keys())
+        print()
+        print("Unknown plugin name: %s" % plugin_name)
+        print()
+        print("Available plugins: %s" % ", ".join(keys))
+        print()
