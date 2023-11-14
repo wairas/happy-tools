@@ -39,7 +39,7 @@ setup(
         "shapely",
         "scikit-learn",
         "matplotlib",
-        "seppl>=0.0.8",
+        "seppl>=0.0.9",
     ],
     package_dir={
         '': 'src'
