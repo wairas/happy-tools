@@ -8,6 +8,7 @@ PROPERTIES = [
     "last_blackref_dir",
     "last_whiteref_dir",
     "last_scan_dir",
+    "last_scan_file",
     "last_image_dir",
     "scale_r",
     "scale_g",
@@ -41,6 +42,7 @@ class SessionManager(AbstractSessionManager):
         self.last_blackref_dir = ""
         self.last_whiteref_dir = ""
         self.last_scan_dir = ""
+        self.last_scan_file = ""
         self.last_image_dir = ""
         self.scale_r = 0
         self.scale_g = 0

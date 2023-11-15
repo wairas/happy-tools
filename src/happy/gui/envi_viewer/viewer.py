@@ -171,7 +171,7 @@ class ViewerApp:
 
         return filename
 
-    def save_image_file(self, title, initial_dir):
+    def save_image_file(self, title, initial_dir, scan=None):
         """
         Allows the user to select a PNG file for saving an image.
          
@@ -179,6 +179,8 @@ class ViewerApp:
         :type title: str
         :param initial_dir: the initial directory in use
         :type initial_dir: str
+        :param scan: the scan image to use for a suggestion
+        :type scan: str
         :return: the chosen filename, None if cancelled
         :rtype: str
         """
@@ -187,9 +189,14 @@ class ViewerApp:
             ('All files', '*.*')
         )
 
+        initial_file = None
+        if scan is not None:
+            initial_file = os.path.splitext(os.path.basename(scan))[0] + ".png"
+
         filename = fd.asksaveasfilename(
             title=title,
             initialdir=initial_dir,
+            initialfile=initial_file,
             filetypes=filetypes)
         if filename == "":
             filename = None
@@ -213,6 +220,7 @@ class ViewerApp:
             self.last_wavelengths = copy.copy(self.data.get_wavelengths())
 
         self.log("Loading scan: %s" % filename)
+        self.session.last_scan_file = filename
         warning = self.data.set_scan(filename)
         if warning is not None:
             messagebox.showerror("Warning", warning)
@@ -746,7 +754,7 @@ class ViewerApp:
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
 
-        filename = self.save_image_file('Save image', self.session.last_image_dir)
+        filename = self.save_image_file('Save image', self.session.last_image_dir, scan=self.session.last_scan_file)
         if filename is not None:
             self.session.last_image_dir = os.path.dirname(filename)
             image.save(filename)
