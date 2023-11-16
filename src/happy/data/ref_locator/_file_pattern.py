@@ -44,7 +44,7 @@ class FilePatternLocator(AbstractReferenceLocator):
         :return: the description
         :rtype: str
         """
-        return "Uses the supplied ."
+        return "Uses the supplied pattern and applies that to the incoming scan file name to generate the reference file name."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         """
