@@ -5,6 +5,7 @@ from happy.console.hsi_to_rgb.generate import normalize_data
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod, WhiteReferenceAnnotationAverage
 from happy.data.white_ref import LABEL_WHITEREF
+from happy.preprocessors import MultiPreprocessor
 
 
 class DataManager:
@@ -37,7 +38,7 @@ class DataManager:
         self.display_image = None
         self.wavelengths = None
         self.contours = contours
-        self.use_whiteref_annotation = False
+        self.preprocessors = None
 
     def has_scan(self):
         """
@@ -204,6 +205,20 @@ class DataManager:
         self.reset_norm_data()
         return None
 
+    def set_preprocessors(self, preprocessors):
+        """
+        Sets the pipeline of preprocessors to use.
+
+        :param preprocessors: the list of preprocessors to use or None for no preprocessing
+        :type preprocessors: list
+        """
+        if isinstance(preprocessors, list) and (len(preprocessors) == 0):
+            preprocessors = None
+        else:
+            preprocessors = MultiPreprocessor(**{'preprocessor_list': preprocessors})
+        self.preprocessors = preprocessors
+        self.reset_norm_data()
+
     def reset_norm_data(self):
         """
         Resets the normalized data, forcing a recalculation.
@@ -237,6 +252,9 @@ class DataManager:
                             bbox = contours[0].to_absolute(width, height).bbox()
                             self.whiteref_method.annotation = (bbox.top, bbox.left, bbox.bottom, bbox.right)
                     self.norm_data = self.whiteref_method.apply(self.norm_data)
+            # apply preprocessing
+            if self.preprocessors is not None:
+                self.norm_data, _ = self.preprocessors.apply(self.norm_data)
 
     def dims(self):
         """

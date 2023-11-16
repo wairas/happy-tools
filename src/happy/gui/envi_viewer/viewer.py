@@ -18,6 +18,7 @@ from ttkSimpleDialog import ttkSimpleDialog
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, LABEL_WHITEREF
 from happy.data.ref_locator import AbstractReferenceLocator
+from happy.preprocessors import Preprocessor
 from happy.gui.envi_viewer import ContoursManager, Contour
 from happy.gui.envi_viewer import DataManager
 from happy.gui.envi_viewer import MarkersManager
@@ -94,6 +95,7 @@ class ViewerApp:
         self.entry_black_ref_method = builder.get_object("entry_black_ref_method", master)
         self.entry_white_ref_locator = builder.get_object("entry_white_ref_locator", master)
         self.entry_white_ref_method = builder.get_object("entry_white_ref_method", master)
+        self.text_preprocessing = builder.get_object("text_preprocessing", master)
         # log
         self.text_log = builder.get_object("text_log", master)
         # statusbar
@@ -664,6 +666,7 @@ class ViewerApp:
         self.session.black_ref_method = self.state_black_ref_method.get()
         self.session.white_ref_locator = self.state_white_ref_locator.get()
         self.session.white_ref_method = self.state_white_ref_method.get()
+        self.session.preprocessing = self.text_preprocessing.get("1.0", "end-1c")
 
     def session_to_state(self):
         """
@@ -692,9 +695,12 @@ class ViewerApp:
         self.state_black_ref_method.set(self.session.black_ref_method)
         self.state_white_ref_locator.set(self.session.white_ref_locator)
         self.state_white_ref_method.set(self.session.white_ref_method)
+        self.text_preprocessing.delete(1.0, tk.END)
+        self.text_preprocessing.insert(tk.END, self.session.preprocessing)
         # activate
         self.apply_black_ref(do_update=False)
         self.apply_white_ref(do_update=False)
+        self.apply_preprocessing(do_update=False)
 
     def apply_black_ref(self, do_update=False):
         # locator
@@ -740,6 +746,23 @@ class ViewerApp:
         except:
             messagebox.showerror("Error", "Failed to parse white reference method: %s" % cmdline)
             return False
+        if do_update:
+            self.update_image()
+        return True
+
+    def apply_preprocessing(self, do_update=False):
+        cmdline = self.text_preprocessing.get("1.0", "end-1c")
+        if len(cmdline.strip()) > 0:
+            try:
+                preprocs = Preprocessor.parse_preprocessors(cmdline)
+                self.data.set_preprocessors(preprocs)
+                self.log("Setting preprocessing: %s" % cmdline)
+            except:
+                messagebox.showerror("Error", "Failed to parse preprocessing: %s" % cmdline)
+                return False
+        else:
+            self.data.set_preprocessors([])
+            self.log("Removing preprocessing")
         if do_update:
             self.update_image()
         return True
@@ -1004,6 +1027,9 @@ class ViewerApp:
     def on_button_white_ref_apply(self, event=None):
         self.apply_white_ref(do_update=True)
 
+    def on_button_preprocessing_apply(self, event=None):
+        self.apply_preprocessing(do_update=True)
+
     def on_tools_polygon_click(self, event=None):
         if not self.markers.has_polygon():
             messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
@@ -1143,6 +1169,7 @@ def main(args=None):
     parser.add_argument("--black_ref_method", metavar="METHOD", help="the black reference method to use for applying black references, eg br-same-size", default=None, required=False)
     parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual", default=None, required=False)
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
+    parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
     parsed = parser.parse_args(args=args)
     app = ViewerApp()
 

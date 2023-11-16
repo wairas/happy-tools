@@ -27,6 +27,7 @@ PROPERTIES = [
     "black_ref_method",
     "white_ref_locator",
     "white_ref_method",
+    "preprocessing",
 ]
 
 
@@ -65,6 +66,7 @@ class SessionManager(AbstractSessionManager):
         self.black_ref_method = "br-same-size"
         self.white_ref_locator = "rl-manual"
         self.white_ref_method = "wr-same-size"
+        self.preprocessing = ""
 
     def get_default_config_name(self):
         """

@@ -62,6 +62,11 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [--redis_in CHANNEL] [--redis_out CHANNEL]
                          [--redis_connect] [--marker_size INT]
                          [--marker_color HEXCOLOR] [--min_obj_size INT]
+                         [--black_ref_locator LOCATOR]
+                         [--black_ref_method METHOD]
+                         [--white_ref_locator LOCATOR]
+                         [--white_ref_method METHOD]
+                         [--preprocessing PIPELINE]
 
 ENVI Hyperspectral Image Viewer. Offers contour detection using SAM (Segment-
 Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-
@@ -115,6 +120,20 @@ optional arguments:
                         (default: None)
   --min_obj_size INT    The minimum size that SAM contours need to have (<= 0
                         for no minimum) (default: None)
+  --black_ref_locator LOCATOR
+                        the reference locator scheme to use for locating black
+                        references, eg rl-manual (default: None)
+  --black_ref_method METHOD
+                        the black reference method to use for applying black
+                        references, eg br-same-size (default: None)
+  --white_ref_locator LOCATOR
+                        the reference locator scheme to use for locating
+                        whites references, eg rl-manual (default: None)
+  --white_ref_method METHOD
+                        the white reference method to use for applying white
+                        references, eg wr-same-size (default: None)
+  --preprocessing PIPELINE
+                        the preprocessors to apply to the scan (default: None)
 ```
 
 ### Generate image regions objects
