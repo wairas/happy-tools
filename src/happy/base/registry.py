@@ -1,10 +1,13 @@
-from typing import Dict, List
+from typing import Dict
 from seppl import Registry, Plugin, MODE_DYNAMIC, get_class
 
 
 # the default modules to look for plugins
 HAPPY_DEFAULT_MODULES = ",".join(
     [
+        "happy.data.black_ref",
+        "happy.data.white_ref",
+        "happy.data.ref_locator",
         "happy.readers",
         "happy.preprocessors",
         "happy.writers",
@@ -16,12 +19,18 @@ HAPPY_DEFAULT_MODULES = ",".join(
 HAPPY_ENV_MODULES = "HAPPY_MODULES"
 
 # the known entrypoints in setup.py
+ENTRYPOINT_BLACKREF_METHODS = "happy.blackref_methods"
+ENTRYPOINT_WHITEREF_METHODS = "happy.whiteref_methods"
+ENTRYPOINT_REF_LOCATOR = "happy.ref_locator"
 ENTRYPOINT_HAPPYDATA_READERS = "happy.happydata_readers"
 ENTRYPOINT_PREPROCESSORS = "happy.preprocessors"
 ENTRYPOINT_HAPPYDATA_WRITERS = "happy.happydata_writers"
 ENTRYPOINT_PIXEL_SELECTORS = "happy.pixel_selectors"
 ENTRYPOINT_REGION_EXTRACTORS = "happy.region_extractors"
 ENTRYPOINTS = [
+    ENTRYPOINT_BLACKREF_METHODS,
+    ENTRYPOINT_WHITEREF_METHODS,
+    ENTRYPOINT_REF_LOCATOR,
     ENTRYPOINT_HAPPYDATA_READERS,
     ENTRYPOINT_PREPROCESSORS,
     ENTRYPOINT_HAPPYDATA_WRITERS,
@@ -54,6 +63,36 @@ class HappyRegistry(Registry):
             plugins = self.plugins(entrypoint)
             result.update(plugins)
         return result
+
+    def blackref_methods(self) -> Dict[str, Plugin]:
+        """
+        Returns all the black reference methods.
+
+        :return: the dictionary of readers (name / plugin)
+        :rtype: dict
+        """
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_BLACKREF_METHODS, get_class("happy.data.black_ref._core.AbstractBlackReferenceMethod"))
+
+    def whiteref_methods(self) -> Dict[str, Plugin]:
+        """
+        Returns all the white reference methods.
+
+        :return: the dictionary of readers (name / plugin)
+        :rtype: dict
+        """
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_WHITEREF_METHODS, get_class("happy.data.white_ref._core.AbstractWhiteReferenceMethod"))
+
+    def ref_locators(self) -> Dict[str, Plugin]:
+        """
+        Returns all the reference locators.
+
+        :return: the dictionary of readers (name / plugin)
+        :rtype: dict
+        """
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_REF_LOCATOR, get_class("happy.data.ref_locator._core.AbstractReferenceLocator"))
 
     def happydata_readers(self) -> Dict[str, Plugin]:
         """

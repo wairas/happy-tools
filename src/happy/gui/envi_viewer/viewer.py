@@ -15,7 +15,9 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.gui.envi_viewer import ContoursManager, Contour, LABEL_WHITEREF
+from happy.data.white_ref import LABEL_WHITEREF
+from happy.data.ref_locator import AbstractReferenceLocator
+from happy.gui.envi_viewer import ContoursManager, Contour
 from happy.gui.envi_viewer import DataManager
 from happy.gui.envi_viewer import MarkersManager
 from happy.gui.envi_viewer import SamManager
@@ -168,6 +170,8 @@ class ViewerApp:
             filetypes=filetypes)
         if filename == "":
             filename = None
+        if isinstance(filename, tuple):
+            filename = None
 
         return filename
 
@@ -253,6 +257,22 @@ class ViewerApp:
                     self.set_wavelengths(r, g, b)
             except:
                 pass
+
+        # locate black reference
+        try:
+            ref = AbstractReferenceLocator.apply_locator(self.session.black_ref_locator, filename, must_exist=True)
+            if ref is not None:
+                self.load_blackref(ref, do_update=False)
+        except:
+            pass
+
+        # locate white reference
+        try:
+            ref = AbstractReferenceLocator.apply_locator(self.session.white_ref_locator, filename, must_exist=True)
+            if ref is not None:
+                self.load_whiteref(ref, do_update=False)
+        except:
+            pass
 
         if do_update:
             self.update()
@@ -701,6 +721,7 @@ class ViewerApp:
         filename = self.open_envi_file('Open black reference', self.session.last_blackref_dir)
 
         if filename is not None:
+            print(filename)
             self.session.last_blackref_dir = os.path.dirname(filename)
             self.load_blackref(filename, do_update=True)
 
@@ -1052,6 +1073,8 @@ def main(args=None):
     parser.add_argument("--marker_size", metavar="INT", help="The size in pixels for the SAM points", default=None, type=int, required=False)
     parser.add_argument("--marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)", default=None, required=False)
     parser.add_argument("--min_obj_size", metavar="INT", help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=None, type=int, required=False)
+    parser.add_argument("--black_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating black references", default="rl-manual", required=False)
+    parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references", default="rl-manual", required=False)
     parsed = parser.parse_args(args=args)
     app = ViewerApp()
 

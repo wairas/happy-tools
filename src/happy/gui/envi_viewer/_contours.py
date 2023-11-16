@@ -9,9 +9,6 @@ from opex import BBox, Polygon, ObjectPrediction, ObjectPredictions
 from shapely.geometry import Point as SPoint
 from shapely.geometry.polygon import Polygon as SPolygon
 
-LABEL_WHITEREF = "whiteref"
-""" the label to use for the white reference annotation. """
-
 
 @dataclass
 class BBoxNormalized:

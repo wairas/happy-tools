@@ -1,14 +1,14 @@
 # black-ref
 
-TODO
+Applies the specified black reference method to the data.
 
 ```
-usage: black-ref [-h] -f BLACK_REFERENCE_FILE
+usage: black-ref [-h] -m METHOD
 
-TODO
+Applies the specified black reference method to the data.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f BLACK_REFERENCE_FILE, --black_reference_file BLACK_REFERENCE_FILE
-                        TODO (default: None)
+  -m METHOD, --method METHOD
+                        The black reference method to apply (default: br-none)
 ```

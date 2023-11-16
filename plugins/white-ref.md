@@ -1,14 +1,14 @@
 # white-ref
 
-TODO
+Applies the specified white reference method to the data.
 
 ```
-usage: white-ref [-h] -f WHITE_REFERENCE_FILE
+usage: white-ref [-h] -m METHOD
 
-TODO
+Applies the specified white reference method to the data.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f WHITE_REFERENCE_FILE, --white_reference_file WHITE_REFERENCE_FILE
-                        TODO (default: None)
+  -m METHOD, --method METHOD
+                        The white reference method to apply (default: wr-none)
 ```

@@ -69,6 +69,15 @@ setup(
             "happy-scikit-unsupervised-build=happy.console.builders.unsupervised_build:sys_main",
             "happy-splitter=happy.console.happy_splitter.split:sys_main",
         ],
+        "happy.blackref_methods": [
+            "happy_blackref_methods=happy.data:happy.data.black_ref.AbstractBlackReferenceMethod",
+        ],
+        "happy.whiteref_methods": [
+            "happy_whiteref_methods=happy.data:happy.data.white_ref.AbstractWhiteReferenceMethod",
+        ],
+        "happy.ref_locator": [
+            "happy_ref_locator=happy.data:happy.data.ref_locator.AbstractReferenceLocator",
+        ],
         "happy.preprocessors": [
             "happy_preprocessors=happy.preprocessors:happy.preprocessors.Preprocessor",
         ],

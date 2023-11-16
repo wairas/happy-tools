@@ -2,7 +2,9 @@ import numpy as np
 import spectral.io.envi as envi
 
 from happy.console.hsi_to_rgb.generate import normalize_data
-from happy.gui.envi_viewer import LABEL_WHITEREF
+from happy.data.black_ref import SameSizeBlackReference, BlackReferenceAverage
+from happy.data.white_ref import SameSizeWhiteReference, WhiteReferenceAnnotationAverage
+from happy.data.white_ref import LABEL_WHITEREF
 
 
 class DataManager:
@@ -144,39 +146,12 @@ class DataManager:
 
         img = envi.open(path)
         data = img.load()
-        if data.shape != self.scan_data.shape:
-            return "White reference data should have the same shape as the scan data!\n" \
-                   + "scan:" + str(self.scan_data.shape) + " != whiteref:" + str(data.shape)
-
         self.whiteref_file = path
         self.whiteref_img = img
         self.whiteref_data = data
         self.whiteref_annotation = None
         self.reset_norm_data()
         return None
-
-    def get_whiteref_annotation(self):
-        """
-        Returns the whiteref values (one per band) to use for normalizing, calculates it if necessary.
-
-        :return: the list of whiteref annotation values (float)
-        :rtype: list
-        """
-        if self.whiteref_annotation is None:
-            self.whiteref_annotation = []
-            num_bands = self.scan_img.shape[2]
-            contours = self.contours.get_contours(LABEL_WHITEREF)
-            if len(contours) == 1:
-                whiteref_img = self.get_scan_subimage(contours[0])
-                for i in range(num_bands):
-                    self.whiteref_annotation.append(np.average(whiteref_img[:, :, i]))
-            elif len(contours) > 1:
-                print("More than one '%s' annotation found!" % LABEL_WHITEREF)
-            else:
-                for i in range(num_bands):
-                    self.whiteref_annotation.append(1.0)
-
-        return self.whiteref_annotation
 
     def has_blackref(self):
         """
@@ -210,10 +185,6 @@ class DataManager:
 
         img = envi.open(path)
         data = img.load()
-        if data.shape != self.scan_data.shape:
-            return "Black reference data should have the same shape as the scan data!\n" \
-                   + "scan:" + str(self.scan_data.shape) + " != blackref:" + str(data.shape)
-
         self.blackref_file = path
         self.blackref_img = img
         self.blackref_data = data
@@ -238,24 +209,33 @@ class DataManager:
         if self.scan_data is not None:
             log("Calculating...")
             self.norm_data = self.scan_data
-            # subtract black reference
+            # apply black reference
             if self.blackref_data is not None:
                 if self.blackref_data.shape == self.norm_data.shape:
-                    self.norm_data = self.norm_data - self.blackref_data
+                    b = SameSizeBlackReference()
+                    b.reference = self.blackref_data
+                    self.norm_data = b.apply(self.norm_data)
                 else:
-                    print("Scan and blackref dimensions differ: %s != %s" % (str(self.scan_data.shape), str(self.blackref_data.shape)))
-            # divide by white reference
+                    b = BlackReferenceAverage()
+                    b.reference = self.blackref_data
+                    self.norm_data = b.apply(self.norm_data)
+            # apply white reference
             if self.use_whiteref_annotation:
-                whiteref_values = self.get_whiteref_annotation()
-                for i in range(len(whiteref_values)):
-                    if whiteref_values[i] != 1.0:
-                        self.norm_data[:, :, i] = self.norm_data[:, :, i] / whiteref_values[i]
+                w = WhiteReferenceAnnotationAverage()
+                w.reference = self.scan_data
+                contours = self.contours.get_contours(LABEL_WHITEREF)
+                if len(contours) == 1:
+                    height, width, _ = self.scan_data.shape
+                    bbox = contours[0].to_absolute(width, height).bbox()
+                    w.annotation = (bbox.top, bbox.left, bbox.bottom, bbox.right)
+                    self.norm_data = w.apply(self.norm_data)
+                else:
+                    raise Exception("Require one '%s' annotation, but got: %d" % (LABEL_WHITEREF, len(contours)))
             else:
                 if self.whiteref_data is not None:
-                    if self.whiteref_data.shape == self.norm_data.shape:
-                        self.norm_data = self.norm_data / self.whiteref_data
-                    else:
-                        print("Scan and whiteref dimensions differ: %s != %s" % (str(self.scan_data.shape), str(self.whiteref_data.shape)))
+                    w = SameSizeWhiteReference()
+                    w.reference = self.whiteref_data
+                    self.norm_data = w.apply(self.norm_data)
 
     def dims(self):
         """
