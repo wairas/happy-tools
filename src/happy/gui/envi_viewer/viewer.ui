@@ -61,15 +61,6 @@
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Checkbutton" id="checkbutton_file_use_whiteref_annotation" named="True">
-                    <property name="command" type="command" cbtype="simple">on_file_use_whiteref_annotation</property>
-                    <property name="label" translatable="yes">Use "whiteref" annotation</property>
-                    <property name="offvalue">0</property>
-                    <property name="onvalue">1</property>
-                    <property name="variable">int:state_use_whiteref_annotation</property>
-                  </object>
-                </child>
-                <child>
                   <object class="tk.Menuitem.Separator" id="separator7" />
                 </child>
                 <child>
@@ -282,104 +273,365 @@
                       <object class="ttk.Notebook.Tab" id="tab_options" named="True">
                         <property name="text" translatable="yes">Options</property>
                         <child>
-                          <object class="ttk.Frame" id="frame_options" named="True">
+                          <object class="ttk.Frame" id="frame3">
                             <property name="height">200</property>
                             <property name="width">200</property>
-                            <layout manager="pack">
-                              <property name="side">top</property>
+                            <layout manager="grid">
+                              <property name="column">3</property>
+                              <property name="row">1</property>
                             </layout>
                             <child>
-                              <object class="ttk.Labelframe" id="labelframe2">
+                              <object class="ttk.Frame" id="frame_options_col1" named="True">
                                 <property name="height">200</property>
-                                <property name="text" translatable="yes">General	</property>
                                 <property name="width">200</property>
-                                <layout manager="pack">
-                                  <property name="anchor">w</property>
-                                  <property name="padx">10</property>
-                                  <property name="pady">10</property>
-                                  <property name="side">top</property>
+                                <layout manager="grid">
+                                  <property name="column">0</property>
+                                  <property name="row">0</property>
+                                  <property name="sticky">nw</property>
                                 </layout>
                                 <child>
-                                  <object class="ttk.Frame" id="frame2">
+                                  <object class="ttk.Labelframe" id="labelframe2">
                                     <property name="height">200</property>
+                                    <property name="text" translatable="yes">General	</property>
                                     <property name="width">200</property>
-                                    <layout manager="grid">
-                                      <property name="column">0</property>
-                                      <property name="row">0</property>
+                                    <layout manager="pack">
+                                      <property name="anchor">w</property>
+                                      <property name="fill">x</property>
+                                      <property name="padx">10</property>
+                                      <property name="pady">10</property>
+                                      <property name="side">top</property>
                                     </layout>
                                     <child>
-                                      <object class="ttk.Checkbutton" id="checkbutton_autodetect_channels" named="True">
-                                        <property name="command" type="command" cbtype="simple">on_autodetect_channels_click</property>
-                                        <property name="offvalue">0</property>
-                                        <property name="onvalue">1</property>
-                                        <property name="text" translatable="yes">Auto-detect channels</property>
-                                        <property name="variable">int:state_autodetect_channels</property>
+                                      <object class="ttk.Frame" id="frame2">
+                                        <property name="height">200</property>
+                                        <property name="width">200</property>
                                         <layout manager="grid">
                                           <property name="column">0</property>
-                                          <property name="columnspan">2</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
                                           <property name="row">0</property>
-                                          <property name="sticky">w</property>
                                         </layout>
+                                        <child>
+                                          <object class="ttk.Checkbutton" id="checkbutton_autodetect_channels" named="True">
+                                            <property name="command" type="command" cbtype="simple">on_autodetect_channels_click</property>
+                                            <property name="offvalue">0</property>
+                                            <property name="onvalue">1</property>
+                                            <property name="text" translatable="yes">Auto-detect channels</property>
+                                            <property name="variable">int:state_autodetect_channels</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="columnspan">2</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">0</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Checkbutton" id="checkbutton_keep_aspectratio" named="True">
+                                            <property name="command" type="command" cbtype="simple">on_keep_aspectratio_click</property>
+                                            <property name="offvalue">0</property>
+                                            <property name="onvalue">1</property>
+                                            <property name="text" translatable="yes">Keep aspect ratio</property>
+                                            <property name="variable">int:state_keep_aspectratio</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="columnspan">2</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">1</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label_annotation_color" named="True">
+                                            <property name="text" translatable="yes">Annotation color</property>
+                                            <layout manager="grid">
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">3</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_annotation_color" named="True">
+                                            <property name="text" translatable="yes">#ff0000</property>
+                                            <property name="textvariable">string:state_annotation_color</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">3</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Checkbutton" id="checkbutton_check_scan_dimensions" named="True">
+                                            <property name="command" type="command" cbtype="simple">on_check_scan_dimensions_click</property>
+                                            <property name="offvalue">0</property>
+                                            <property name="onvalue">1</property>
+                                            <property name="text" translatable="yes">Check scan dimensions</property>
+                                            <property name="variable">int:state_check_scan_dimensions</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="columnspan">2</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">2</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
                                       </object>
                                     </child>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="ttk.Labelframe" id="labelframe1">
+                                    <property name="height">200</property>
+                                    <property name="text" translatable="yes">SAM</property>
+                                    <property name="width">200</property>
+                                    <layout manager="pack">
+                                      <property name="anchor">w</property>
+                                      <property name="fill">x</property>
+                                      <property name="padx">10</property>
+                                      <property name="pady">10</property>
+                                      <property name="side">top</property>
+                                    </layout>
                                     <child>
-                                      <object class="ttk.Checkbutton" id="checkbutton_keep_aspectratio" named="True">
-                                        <property name="command" type="command" cbtype="simple">on_keep_aspectratio_click</property>
-                                        <property name="offvalue">0</property>
-                                        <property name="onvalue">1</property>
-                                        <property name="text" translatable="yes">Keep aspect ratio</property>
-                                        <property name="variable">int:state_keep_aspectratio</property>
+                                      <object class="ttk.Frame" id="frame1">
+                                        <property name="height">200</property>
+                                        <property name="width">200</property>
                                         <layout manager="grid">
                                           <property name="column">0</property>
-                                          <property name="columnspan">2</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">1</property>
-                                          <property name="sticky">w</property>
+                                          <property name="row">0</property>
                                         </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label_annotation_color" named="True">
-                                        <property name="text" translatable="yes">Annotation color</property>
-                                        <layout manager="grid">
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">3</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_annotation_color" named="True">
-                                        <property name="text" translatable="yes">#ff0000</property>
-                                        <property name="textvariable">string:state_annotation_color</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">3</property>
-                                          <property name="sticky">ew</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Checkbutton" id="checkbutton_check_scan_dimensions" named="True">
-                                        <property name="command" type="command" cbtype="simple">on_check_scan_dimensions_click</property>
-                                        <property name="offvalue">0</property>
-                                        <property name="onvalue">1</property>
-                                        <property name="text" translatable="yes">Check scan dimensions</property>
-                                        <property name="variable">int:state_check_scan_dimensions</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="columnspan">2</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">2</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
+                                        <child>
+                                          <object class="ttk.Label" id="label_host" named="True">
+                                            <property name="text" translatable="yes">Host</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">0</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_redis_host" named="True">
+                                            <property name="text" translatable="yes">localhost</property>
+                                            <property name="textvariable">string:state_redis_host</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">0</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label3" named="True">
+                                            <property name="text" translatable="yes">Port</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">1</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_redis_port" named="True">
+                                            <property name="text" translatable="yes">6379</property>
+                                            <property name="textvariable">int:state_redis_port</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">1</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label1" named="True">
+                                            <property name="text" translatable="yes">Password</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">2</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_redis_password" named="True">
+                                            <property name="show">•</property>
+                                            <property name="textvariable">string:state_redis_pw</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="row">2</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label6" named="True">
+                                            <property name="text" translatable="yes">Send</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">3</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_redis_in" named="True">
+                                            <property name="text" translatable="yes">sam_in</property>
+                                            <property name="textvariable">string:state_redis_in</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">3</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label7" named="True">
+                                            <property name="text" translatable="yes">Receive</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">4</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_redis_out" named="True">
+                                            <property name="text" translatable="yes">sam_out</property>
+                                            <property name="textvariable">string:state_redis_out</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">4</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label_redis_connection" named="True">
+                                            <property name="foreground">grey</property>
+                                            <property name="text" translatable="yes">Disconnected</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">5</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Button" id="button_sam_connect" named="True">
+                                            <property name="command" type="command" cbtype="simple">on_button_sam_connect_click</property>
+                                            <property name="text" translatable="yes">Connect</property>
+                                            <property name="underline">0</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">5</property>
+                                              <property name="sticky">e</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label9" named="True">
+                                            <property name="text" translatable="yes">Marker size</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">6</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_marker_size" named="True">
+                                            <property name="text" translatable="yes">7</property>
+                                            <property name="textvariable">int:state_marker_size</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">6</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label10" named="True">
+                                            <property name="text" translatable="yes">Color</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">7</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_marker_color" named="True">
+                                            <property name="text" translatable="yes">#ff0000</property>
+                                            <property name="textvariable">string:state_marker_color</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">7</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label11" named="True">
+                                            <property name="text" translatable="yes">Min. object size</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">8</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_min_obj_size" named="True">
+                                            <property name="text" translatable="yes">-1</property>
+                                            <property name="textvariable">int:state_min_obj_size</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">8</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
                                       </object>
                                     </child>
                                   </object>
@@ -387,250 +639,191 @@
                               </object>
                             </child>
                             <child>
-                              <object class="ttk.Labelframe" id="labelframe1">
+                              <object class="ttk.Frame" id="frame_options_col2" named="True">
                                 <property name="height">200</property>
-                                <property name="text" translatable="yes">SAM</property>
                                 <property name="width">200</property>
-                                <layout manager="pack">
-                                  <property name="anchor">w</property>
-                                  <property name="padx">10</property>
-                                  <property name="pady">10</property>
-                                  <property name="side">top</property>
+                                <layout manager="grid">
+                                  <property name="column">1</property>
+                                  <property name="row">0</property>
+                                  <property name="sticky">nw</property>
                                 </layout>
                                 <child>
-                                  <object class="ttk.Frame" id="frame1">
+                                  <object class="ttk.Labelframe" id="labelframe7">
                                     <property name="height">200</property>
+                                    <property name="text" translatable="yes">Black reference</property>
                                     <property name="width">200</property>
-                                    <layout manager="grid">
-                                      <property name="column">0</property>
-                                      <property name="row">0</property>
+                                    <layout manager="pack">
+                                      <property name="padx">10</property>
+                                      <property name="pady">10</property>
+                                      <property name="side">top</property>
                                     </layout>
                                     <child>
-                                      <object class="ttk.Label" id="label_host" named="True">
-                                        <property name="text" translatable="yes">Host</property>
+                                      <object class="ttk.Frame" id="frame12">
+                                        <property name="height">200</property>
+                                        <property name="width">200</property>
                                         <layout manager="grid">
                                           <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
                                           <property name="row">0</property>
-                                          <property name="sticky">w</property>
                                         </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_redis_host" named="True">
-                                        <property name="text" translatable="yes">localhost</property>
-                                        <property name="textvariable">string:state_redis_host</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">0</property>
-                                          <property name="sticky">ew</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label3" named="True">
-                                        <property name="text" translatable="yes">Port</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">1</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_redis_port" named="True">
-                                        <property name="text" translatable="yes">6379</property>
-                                        <property name="textvariable">int:state_redis_port</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">1</property>
-                                          <property name="sticky">ew</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label1" named="True">
-                                        <property name="text" translatable="yes">Password</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">2</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_redis_password" named="True">
-                                        <property name="show">•</property>
-                                        <property name="textvariable">string:state_redis_pw</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="row">2</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label6" named="True">
-                                        <property name="text" translatable="yes">Send</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">3</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_redis_in" named="True">
-                                        <property name="text" translatable="yes">sam_in</property>
-                                        <property name="textvariable">string:state_redis_in</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">3</property>
-                                          <property name="sticky">ew</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label7" named="True">
-                                        <property name="text" translatable="yes">Receive</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">4</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_redis_out" named="True">
-                                        <property name="text" translatable="yes">sam_out</property>
-                                        <property name="textvariable">string:state_redis_out</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">4</property>
-                                          <property name="sticky">ew</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label_redis_connection" named="True">
-                                        <property name="foreground">grey</property>
-                                        <property name="text" translatable="yes">Disconnected</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">5</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Button" id="button_sam_connect" named="True">
-                                        <property name="command" type="command" cbtype="simple">on_button_sam_connect_click</property>
-                                        <property name="text" translatable="yes">Connect</property>
-                                        <property name="underline">0</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">5</property>
-                                          <property name="sticky">e</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label9" named="True">
-                                        <property name="text" translatable="yes">Marker size</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">6</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_marker_size" named="True">
-                                        <property name="text" translatable="yes">7</property>
-                                        <property name="textvariable">int:state_marker_size</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">6</property>
-                                          <property name="sticky">ew</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label10" named="True">
-                                        <property name="text" translatable="yes">Color</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">7</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_marker_color" named="True">
-                                        <property name="text" translatable="yes">#ff0000</property>
-                                        <property name="textvariable">string:state_marker_color</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">7</property>
-                                          <property name="sticky">ew</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Label" id="label11" named="True">
-                                        <property name="text" translatable="yes">Min. object size</property>
-                                        <layout manager="grid">
-                                          <property name="column">0</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">8</property>
-                                          <property name="sticky">w</property>
-                                        </layout>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="ttk.Entry" id="entry_min_obj_size" named="True">
-                                        <property name="text" translatable="yes">-1</property>
-                                        <property name="textvariable">int:state_min_obj_size</property>
-                                        <layout manager="grid">
-                                          <property name="column">1</property>
-                                          <property name="padx">10</property>
-                                          <property name="pady">10</property>
-                                          <property name="row">8</property>
-                                          <property name="sticky">ew</property>
-                                        </layout>
+                                        <child>
+                                          <object class="ttk.Label" id="label18" named="True">
+                                            <property name="text" translatable="yes">Locator</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">0</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_black_ref_locator" named="True">
+                                            <property name="text" translatable="yes">rl-manual</property>
+                                            <property name="textvariable">string:state_black_ref_locator</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">0</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label19">
+                                            <property name="text" translatable="yes">Method</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">1</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_black_ref_method" named="True">
+                                            <property name="text" translatable="yes">br-avg</property>
+                                            <property name="textvariable">string:state_black_ref_method</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">1</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Button" id="button_black_ref_apply" named="True">
+                                            <property name="command" type="command" cbtype="simple">on_button_black_ref_apply</property>
+                                            <property name="text" translatable="yes">Apply</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">2</property>
+                                              <property name="sticky">e</property>
+                                            </layout>
+                                          </object>
+                                        </child>
                                       </object>
                                     </child>
                                   </object>
                                 </child>
+                                <child>
+                                  <object class="ttk.Labelframe" id="labelframe8">
+                                    <property name="height">200</property>
+                                    <property name="text" translatable="yes">White reference</property>
+                                    <property name="width">200</property>
+                                    <layout manager="pack" />
+                                    <child>
+                                      <object class="ttk.Frame" id="frame13">
+                                        <property name="height">200</property>
+                                        <property name="width">200</property>
+                                        <layout manager="grid">
+                                          <property name="column">0</property>
+                                          <property name="row">0</property>
+                                        </layout>
+                                        <child>
+                                          <object class="ttk.Label" id="label20" named="True">
+                                            <property name="text" translatable="yes">Locator</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">0</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_white_ref_locator" named="True">
+                                            <property name="text" translatable="yes">rl-manual</property>
+                                            <property name="textvariable">string:state_white_ref_locator</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">0</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label21">
+                                            <property name="text" translatable="yes">Method</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">1</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_white_ref_method" named="True">
+                                            <property name="text" translatable="yes">wr-none</property>
+                                            <property name="textvariable">string:state_white_ref_method</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">1</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Button" id="button_white_ref_apply" named="True">
+                                            <property name="command" type="command" cbtype="simple">on_button_white_ref_apply</property>
+                                            <property name="text" translatable="yes">Apply</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">2</property>
+                                              <property name="sticky">e</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="ttk.Frame" id="frame_options_col3" named="True">
+                                <property name="height">200</property>
+                                <property name="width">200</property>
+                                <layout manager="grid">
+                                  <property name="column">2</property>
+                                  <property name="row">0</property>
+                                  <property name="sticky">nw</property>
+                                </layout>
                               </object>
                             </child>
                           </object>

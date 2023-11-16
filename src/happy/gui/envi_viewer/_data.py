@@ -2,8 +2,8 @@ import numpy as np
 import spectral.io.envi as envi
 
 from happy.console.hsi_to_rgb.generate import normalize_data
-from happy.data.black_ref import SameSizeBlackReference, BlackReferenceAverage
-from happy.data.white_ref import SameSizeWhiteReference, WhiteReferenceAnnotationAverage
+from happy.data.black_ref import AbstractBlackReferenceMethod
+from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod, WhiteReferenceAnnotationAverage
 from happy.data.white_ref import LABEL_WHITEREF
 
 
@@ -25,9 +25,11 @@ class DataManager:
         self.scan_file = None
         self.scan_img = None
         self.scan_data = None
+        self.blackref_method = None
         self.blackref_file = None
         self.blackref_img = None
         self.blackref_data = None
+        self.whiteref_method = None
         self.whiteref_file = None
         self.whiteref_img = None
         self.whiteref_data = None
@@ -36,7 +38,6 @@ class DataManager:
         self.wavelengths = None
         self.contours = contours
         self.use_whiteref_annotation = False
-        self.whiteref_annotation = None
 
     def has_scan(self):
         """
@@ -123,14 +124,17 @@ class DataManager:
         self.whiteref_file = None
         self.whiteref_img = None
         self.whiteref_data = None
-        self.clear_whiteref_annotation()
         self.reset_norm_data()
 
-    def clear_whiteref_annotation(self):
+    def set_whiteref_method(self, method):
         """
-        Clears the calculated values from a whiteref annotation.
+        Sets the method for applying the white reference.
+        
+        :param method: the method
+        :type method: AbstractWhiteReferenceMethod 
         """
-        self.whiteref_annotation = None
+        self.whiteref_method = method
+        self.reset_norm_data()
 
     def set_whiteref(self, path):
         """
@@ -149,7 +153,6 @@ class DataManager:
         self.whiteref_file = path
         self.whiteref_img = img
         self.whiteref_data = data
-        self.whiteref_annotation = None
         self.reset_norm_data()
         return None
 
@@ -169,6 +172,16 @@ class DataManager:
         self.blackref_file = None
         self.blackref_img = None
         self.blackref_data = None
+        self.reset_norm_data()
+
+    def set_blackref_method(self, method):
+        """
+        Sets the method for applying the black reference.
+
+        :param method: the method
+        :type method: AbstractBlackReferenceMethod
+        """
+        self.blackref_method = method
         self.reset_norm_data()
 
     def set_blackref(self, path):
@@ -196,7 +209,6 @@ class DataManager:
         Resets the normalized data, forcing a recalculation.
         """
         self.norm_data = None
-        self.whiteref_annotation = None
 
     def calc_norm_data(self, log):
         """
@@ -211,31 +223,20 @@ class DataManager:
             self.norm_data = self.scan_data
             # apply black reference
             if self.blackref_data is not None:
-                if self.blackref_data.shape == self.norm_data.shape:
-                    b = SameSizeBlackReference()
-                    b.reference = self.blackref_data
-                    self.norm_data = b.apply(self.norm_data)
-                else:
-                    b = BlackReferenceAverage()
-                    b.reference = self.blackref_data
-                    self.norm_data = b.apply(self.norm_data)
+                if self.blackref_method is not None:
+                    self.blackref_method.reference = self.blackref_data
+                    self.norm_data = self.blackref_method.apply(self.norm_data)
             # apply white reference
-            if self.use_whiteref_annotation:
-                w = WhiteReferenceAnnotationAverage()
-                w.reference = self.scan_data
-                contours = self.contours.get_contours(LABEL_WHITEREF)
-                if len(contours) == 1:
-                    height, width, _ = self.scan_data.shape
-                    bbox = contours[0].to_absolute(width, height).bbox()
-                    w.annotation = (bbox.top, bbox.left, bbox.bottom, bbox.right)
-                    self.norm_data = w.apply(self.norm_data)
-                else:
-                    raise Exception("Require one '%s' annotation, but got: %d" % (LABEL_WHITEREF, len(contours)))
-            else:
-                if self.whiteref_data is not None:
-                    w = SameSizeWhiteReference()
-                    w.reference = self.whiteref_data
-                    self.norm_data = w.apply(self.norm_data)
+            if self.whiteref_data is not None:
+                if self.whiteref_method is not None:
+                    self.whiteref_method.reference = self.whiteref_data
+                    if isinstance(self.whiteref_method, AbstractAnnotationBasedWhiteReferenceMethod):
+                        contours = self.contours.get_contours(LABEL_WHITEREF)
+                        if len(contours) == 1:
+                            height, width, _ = self.scan_data.shape
+                            bbox = contours[0].to_absolute(width, height).bbox()
+                            self.whiteref_method.annotation = (bbox.top, bbox.left, bbox.bottom, bbox.right)
+                    self.norm_data = self.whiteref_method.apply(self.norm_data)
 
     def dims(self):
         """

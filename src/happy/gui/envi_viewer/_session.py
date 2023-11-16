@@ -24,7 +24,9 @@ PROPERTIES = [
     "marker_color",
     "min_obj_size",
     "black_ref_locator",
+    "black_ref_method",
     "white_ref_locator",
+    "white_ref_method",
 ]
 
 
@@ -60,7 +62,9 @@ class SessionManager(AbstractSessionManager):
         self.marker_color = "#ff0000"
         self.min_obj_size = -1
         self.black_ref_locator = "rl-manual"
-        self.manual_ref_locator = "rl-manual"
+        self.black_ref_method = "br-same-size"
+        self.white_ref_locator = "rl-manual"
+        self.white_ref_method = "wr-same-size"
 
     def get_default_config_name(self):
         """

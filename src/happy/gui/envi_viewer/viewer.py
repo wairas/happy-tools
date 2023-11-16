@@ -15,7 +15,8 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
-from happy.data.white_ref import LABEL_WHITEREF
+from happy.data.black_ref import AbstractBlackReferenceMethod
+from happy.data.white_ref import AbstractWhiteReferenceMethod, LABEL_WHITEREF
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.gui.envi_viewer import ContoursManager, Contour
 from happy.gui.envi_viewer import DataManager
@@ -62,7 +63,10 @@ class ViewerApp:
         self.state_scale_g = None
         self.state_scale_b = None
         self.state_export_with_annotations = None
-        self.state_use_whiteref_annotation = None
+        self.state_black_ref_locator = None
+        self.state_black_ref_method = None
+        self.state_white_ref_locator = None
+        self.state_white_ref_method = None
         builder.import_variables(self)
 
         # reference components
@@ -86,6 +90,10 @@ class ViewerApp:
         self.entry_min_obj_size = builder.get_object("entry_min_obj_size", master)
         self.label_redis_connection = builder.get_object("label_redis_connection", master)
         self.button_sam_connect = builder.get_object("button_sam_connect", master)
+        self.entry_black_ref_locator = builder.get_object("entry_black_ref_locator", master)
+        self.entry_black_ref_method = builder.get_object("entry_black_ref_method", master)
+        self.entry_white_ref_locator = builder.get_object("entry_white_ref_locator", master)
+        self.entry_white_ref_method = builder.get_object("entry_white_ref_method", master)
         # log
         self.text_log = builder.get_object("text_log", master)
         # statusbar
@@ -617,8 +625,7 @@ class ViewerApp:
             if new_label is not None:
                 for contour in contours:
                     contour.label = new_label
-                if (new_label == LABEL_WHITEREF) and (self.state_use_whiteref_annotation.get() == 1):
-                    self.data.clear_whiteref_annotation()
+                if new_label == LABEL_WHITEREF:
                     self.data.reset_norm_data()
                 self.update_info()
                 self.update_image()
@@ -653,6 +660,10 @@ class ViewerApp:
         self.session.marker_size = self.state_marker_size.get()
         self.session.marker_color = self.state_marker_color.get()
         self.session.min_obj_size = self.state_min_obj_size.get()
+        self.session.black_ref_locator = self.state_black_ref_locator.get()
+        self.session.black_ref_method = self.state_black_ref_method.get()
+        self.session.white_ref_locator = self.state_white_ref_locator.get()
+        self.session.white_ref_method = self.state_white_ref_method.get()
 
     def session_to_state(self):
         """
@@ -677,6 +688,61 @@ class ViewerApp:
         self.state_marker_size.set(self.session.marker_size)
         self.state_marker_color.set(self.session.marker_color)
         self.state_min_obj_size.set(self.session.min_obj_size)
+        self.state_black_ref_locator.set(self.session.black_ref_locator)
+        self.state_black_ref_method.set(self.session.black_ref_method)
+        self.state_white_ref_locator.set(self.session.white_ref_locator)
+        self.state_white_ref_method.set(self.session.white_ref_method)
+        # activate
+        self.apply_black_ref(do_update=False)
+        self.apply_white_ref(do_update=False)
+
+    def apply_black_ref(self, do_update=False):
+        # locator
+        cmdline = self.state_black_ref_locator.get()
+        try:
+            AbstractReferenceLocator.parse_locator(cmdline)
+            self.session.black_ref_locator = cmdline
+            self.log("Setting black ref locator: %s" % cmdline)
+        except:
+            messagebox.showerror("Error", "Failed to parse reference locator: %s" % cmdline)
+            return False
+        # method
+        cmdline = self.state_black_ref_method.get()
+        try:
+            method = AbstractBlackReferenceMethod.parse_method(cmdline)
+            self.data.set_blackref_method(method)
+            self.session.black_ref_method = cmdline
+            self.log("Setting black ref method: %s" % cmdline)
+        except:
+            messagebox.showerror("Error", "Failed to parse black reference method: %s" % cmdline)
+            return False
+        if do_update:
+            self.update_image()
+        return True
+
+    def apply_white_ref(self, do_update=False):
+        # locator
+        cmdline = self.state_white_ref_locator.get()
+        try:
+            AbstractReferenceLocator.parse_locator(cmdline)
+            self.session.white_ref_locator = cmdline
+            self.log("Setting white ref locator: %s" % cmdline)
+        except:
+            messagebox.showerror("Error", "Failed to parse reference locator: %s" % cmdline)
+            return False
+        # method
+        cmdline = self.state_white_ref_method.get()
+        try:
+            method = AbstractWhiteReferenceMethod.parse_method(cmdline)
+            self.data.set_whiteref_method(method)
+            self.session.white_ref_method = cmdline
+            self.log("Setting white ref method: %s" % cmdline)
+        except:
+            messagebox.showerror("Error", "Failed to parse white reference method: %s" % cmdline)
+            return False
+        if do_update:
+            self.update_image()
+        return True
 
     def scale_to_text(self, index):
         """
@@ -744,12 +810,6 @@ class ViewerApp:
         if filename is not None:
             self.session.last_whiteref_dir = os.path.dirname(filename)
             self.load_whiteref(filename, do_update=True)
-
-    def on_file_use_whiteref_annotation(self, event=None):
-        self.data.use_whiteref_annotation = (self.state_use_whiteref_annotation.get() == 1)
-        self.data.reset_norm_data()
-        self.update_info()
-        self.update_image()
 
     def on_file_exportimage_click(self, event=None):
         """
@@ -938,6 +998,12 @@ class ViewerApp:
                          self.state_redis_in.get(), self.state_redis_out.get(),
                          self.state_min_obj_size.get(), self.log, self.on_sam_predictions)
 
+    def on_button_black_ref_apply(self, event=None):
+        self.apply_black_ref(do_update=True)
+
+    def on_button_white_ref_apply(self, event=None):
+        self.apply_white_ref(do_update=True)
+
     def on_tools_polygon_click(self, event=None):
         if not self.markers.has_polygon():
             messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
@@ -1073,8 +1139,10 @@ def main(args=None):
     parser.add_argument("--marker_size", metavar="INT", help="The size in pixels for the SAM points", default=None, type=int, required=False)
     parser.add_argument("--marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)", default=None, required=False)
     parser.add_argument("--min_obj_size", metavar="INT", help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=None, type=int, required=False)
-    parser.add_argument("--black_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating black references", default="rl-manual", required=False)
-    parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references", default="rl-manual", required=False)
+    parser.add_argument("--black_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating black references, eg rl-manual", default=None, required=False)
+    parser.add_argument("--black_ref_method", metavar="METHOD", help="the black reference method to use for applying black references, eg br-same-size", default=None, required=False)
+    parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual", default=None, required=False)
+    parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
     parsed = parser.parse_args(args=args)
     app = ViewerApp()
 
