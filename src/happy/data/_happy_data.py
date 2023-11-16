@@ -34,8 +34,6 @@ class HappyData:
         preprocessor_method.fit(self.data)
         # Apply the specified preprocessing
         preprocessed_data, new_meta_dict = preprocessor_method.apply(self.data, self.metadata_dict)
-        
-
         preprocessed_happy_data = HappyData(self.sample_id, self.region_id, preprocessed_data, copy.deepcopy(self.global_dict), new_meta_dict)
         processing_note = {
             #"source": input_folder,
