@@ -31,8 +31,8 @@ def main():
         prog="happy-scikit-unsupervised-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--data_folder', type=str, help='Directory containing the hyperspectral data', required=True)
-    parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data', required=False, default=default_preprocessors())
-    parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use.', required=False, default=default_pixel_selectors())
+    parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data. Either preprocessor command-line(s) or file with one preprocessor command-line per line.', required=False, default=default_preprocessors())
+    parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use. Either pixel selector command-line(s) or file with one pixel selector command-line per line.', required=False, default=default_pixel_selectors())
     parser.add_argument('-m', '--clusterer_method', type=str, default="kmeans", help='Clusterer name (e.g., ' + ",".join(CLUSTERING_MODEL_MAP.keys()) + ') or full class name')
     parser.add_argument('-p', '--clusterer_params', type=str, default="{}", help='JSON string containing clusterer parameters')
     parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)

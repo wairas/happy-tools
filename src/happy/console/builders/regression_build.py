@@ -38,8 +38,8 @@ def main():
         prog="happy-scikit-regression-build",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--happy_data_base_dir', type=str, help='Directory containing the Happy Data files', required=True)
-    parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data', required=False, default=default_preprocessors())
-    parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use.', required=False, default=default_pixel_selectors())
+    parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data. Either preprocessor command-line(s) or file with one preprocessor command-line per line.', required=False, default=default_preprocessors())
+    parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use. Either pixel selector command-line(s) or file with one pixel selector command-line per line.', required=False, default=default_pixel_selectors())
     parser.add_argument('-m', '--regression_method', type=str, default="linearregression", help='Regression method name (e.g., ' + ",".join(REGRESSION_MODEL_MAP.keys()) + ' or full class name)')
     parser.add_argument('-p', '--regression_params', type=str, default="{}", help='JSON string containing regression parameters')
     parser.add_argument('-t', '--target_value', type=str, help='Target value column name', required=True)

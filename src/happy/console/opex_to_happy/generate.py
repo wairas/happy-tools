@@ -142,6 +142,7 @@ def generate(input_dirs, output_dir, output_format=OUTPUT_FORMAT_FLAT, labels=No
     if isinstance(labels, str):
         labels = [x.strip() for x in labels.split(",")]
 
+    # TODO recursive
     for input_dir in input_dirs:
         print("Entering: %s" % input_dir)
 
@@ -150,7 +151,7 @@ def generate(input_dirs, output_dir, output_format=OUTPUT_FORMAT_FLAT, labels=No
                 continue
 
             img_path = os.path.join(input_dir, f)
-            ann_path = os.path.splitext(img_path)[0] + ".json"
+            ann_path = os.path.splitext(img_path)[0] + ".json"  # TODO don't read labels.json
             if not os.path.exists(ann_path):
                 if verbose:
                     print("No annotation for: %s" % img_path)

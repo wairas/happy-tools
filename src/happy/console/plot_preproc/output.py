@@ -34,8 +34,8 @@ def main():
     parser.add_argument('-i', "--input_dir", type=str, help="Folder containing HAPPy data files", required=True)
     parser.add_argument('-f', '--from_index', type=int, help='The first wavelength index to include (0-based)', required=False, default=60)
     parser.add_argument('-t', '--to_index', type=int, help='The last wavelength index to include (0-based)', required=False, default=189)
-    parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data separately; use "multi-pp" if you need to combine multiple steps', required=False, default=default_preprocessors())
-    parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use.', required=False, default=default_pixel_selectors())
+    parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data separately; use "multi-pp" if you need to combine multiple steps. Either preprocessor command-line(s) or file with one preprocessor command-line per line.', required=False, default=default_preprocessors())
+    parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use. Either pixel selector command-line(s) or file with one pixel selector command-line per line.', required=False, default=default_pixel_selectors())
     args = parser.parse_args()
 
     parent_folder = os.path.basename(os.path.dirname(args.input_dir))

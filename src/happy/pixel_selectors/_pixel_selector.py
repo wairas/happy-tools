@@ -1,4 +1,5 @@
 import abc
+import os
 
 from happy.base.core import ConfigurableObject
 from happy.base.registry import REGISTRY
@@ -39,12 +40,30 @@ class PixelSelector(ConfigurableObject, Plugin, abc.ABC):
     def parse_pixel_selectors(cls, cmdline: str) -> List['PixelSelector']:
         """
         Splits the command-line, parses the arguments, instantiates and returns the pixel selectors.
+        If pointing to a file, reads one pixel selector per line, instantiates and returns them.
+        Empty lines or lines starting with # get ignored.
 
         :param cmdline: the command-line to process
         :type cmdline: str
         :return: the list of pixel selectors
         :rtype: list
         """
-        plugins = REGISTRY.pixel_selectors()
-        args = split_args(split_cmdline(cmdline), plugins.keys())
-        return args_to_objects(args, plugins, allow_global_options=False)
+        if os.path.exists(cmdline) and os.path.isfile(cmdline):
+            result = []
+            with open(cmdline) as fp:
+                for line in fp.readlines():
+                    line = line.strip()
+                    # empty?
+                    if len(line) == 0:
+                        continue
+                    # comment?
+                    if line.startswith("#"):
+                        continue
+                    ps = cls.parse_pixel_selector(line)
+                    if ps is not None:
+                        result.append(ps)
+            return result
+        else:
+            plugins = REGISTRY.pixel_selectors()
+            args = split_args(split_cmdline(cmdline), plugins.keys())
+            return args_to_objects(args, plugins, allow_global_options=False)

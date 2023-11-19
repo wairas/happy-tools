@@ -13,7 +13,7 @@ class MultiPreprocessor(Preprocessor):
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-p", "--preprocessors", type=str, help="TODO", required=False, default=None)
+        parser.add_argument("-p", "--preprocessors", type=str, help="The preprocessors to wrap. Either preprocessor command-line(s) or file with one preprocessor command-line per line.", required=False, default=None)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):

@@ -324,11 +324,15 @@ optional arguments:
                         Directory containing the Happy Data files (default:
                         None)
   -P PREPROCESSORS, --preprocessors PREPROCESSORS
-                        The preprocessors to apply to the data (default:
+                        The preprocessors to apply to the data. Either
+                        preprocessor command-line(s) or file with one
+                        preprocessor command-line per line. (default:
                         wavelength-subset -f 60 -t 189 sni snv derivative -w
                         15 pad -W 128 -H 128 -v 0)
   -S PIXEL_SELECTORS, --pixel_selectors PIXEL_SELECTORS
-                        The pixel selectors to use. (default: simple-ps -n 64)
+                        The pixel selectors to use. Either pixel selector
+                        command-line(s) or file with one pixel selector
+                        command-line per line. (default: simple-ps -n 64)
   -m REGRESSION_METHOD, --regression_method REGRESSION_METHOD
                         Regression method name (e.g., linearregression,ridge,l
                         ars,plsregression,plsneighbourregression,lasso,elastic
@@ -367,12 +371,15 @@ optional arguments:
                         Directory containing the hyperspectral data (default:
                         None)
   -P PREPROCESSORS, --preprocessors PREPROCESSORS
-                        The preprocessors to apply to the data (default:
+                        The preprocessors to apply to the data. Either
+                        preprocessor command-line(s) or file with one
+                        preprocessor command-line per line. (default:
                         wavelength-subset -f 60 -t 189 snv derivative pca -n 5
                         -p 20)
   -S PIXEL_SELECTORS, --pixel_selectors PIXEL_SELECTORS
-                        The pixel selectors to use. (default: simple-ps -n 32
-                        -b)
+                        The pixel selectors to use. Either pixel selector
+                        command-line(s) or file with one pixel selector
+                        command-line per line. (default: simple-ps -n 32 -b)
   -m CLUSTERER_METHOD, --clusterer_method CLUSTERER_METHOD
                         Clusterer name (e.g.,
                         kmeans,agglomerative,spectral,dbscan,meanshift) or

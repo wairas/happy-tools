@@ -1,7 +1,9 @@
 import abc
+import os
+
 from seppl import Plugin, split_args, split_cmdline, args_to_objects
 from happy.base.registry import REGISTRY
-from typing import List
+from typing import List, Optional
 
 
 class Preprocessor(Plugin, abc.ABC):
@@ -43,15 +45,51 @@ class Preprocessor(Plugin, abc.ABC):
         return f"{class_name}({arguments})"
 
     @classmethod
+    def parse_preprocessor(cls, cmdline: str) -> Optional['Preprocessor']:
+        """
+        Splits the command-line, parses the arguments, instantiates and returns the preprocessor.
+
+        :param cmdline: the command-line to process
+        :type cmdline: str
+        :return: the preprocessor, None if not exactly one selector parsed
+        :rtype: Preprocessor
+        """
+        plugins = REGISTRY.preprocessors()
+        args = split_args(split_cmdline(cmdline), plugins.keys())
+        l = args_to_objects(args, plugins, allow_global_options=False)
+        if len(l) == 1:
+            return l[0]
+        else:
+            return None
+
+    @classmethod
     def parse_preprocessors(cls, cmdline: str) -> List:
         """
         Splits the command-line, parses the arguments, instantiates and returns the preprocessors.
+        If pointing to a file, reads one preprocessor per line, instantiates and returns them.
+        Empty lines or lines starting with # get ignored.
 
         :param cmdline: the command-line to process
         :type cmdline: str
         :return: the preprocessor plugin list
         :rtype: list
         """
-        plugins = REGISTRY.preprocessors()
-        args = split_args(split_cmdline(cmdline), plugins.keys())
-        return args_to_objects(args, plugins, allow_global_options=False)
+        if os.path.exists(cmdline) and os.path.isfile(cmdline):
+            result = []
+            with open(cmdline) as fp:
+                for line in fp.readlines():
+                    line = line.strip()
+                    # empty?
+                    if len(line) == 0:
+                        continue
+                    # comment?
+                    if line.startswith("#"):
+                        continue
+                    pp = cls.parse_preprocessor(line.strip())
+                    if pp is not None:
+                        result.append(pp)
+            return result
+        else:
+            plugins = REGISTRY.preprocessors()
+            args = split_args(split_cmdline(cmdline), plugins.keys())
+            return args_to_objects(args, plugins, allow_global_options=False)
