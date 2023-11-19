@@ -31,7 +31,7 @@ class BlackReferenceAverage(AbstractFileBasedBlackReferenceMethod):
         :return: the description
         :rtype: str
         """
-        return "Computes the average per band. Does not require scan and reference to have the same size."
+        return "Black reference method that computes the average per band. Does not require scan and reference to have the same size."
 
     def _do_initialize(self):
         """

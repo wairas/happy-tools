@@ -26,7 +26,7 @@ class NoWhiteReference(AbstractWhiteReferenceMethod):
         :return: the description
         :rtype: str
         """
-        return "To be used when not applying a white reference."
+        return "White reference method to be used when not applying a white reference."
 
     def _do_apply(self, scan):
         """

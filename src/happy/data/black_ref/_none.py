@@ -26,7 +26,7 @@ class NoBlackReference(AbstractBlackReferenceMethod):
         :return: the description
         :rtype: str
         """
-        return "To be used when not applying a black reference."
+        return "Black reference method to be used when not applying a black reference."
 
     def _do_apply(self, scan):
         """

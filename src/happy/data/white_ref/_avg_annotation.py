@@ -31,7 +31,7 @@ class WhiteReferenceAnnotationAverage(AbstractAnnotationBasedWhiteReferenceMetho
         :return: the description
         :rtype: str
         """
-        return "Computes the average per band in the annotation rectangle. Does not require scan and reference to have the same size."
+        return "White reference method that computes the average per band in the annotation rectangle. Does not require scan and reference to have the same size."
 
     def _do_apply(self, scan):
         """

@@ -22,7 +22,7 @@ class SameSizeBlackReference(AbstractFileBasedBlackReferenceMethod):
         :return: the description
         :rtype: str
         """
-        return "Simply subtracts the black reference from the scan. Requires scan and reference to have the same size."
+        return "Black reference method that simply subtracts the black reference from the scan. Requires scan and reference to have the same size."
 
     def _do_apply(self, scan):
         """

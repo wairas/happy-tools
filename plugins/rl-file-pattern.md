@@ -1,12 +1,12 @@
 # rl-file-pattern
 
-Uses the supplied pattern and applies that to the incoming scan file name to generate the reference file name.
+Reference locator that uses the supplied pattern and applies that to the incoming scan file name to generate the reference file name.
 
 ```
 usage: rl-file-pattern [-h] [-p PATTERN]
 
-Uses the supplied pattern and applies that to the incoming scan file name to
-generate the reference file name.
+Reference locator that uses the supplied pattern and applies that to the
+incoming scan file name to generate the reference file name.
 
 optional arguments:
   -h, --help            show this help message and exit

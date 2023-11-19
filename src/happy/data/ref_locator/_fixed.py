@@ -28,7 +28,7 @@ class FixedLocator(AbstractReferenceLocator):
         :return: the description
         :rtype: str
         """
-        return "Always returns the specified reference file name."
+        return "Reference locator that always returns the specified reference file name."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         """

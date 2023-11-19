@@ -22,7 +22,7 @@ class SameSizeWhiteReference(AbstractFileBasedWhiteReferenceMethod):
         :return: the description
         :rtype: str
         """
-        return "Simply divides the scan by the white reference. Requires scan and reference to have the same size."
+        return "White reference method that simply divides the scan by the white reference. Requires scan and reference to have the same size."
 
     def _do_apply(self, scan):
         """

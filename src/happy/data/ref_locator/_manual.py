@@ -20,9 +20,9 @@ class ManualLocator(AbstractReferenceLocator):
         :return: the description
         :rtype: str
         """
-        return "User has to manually locate the reference file."
+        return "Reference locator where the user has to manually locate the reference file."
 
-    def _do_locate(self, scan_file)-> Optional[str]:
+    def _do_locate(self, scan_file) -> Optional[str]:
         """
         Attempts to locate the reference file using the supplied scan file.
 
