@@ -10,6 +10,7 @@ PROPERTIES = [
     "last_scan_dir",
     "last_scan_file",
     "last_image_dir",
+    "last_session_dir",
     "scale_r",
     "scale_g",
     "scale_b",
@@ -49,6 +50,7 @@ class SessionManager(AbstractSessionManager):
         self.last_scan_dir = ""
         self.last_scan_file = ""
         self.last_image_dir = ""
+        self.last_session_dir = "."
         self.scale_r = 0
         self.scale_g = 0
         self.scale_b = 0

@@ -83,6 +83,27 @@
                   <object class="tk.Menuitem.Separator" id="separator3" />
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Submenu" id="submenu3">
+                    <property name="label" translatable="yes">Session</property>
+                    <property name="tearoff">false</property>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_file_session_open" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_session_open</property>
+                        <property name="label" translatable="yes">Open...</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_file_session_save" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_session_save</property>
+                        <property name="label" translatable="yes">Save...</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator9" />
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_file_close" named="True">
                     <property name="accelerator">Alt+X</property>
                     <property name="command" type="command" cbtype="simple">on_file_close_click</property>

@@ -869,6 +869,49 @@ class ViewerApp:
                 annotations.save_json_to_file(filename)
                 self.log("Annotations saved to: %s" % filename)
 
+    def on_file_session_open(self, event=None):
+        """
+        Lets the user restore a session file.
+        """
+        filetypes = (
+            ('Session files', '*.json'),
+            ('All files', '*.*')
+        )
+        filename = fd.askopenfilename(
+            title="Open session",
+            initialdir=self.session.last_session_dir,
+            filetypes=filetypes)
+        if filename == "":
+            filename = None
+        if isinstance(filename, tuple):
+            filename = None
+        if filename is not None:
+            self.session.load(filename)
+            self.session.last_session_dir = os.path.dirname(filename)
+            self.session_to_state()
+            self.update()
+
+    def on_file_session_save(self, event=None):
+        """
+        Lets the user save a session to a file.
+        """
+        filetypes = (
+            ('Session files', '*.json'),
+            ('All files', '*.*')
+        )
+        initial_file = None
+        filename = fd.asksaveasfilename(
+            title="Save session",
+            initialdir=self.session.last_session_dir,
+            initialfile=initial_file,
+            filetypes=filetypes)
+        if filename == "":
+            filename = None
+        if filename is not None:
+            self.state_to_session()
+            self.session.last_session_dir = os.path.dirname(filename)
+            self.session.save(filename)
+
     def on_file_close_click(self, event=None):
         self.state_to_session()
         self.session.save()
