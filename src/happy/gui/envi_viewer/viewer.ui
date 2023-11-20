@@ -64,19 +64,34 @@
                   <object class="tk.Menuitem.Separator" id="separator7" />
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Checkbutton" id="checkbutton_export_with_annotations" named="True">
-                    <property name="label" translatable="yes">Export with overlays</property>
-                    <property name="offvalue">0</property>
-                    <property name="onvalue">1</property>
-                    <property name="variable">int:state_export_with_annotations</property>
-                  </object>
-                </child>
-                <child>
                   <object class="tk.Menuitem.Command" id="command_file_exportimage" named="True">
                     <property name="accelerator">Ctrl+E</property>
                     <property name="command" type="command" cbtype="simple">on_file_exportimage_click</property>
                     <property name="label" translatable="yes">Export image...</property>
                     <property name="underline">7</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Submenu" id="submenu5">
+                    <property name="label" translatable="yes">Export options</property>
+                    <child>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_export_with_annotations" named="True">
+                        <property name="command" type="command" cbtype="simple">on_export_overlay_annotations</property>
+                        <property name="label" translatable="yes">Overlay annotations</property>
+                        <property name="offvalue">0</property>
+                        <property name="onvalue">1</property>
+                        <property name="variable">int:state_export_overlay_annotations</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton1" named="True">
+                        <property name="command" type="command" cbtype="simple">on_export_keep_aspectratio</property>
+                        <property name="label" translatable="yes">Keep aspect ratio</property>
+                        <property name="offvalue">0</property>
+                        <property name="onvalue">1</property>
+                        <property name="variable">int:state_export_keep_aspectratio</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>

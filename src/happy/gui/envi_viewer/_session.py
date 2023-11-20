@@ -29,6 +29,8 @@ PROPERTIES = [
     "white_ref_locator",
     "white_ref_method",
     "preprocessing",
+    "export_overlay_annotations",
+    "export_keep_aspectratio",
 ]
 
 
@@ -69,6 +71,8 @@ class SessionManager(AbstractSessionManager):
         self.white_ref_locator = "rl-manual"
         self.white_ref_method = "wr-same-size"
         self.preprocessing = ""
+        self.export_overlay_annotations = False
+        self.export_keep_aspectratio = True
 
     def get_default_config_name(self):
         """

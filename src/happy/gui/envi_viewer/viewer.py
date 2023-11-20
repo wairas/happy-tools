@@ -63,7 +63,8 @@ class ViewerApp:
         self.state_scale_r = None
         self.state_scale_g = None
         self.state_scale_b = None
-        self.state_export_with_annotations = None
+        self.state_export_overlay_annotations = None
+        self.state_export_keep_aspectratio = None
         self.state_black_ref_locator = None
         self.state_black_ref_method = None
         self.state_white_ref_locator = None
@@ -356,7 +357,7 @@ class ViewerApp:
         else:
             return self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10
 
-    def fit_image_into_dims(self, available_width, available_height):
+    def fit_image_into_dims(self, available_width, available_height, keep_aspectratio):
         """
         Fits the image into the specified available dimensions and returns the calculated dimensions.
 
@@ -364,6 +365,8 @@ class ViewerApp:
         :type available_width: int
         :param available_height: the height to scale to
         :type available_height: int
+        :param keep_aspectratio: whether to keep the aspect ratio
+        :type keep_aspectratio: bool
         :return: the scaled dimensions (w,h), None if invalid width/height
         :rtype: tuple
         """
@@ -373,7 +376,7 @@ class ViewerApp:
             return None
 
         # keep aspect ratio?
-        if self.session.keep_aspectratio:
+        if keep_aspectratio:
             available_aspect = available_width / available_height
             img_width, img_height = self.data.dims()
             img_aspect = img_width / img_height
@@ -428,7 +431,7 @@ class ViewerApp:
         dims = self.get_image_label_dims()
         if dims is None:
             return
-        dims = self.fit_image_into_dims(dims[0], dims[1])
+        dims = self.fit_image_into_dims(dims[0], dims[1], self.session.keep_aspectratio)
         if dims is None:
             return
         image = self.get_scaled_image(dims[0], dims[1])
@@ -650,6 +653,7 @@ class ViewerApp:
         # last_whiteref_dir
         # last_scan_dir
         # last_image_dir
+        # last_session_dir
         self.session.scale_r = self.state_scale_r.get()
         self.session.scale_g = self.state_scale_g.get()
         self.session.scale_b = self.state_scale_b.get()
@@ -667,6 +671,8 @@ class ViewerApp:
         self.session.white_ref_locator = self.state_white_ref_locator.get()
         self.session.white_ref_method = self.state_white_ref_method.get()
         self.session.preprocessing = self.text_preprocessing.get("1.0", "end-1c")
+        self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
+        self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
 
     def session_to_state(self):
         """
@@ -679,6 +685,7 @@ class ViewerApp:
         # last_whiteref_dir
         # last_scan_dir
         # last_image_dir
+        # last_session_dir
         self.state_scale_r.set(self.session.scale_r)
         self.state_scale_g.set(self.session.scale_g)
         self.state_scale_b.set(self.session.scale_b)
@@ -697,6 +704,8 @@ class ViewerApp:
         self.state_white_ref_method.set(self.session.white_ref_method)
         self.text_preprocessing.delete(1.0, tk.END)
         self.text_preprocessing.insert(tk.END, self.session.preprocessing)
+        self.state_export_overlay_annotations.set(1 if self.session.export_overlay_annotations else 0)
+        self.state_export_keep_aspectratio.set(1 if self.session.export_keep_aspectratio else 0)
         # activate
         self.apply_black_ref(do_update=False)
         self.apply_white_ref(do_update=False)
@@ -838,19 +847,19 @@ class ViewerApp:
         """
         Allows the user to select a PNG file for saving the false color RGB to.
         """
-        if self.session.keep_aspectratio:
+        if self.session.export_keep_aspectratio:
             dims = self.data.dims()
         else:
             dims = self.get_image_label_dims()
         if dims is None:
             return
-        dims = self.fit_image_into_dims(dims[0], dims[1])
+        dims = self.fit_image_into_dims(dims[0], dims[1], self.session.export_keep_aspectratio)
         image = self.get_scaled_image(dims[0], dims[1])
         if image is None:
             return
 
         # include annotations?
-        if self.state_export_with_annotations.get() == 1:
+        if self.session.export_overlay_annotations:
             image_sam_points = self.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_sam_points is not None:
                 image.paste(image_sam_points, (0, 0), image_sam_points)
@@ -868,6 +877,12 @@ class ViewerApp:
                 filename = os.path.splitext(filename)[0] + ".json"
                 annotations.save_json_to_file(filename)
                 self.log("Annotations saved to: %s" % filename)
+
+    def on_export_overlay_annotations(self, event=None):
+        self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
+
+    def on_export_keep_aspectratio(self, event=None):
+        self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
 
     def on_file_session_open(self, event=None):
         """
