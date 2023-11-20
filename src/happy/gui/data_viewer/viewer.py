@@ -1,22 +1,22 @@
 #!/usr/bin/python3
 import argparse
-import numpy as np
 import os
 import pathlib
-import pygubu
-import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
-
-from PIL import Image, ImageTk
+import traceback
 from tkinter import filedialog as fd
 from tkinter import messagebox
-from ttkSimpleDialog import ttkSimpleDialog
-from happy.readers import HappyReader
-from happy.gui.data_viewer import SessionManager, PROPERTIES
-import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pygubu
+from PIL import Image, ImageTk
+from matplotlib.colors import Normalize
+from ttkSimpleDialog import ttkSimpleDialog
+
+from happy.gui.data_viewer import SessionManager
+from happy.readers import HappyReader
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -145,30 +145,41 @@ class ViewerApp:
         # base dir
         if (path is None) or (len(path) == 0):
             return
+        if not os.path.exists(path) or not os.path.isdir(path):
+            return
         self.load_dir(path)
 
         # sample
         if (sample is None) or (len(sample) == 0):
             return
         self.updating = True
+        found = False
         for i in range(self.listbox_samples.size()):
             s = self.listbox_samples.get(i)
             if s == sample:
                 self.listbox_samples.selection_clear(0, 'end')
                 self.listbox_samples.selection_set(i)
+                found = True
                 break
+        if not found:
+            self.updating = False
+            return
         self.load_sample(sample)
         self.updating = False
 
         # repeat
         if (repeat is None) or (len(repeat) == 0):
             return
+        found = False
         for i in range(self.listbox_repeats.size()):
             s = self.listbox_repeats.get(i)
             if s == repeat:
                 self.listbox_repeats.selection_clear(0, 'end')
                 self.listbox_repeats.selection_set(i)
+                found = True
                 break
+        if not found:
+            return
         self.load_repeat(repeat)
 
         # metadata key
@@ -281,9 +292,10 @@ class ViewerApp:
             sorted(metadata_keys)
             self.update_metadata_combobox(metadata_keys)  # Call a new method to update the Combobox
             if self.session.selected_metadata_key is not None:
-                metadata_values = self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key]["data"]
-                self.metadata_values = np.squeeze(metadata_values)
-                self.metadata_rgb_colors = self.map_metadata_to_rgb(self.metadata_values)
+                if self.session.selected_metadata_key in self.stored_happy_data[0].metadata_dict:
+                    metadata_values = self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key]["data"]
+                    self.metadata_values = np.squeeze(metadata_values)
+                    self.metadata_rgb_colors = self.map_metadata_to_rgb(self.metadata_values)
 
         self.log("Loaded HappyData: %s" % str(self.stored_happy_data))
         self.rgb_image = None
