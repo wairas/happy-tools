@@ -1056,7 +1056,7 @@ class ViewerApp:
         if dims is None:
             messagebox.showerror("Error", "No image available!")
             return
-        dims = self.fit_image_into_dims(dims[0], dims[1])
+        dims = self.fit_image_into_dims(dims[0], dims[1], self.session.keep_aspectratio)
         if dims is None:
             messagebox.showerror("Error", "No image available!")
             return
