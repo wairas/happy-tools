@@ -29,6 +29,14 @@ OUTPUT_FORMATS = [
 DEFAULT_REGION_ID = "1"
 
 
+FILENAME_PH_SAMPLEID = "{SAMPLEID}"
+""" placeholder for the sample ID in filenames. """
+
+FILENAME_PLACEHOLDERS = [
+    FILENAME_PH_SAMPLEID,
+]
+
+
 def locate_opex(input_dirs, recursive, verbose, opex_files):
     """
     Locates the PNG/OPEX JSON pairs.
@@ -153,8 +161,28 @@ def envi_to_happy(path_ann, output_dir, black_ref_locator=None, black_ref_method
         writer.write_data(data)
 
 
+def pattern_to_filename(pattern, placeholder_map):
+    """
+    Replaces placeholders in the provided pattern using the map with the
+    relation of placeholder/actual value.
+
+    :param pattern: the pattern string to expand
+    :type pattern: str
+    :param placeholder_map: the dictionary with the placeholder/actual value mapping
+    :type placeholder_map: dict
+    :return: the expanded pattern string
+    :rtype: str
+    """
+    result = pattern
+    for k in placeholder_map:
+        result = result.replace(k, placeholder_map[k])
+    return result
+
+
 def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, labels=None,
             black_ref_locator=None, black_ref_method=None, white_ref_locator=None, white_ref_method=None,
+            pattern_mask="mask.hdr", pattern_labels="mask.json",
+            pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_annotations=FILENAME_PH_SAMPLEID + ".json",
             include_input=False, dry_run=False, verbose=False):
     """
     Converts the specified file.
@@ -177,6 +205,14 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
     :type white_ref_locator: AbstractReferenceLocator
     :param white_ref_method: the white reference method to apply, ignored if None
     :type white_ref_method: AbstractWhiteReferenceMethod
+    :param pattern_mask: the file name pattern for the mask
+    :type pattern_mask: str
+    :param pattern_labels: the file name pattern for the mask label map
+    :type pattern_labels: str
+    :param pattern_png: the file name pattern for the PNG
+    :type pattern_png: str
+    :param pattern_annotations: the file name pattern for the OPEX JSON annotations
+    :type pattern_annotations: str
     :param include_input: whether to copy the PNG/JSON files into the output directory as well
     :type include_input: bool
     :param dry_run: whether to omit saving data/creating dirs
@@ -187,24 +223,22 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
     if verbose:
         print("- %s" % path_ann)
 
-    # determine actual output directory
     sample_id = os.path.splitext(os.path.basename(path_ann))[0]
+    pattern_map = {
+        FILENAME_PH_SAMPLEID: sample_id,
+    }
+
+    # determine actual output directory
     if output_format == OUTPUT_FORMAT_FLAT:
         output_path = output_dir
-        # output files
-        output_envi = os.path.join(output_path, sample_id + ".hdr")
-        output_png = os.path.join(output_path, sample_id + ".png")
-        output_ann = os.path.join(output_path, sample_id + ".json")
-        output_labels = os.path.join(output_path, sample_id + "-labels.json")
     elif (output_format == OUTPUT_FORMAT_DIRTREE) or (output_format == OUTPUT_FORMAT_DIRTREE_WITH_DATA):
         output_path = os.path.join(output_dir, sample_id, DEFAULT_REGION_ID)
-        # output files
-        output_envi = os.path.join(output_path, "mask.hdr")
-        output_png = os.path.join(output_path, sample_id + ".png")
-        output_ann = os.path.join(output_path, sample_id + ".json")
-        output_labels = os.path.join(output_path, "labels.json")
     else:
         raise Exception("Unhandled output format: %s" % output_format)
+    output_envi = os.path.join(output_path, pattern_to_filename(pattern_mask, pattern_map))
+    output_labels = os.path.join(output_path, pattern_to_filename(pattern_labels, pattern_map))
+    output_png = os.path.join(output_path, pattern_to_filename(pattern_png, pattern_map))
+    output_ann = os.path.join(output_path, pattern_to_filename(pattern_annotations, pattern_map))
     if verbose:
         print("  --> output dir: %s" % output_path)
 
@@ -268,6 +302,8 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
 
 def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMAT_FLAT, labels=None,
              black_ref_locator=None, black_ref_method=None, white_ref_locator=None, white_ref_method=None,
+             pattern_mask="mask.hdr", pattern_labels="mask.json",
+             pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_annotations=FILENAME_PH_SAMPLEID + ".json",
              include_input=False, dry_run=False, verbose=False):
     """
     Generates fake RGB images from the HSI images found in the specified directories.
@@ -290,6 +326,14 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     :type white_ref_locator: str
     :param white_ref_method: the white reference method to apply, ignored if None
     :type white_ref_method: str
+    :param pattern_mask: the file name pattern for the mask
+    :type pattern_mask: str
+    :param pattern_labels: the file name pattern for the mask label map
+    :type pattern_labels: str
+    :param pattern_png: the file name pattern for the PNG
+    :type pattern_png: str
+    :param pattern_annotations: the file name pattern for the OPEX JSON annotations
+    :type pattern_annotations: str
     :param include_input: whether to copy the PNG/JSON files into the output directory as well
     :type include_input: bool
     :param dry_run: whether to omit saving the PNG images
@@ -334,6 +378,8 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
         convert(ann_path, img_path, output_dir=output_dir, output_format=output_format,
                 black_ref_locator=black_ref_locator, black_ref_method=black_ref_method,
                 white_ref_locator=white_ref_locator, white_ref_method=white_ref_method,
+                pattern_mask=pattern_mask, pattern_labels=pattern_labels,
+                pattern_png=pattern_png, pattern_annotations=pattern_annotations,
                 labels=labels, include_input=include_input, dry_run=dry_run, verbose=verbose)
 
 
@@ -351,12 +397,16 @@ def main(args=None):
     parser.add_argument("-i", "--input_dir", nargs="+", metavar="DIR", type=str, help="Path to the PNG/OPEX files", required=True)
     parser.add_argument("-r", "--recursive", action="store_true", help="whether to look for OPEX files recursively", required=False)
     parser.add_argument("-o", "--output_dir", type=str, metavar="DIR", help="The directory to store the fake RGB PNG images instead of alongside the HSI images.", required=False)
-    parser.add_argument("-f", "--output_format", choices=OUTPUT_FORMATS, default=OUTPUT_FORMAT_FLAT, help="Defines how to store the data in the output directory.", required=True)
+    parser.add_argument("-f", "--output_format", choices=OUTPUT_FORMATS, default=OUTPUT_FORMAT_DIRTREE_WITH_DATA, help="Defines how to store the data in the output directory.", required=True)
     parser.add_argument("-l", "--labels", type=str, help="The comma-separated list of object labels to export ('Background' is automatically added).", required=True)
     parser.add_argument("--black_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating black references, eg rl-manual; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
     parser.add_argument("--black_ref_method", metavar="METHOD", help="the black reference method to use for applying black references, eg br-same-size; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
     parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
+    parser.add_argument("--pattern_mask", metavar="PATTERN", help="the pattern to use for saving the mask ENVI file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default="mask.hdr", required=False)
+    parser.add_argument("--pattern_labels", metavar="PATTERN", help="the pattern to use for saving the label map for the mask ENVI file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default="mask.json", required=False)
+    parser.add_argument("--pattern_png", metavar="PATTERN", help="the pattern to use for saving the mask PNG file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=FILENAME_PH_SAMPLEID + ".png", required=False)
+    parser.add_argument("--pattern_annotations", metavar="PATTERN", help="the pattern to use for saving the OPEX JSON annotation file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=FILENAME_PH_SAMPLEID + ".json", required=False)
     parser.add_argument("-I", "--include_input", action="store_true", help="whether to copy the PNG/JSON file across to the output dir", required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
     parser.add_argument("-v", "--verbose", action="store_true", help="whether to be more verbose with the output", required=False)
@@ -365,6 +415,8 @@ def main(args=None):
              recursive=parsed.recursive, output_format=parsed.output_format, labels=parsed.labels.split(","),
              black_ref_locator=parsed.black_ref_locator, black_ref_method=parsed.black_ref_method,
              white_ref_locator=parsed.white_ref_locator, white_ref_method=parsed.white_ref_method,
+             pattern_mask=parsed.pattern_mask, pattern_labels=parsed.pattern_labels,
+             pattern_png=parsed.pattern_png, pattern_annotations=parsed.pattern_annotations,
              include_input=parsed.include_input, dry_run=parsed.dry_run, verbose=parsed.verbose)
 
 
