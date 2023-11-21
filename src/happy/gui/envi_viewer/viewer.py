@@ -126,6 +126,7 @@ class ViewerApp:
         self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
         self.mainwindow.bind("<Control-p>", self.on_tools_polygon_click)
         self.mainwindow.bind("<Control-w>", self.on_tools_view_spectra_click)
+        self.mainwindow.bind("<Control-W>", self.on_tools_view_spectra_processed_click)
 
         # mouse events
         # https://tkinterexamples.com/events/mouse/
@@ -143,6 +144,8 @@ class ViewerApp:
         self.last_wavelengths = None
         self.markers = MarkersManager()
         self.sam = SamManager()
+        self.spectra_plot_raw = None
+        self.spectra_plot_processed = None
 
     def run(self):
         self.mainwindow.mainloop()
@@ -1105,8 +1108,27 @@ class ViewerApp:
 
         points = self.markers.to_spectra(self.data.scan_data)
         x = [x for x in range(self.data.get_num_bands())]
-        plt.close()
-        plt.figure(num='ENVI Viewer: Spectra')
+        if self.spectra_plot_raw is not None:
+            plt.close(self.spectra_plot_raw)
+        self.spectra_plot_raw = plt.figure(num='ENVI Viewer: Spectra (raw)')
+        for p in points:
+            plt.plot(x, points[p], label=p)
+        plt.xlabel("band index")
+        plt.ylabel("amplitude")
+        plt.title("Spectra")
+        plt.legend()
+        plt.show()
+
+    def on_tools_view_spectra_processed_click(self, event=None):
+        if not self.markers.has_points():
+            messagebox.showerror("Error", "No marker points present!")
+            return
+
+        points = self.markers.to_spectra(self.data.norm_data)
+        x = [x for x in range(self.data.get_num_bands())]
+        if self.spectra_plot_processed is not None:
+            plt.close(self.spectra_plot_processed)
+        self.spectra_plot_processed = plt.figure(num='ENVI Viewer: Spectra (processed)')
         for p in points:
             plt.plot(x, points[p], label=p)
         plt.xlabel("band index")

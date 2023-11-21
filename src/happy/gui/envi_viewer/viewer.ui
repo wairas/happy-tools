@@ -175,7 +175,14 @@
                   <object class="tk.Menuitem.Command" id="command_tools_view_spectra" named="True">
                     <property name="accelerator">Ctrl+W</property>
                     <property name="command" type="command" cbtype="simple">on_tools_view_spectra_click</property>
-                    <property name="label" translatable="yes">View spectra...</property>
+                    <property name="label" translatable="yes">View spectra (raw)...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_tools_view_spectra_processed" named="True">
+                    <property name="accelerator">Ctrl+W</property>
+                    <property name="command" type="command" cbtype="simple">on_tools_view_spectra_processed_click</property>
+                    <property name="label" translatable="yes">View spectra (processed)...</property>
                   </object>
                 </child>
               </object>
