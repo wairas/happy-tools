@@ -1072,7 +1072,6 @@
                     <child>
                       <object class="ttk.Scale" id="scale_g" named="True">
                         <property name="command" type="command" cbtype="scale">on_scale_g_changed</property>
-                        <property name="compound">top</property>
                         <property name="from_">0</property>
                         <property name="to">255</property>
                         <property name="variable">int:state_scale_g</property>
@@ -1118,7 +1117,6 @@
                     <child>
                       <object class="ttk.Scale" id="scale_b" named="True">
                         <property name="command" type="command" cbtype="scale">on_scale_b_changed</property>
-                        <property name="compound">top</property>
                         <property name="from_">0</property>
                         <property name="to">255</property>
                         <property name="variable">int:state_scale_b</property>
