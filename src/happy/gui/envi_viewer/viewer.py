@@ -17,7 +17,7 @@ from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod
-from happy.data import LABEL_WHITEREF
+from happy.data import LABEL_WHITEREF, configure_envi_settings
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.preprocessors import Preprocessor
 from happy.gui.envi_viewer import ContoursManager, Contour
@@ -1223,6 +1223,7 @@ def main(args=None):
     :param args: the commandline arguments, uses sys.argv if not supplied
     :type args: list
     """
+    configure_envi_settings()
     parser = argparse.ArgumentParser(
         description="ENVI Hyperspectral Image Viewer.\nOffers contour detection using SAM (Segment-Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-anything)",
         prog="happy-envi-viewer",

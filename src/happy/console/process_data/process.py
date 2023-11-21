@@ -2,6 +2,7 @@ import sys
 import traceback
 
 from seppl import split_args, args_to_objects, get_class_name, is_help_requested
+from happy.data import configure_envi_settings
 from happy.base.registry import REGISTRY, print_help, print_help_all
 from happy.readers import HappyDataReader
 from happy.preprocessors import Preprocessor, MultiPreprocessor
@@ -21,6 +22,7 @@ def default_pipeline() -> str:
 
 
 def main():
+    configure_envi_settings()
     args = sys.argv[1:]
     help_requested, help_all, help_plugin = is_help_requested(args)
     if help_requested:

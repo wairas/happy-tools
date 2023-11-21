@@ -1,6 +1,8 @@
 import os
 import argparse
 import traceback
+
+from happy.data import configure_envi_settings
 from happy.readers import HappyReader
 from happy.writers import HappyWriter
 from happy.criteria import Criteria, OP_NOT_IN
@@ -29,6 +31,7 @@ def get_sample_ids(source_folder):
 
 
 def main():
+    configure_envi_settings()
     parser = argparse.ArgumentParser(
         description='Generate datasets as numpy cubes, to be loaded into deep learning datasets.',
         prog="happy-generate-image-regions-objects",

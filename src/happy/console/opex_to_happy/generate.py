@@ -10,7 +10,7 @@ from spectral import envi
 import spectral.io.envi as envi_load
 from PIL import Image, ImageDraw
 from opex import ObjectPredictions
-from happy.data import HappyData
+from happy.data import HappyData, configure_envi_settings
 from happy.writers import HappyWriter
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.data.white_ref import AbstractWhiteReferenceMethod
@@ -390,6 +390,7 @@ def main(args=None):
     :param args: the commandline arguments, uses sys.argv if not supplied
     :type args: list
     """
+    configure_envi_settings()
     parser = argparse.ArgumentParser(
         description="Turns annotations (PNG and OPEX JSON) into Happy ENVI format.",
         prog="happy-opex2happy",

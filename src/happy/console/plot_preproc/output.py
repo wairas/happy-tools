@@ -4,6 +4,7 @@ import traceback
 
 import matplotlib.pyplot as plt
 
+from happy.data import configure_envi_settings
 from happy.pixel_selectors import PixelSelector, MultiSelector
 from happy.preprocessors import Preprocessor, WavelengthSubsetPreprocessor
 from happy.readers import HappyReader
@@ -27,6 +28,7 @@ def default_pixel_selectors() -> str:
 
 
 def main():
+    configure_envi_settings()
     parser = argparse.ArgumentParser(
         description="Plot set of pixels with various pre-processing setups.",
         prog="happy-plot-preproc",

@@ -1,6 +1,8 @@
 import argparse
 import os
 import traceback
+
+from happy.data import configure_envi_settings
 from happy.splitters import HappySplitter
 from happy.models.sklearn import create_model, CLUSTERING_MODEL_MAP
 from happy.models.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer, create_false_color_image, create_prediction_image
@@ -26,6 +28,7 @@ def default_pixel_selectors() -> str:
 
 
 def main():
+    configure_envi_settings()
     parser = argparse.ArgumentParser(
         description='Evaluate clustering on hyperspectral data using specified clusterer and pixel selector.',
         prog="happy-scikit-unsupervised-build",

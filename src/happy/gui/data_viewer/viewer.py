@@ -17,6 +17,7 @@ from ttkSimpleDialog import ttkSimpleDialog
 
 from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
+from happy.data import configure_envi_settings
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
@@ -569,6 +570,7 @@ class ViewerApp:
 
 
 def main():
+    configure_envi_settings()
     parser = argparse.ArgumentParser(
         description="Viewer for HAPPy data folder structures.",
         prog="happy-data-viewer",

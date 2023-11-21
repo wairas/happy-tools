@@ -1,9 +1,12 @@
 import argparse
 import traceback
+
+from happy.data import configure_envi_settings
 from happy.splitters import HappySplitter
 
             
 def main():
+    configure_envi_settings()
     parser = argparse.ArgumentParser(
         description='Generate train/validation/test splits for Happy data.',
         prog="happy-splitter",

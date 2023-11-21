@@ -6,6 +6,7 @@ import os
 import traceback
 
 from PIL import Image
+from happy.data import configure_envi_settings
 
 
 def normalize_data(data):
@@ -209,6 +210,7 @@ def main(args=None):
     :param args: the commandline arguments, uses sys.argv if not supplied
     :type args: list
     """
+    configure_envi_settings()
     parser = argparse.ArgumentParser(
         description="Fake RGB image generator for HSI files.",
         prog="happy-hsi2rgb",
