@@ -157,6 +157,23 @@ class DataManager:
         self.reset_norm_data()
         return None
 
+    def set_whiteref_data(self, data):
+        """
+        Sets the white reference data (when not loading from a file).
+
+        :param data: the reference data
+        :return: None if successfully added, otherwise error message
+        :rtype: str
+        """
+        if not self.has_scan():
+            return "Please load a scan first!"
+
+        self.whiteref_file = None
+        self.whiteref_img = None
+        self.whiteref_data = data
+        self.reset_norm_data()
+        return None
+
     def has_blackref(self):
         """
         Checks whether black reference data is present.
@@ -201,6 +218,23 @@ class DataManager:
         data = img.load()
         self.blackref_file = path
         self.blackref_img = img
+        self.blackref_data = data
+        self.reset_norm_data()
+        return None
+
+    def set_blackref_data(self, data):
+        """
+        Sets the black reference data (when not loading from a file).
+
+        :param data: the reference data
+        :return: None if successfully added, otherwise error message
+        :rtype: str
+        """
+        if not self.has_scan():
+            return "Please load a scan first!"
+
+        self.blackref_file = None
+        self.blackref_img = None
         self.blackref_data = data
         self.reset_norm_data()
         return None

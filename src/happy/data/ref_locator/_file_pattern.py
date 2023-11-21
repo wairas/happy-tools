@@ -2,7 +2,7 @@ import argparse
 import os
 from typing import Optional
 
-from ._core import AbstractReferenceLocator
+from ._core import AbstractFileBasedReferenceLocator
 
 PH_PATH = "{PATH}"
 """ the path placeholder in the pattern. """
@@ -20,12 +20,13 @@ PLACEHOLDERS = [
 ]
 
 
-class FilePatternLocator(AbstractReferenceLocator):
+class FilePatternLocator(AbstractFileBasedReferenceLocator):
 
     def __init__(self):
         """
         Initializes the locator.
         """
+        super().__init__()
         self._pattern = None
 
     def name(self) -> str:
@@ -67,31 +68,26 @@ class FilePatternLocator(AbstractReferenceLocator):
         super()._apply_args(ns)
         self._pattern = ns.pattern
 
-    def _check(self, scan_file: str) -> Optional[str]:
+    def _pre_check(self) -> Optional[str]:
         """
         Hook method that gets called before attempting to locate the file.
 
-        :param scan_file: the scan file to use for locating
-        :type scan_file: str
         :return: the result of the check, None if successful otherwise error message
         :rtype: str
         """
-        result = super()._check(scan_file)
+        result = super()._pre_check()
         if result is None:
             if (self._pattern is None) or (len(self._pattern) == 0):
                 result = "No pattern defined!"
         return result
 
-    def _do_locate(self, scan_file: str) -> Optional[str]:
+    def _do_locate(self):
         """
         Attempts to locate the reference file using the supplied scan file.
 
-        :param scan_file: the scan file to use as basis for locating the reference
-        :type scan_file: str
         :return: the suggested reference file name, None if failed to do so
-        :rtype: str
         """
-        p = os.path.dirname(scan_file)
-        n, e = os.path.splitext(os.path.basename(scan_file))
+        p = os.path.dirname(self.base_file)
+        n, e = os.path.splitext(os.path.basename(self.base_file))
         result = self._pattern.replace(PH_PATH, p).replace(PH_NAME, n).replace(PH_EXT, e)
         return result

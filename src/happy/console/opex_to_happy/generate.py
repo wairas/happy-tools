@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw
 from opex import ObjectPredictions
 from happy.data import HappyData, configure_envi_settings
 from happy.writers import HappyWriter
-from happy.data.ref_locator import AbstractReferenceLocator
+from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator
 from happy.data.white_ref import AbstractWhiteReferenceMethod
 from happy.data.black_ref import AbstractBlackReferenceMethod
 
@@ -130,28 +130,40 @@ def envi_to_happy(path_ann, output_dir, black_ref_locator=None, black_ref_method
     scan = envi_load.open(path_hdr).load()
 
     if black_ref_locator is not None:
-        black_ref_file = black_ref_locator.locate(path_hdr)
-        if black_ref_file is not None:
-            if os.path.exists(black_ref_file):
-                if verbose:
-                    print("    --> loading black ref: %s" % black_ref_file)
-                black_ref = envi_load.open(path_hdr).load()
-                black_ref_method.reference = black_ref
-                scan = black_ref_method.apply(scan)
-            else:
-                print("    --> black ref file not found: %s" % black_ref_file)
+        if isinstance(black_ref_locator, AbstractFileBasedReferenceLocator):
+            black_ref_locator.base_file = path_hdr
+            black_ref_file = black_ref_locator.locate()
+            if black_ref_file is not None:
+                if os.path.exists(black_ref_file):
+                    if verbose:
+                        print("    --> loading black ref: %s" % black_ref_file)
+                    black_ref = envi_load.open(path_hdr).load()
+                    black_ref_method.reference = black_ref
+                    scan = black_ref_method.apply(scan)
+                else:
+                    print("    --> black ref file not found: %s" % black_ref_file)
+        else:
+            black_ref = black_ref_locator.locate()
+            black_ref_method.reference = black_ref
+            scan = black_ref_method.apply(scan)
 
     if white_ref_locator is not None:
-        white_ref_file = white_ref_locator.locate(path_hdr)
-        if white_ref_file is not None:
-            if os.path.exists(white_ref_file):
-                if verbose:
-                    print("    --> loading white ref: %s" % white_ref_file)
-                white_ref = envi_load.open(path_hdr).load()
-                white_ref_method.reference = white_ref
-                scan = white_ref_method.apply(scan)
+        if isinstance(white_ref_locator, AbstractFileBasedReferenceLocator):
+            white_ref_locator.base_file = path_hdr
+            white_ref_file = white_ref_locator.locate()
+            if white_ref_file is not None:
+                if os.path.exists(white_ref_file):
+                    if verbose:
+                        print("    --> loading white ref: %s" % white_ref_file)
+                    white_ref = envi_load.open(path_hdr).load()
+                    white_ref_method.reference = white_ref
+                    scan = white_ref_method.apply(scan)
+            else:
+                print("    --> white ref file not found: %s" % white_ref_file)
         else:
-            print("    --> white ref file not found: %s" % white_ref_file)
+            white_ref = white_ref_locator.locate()
+            white_ref_method.reference = white_ref
+            scan = white_ref_method.apply(scan)
 
     data = HappyData(get_sample_id(path_ann), DEFAULT_REGION_ID, scan, {}, {})
     if not dry_run:

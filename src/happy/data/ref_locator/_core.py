@@ -1,4 +1,5 @@
 import abc
+import argparse
 import os
 
 from typing import Optional
@@ -11,45 +12,47 @@ class AbstractReferenceLocator(Plugin, abc.ABC):
     Ancestor for schemes that locate reference data.
     """
 
-    def _check(self, scan_file: str) -> Optional[str]:
+    def _pre_check(self) -> Optional[str]:
         """
-        Hook method that gets called before attempting to locate the file.
+        Hook method that gets called before attempting to locate the reference data.
 
-        :param scan_file: the scan file to use for locating
-        :type scan_file: str
         :return: the result of the check, None if successful otherwise error message
         :rtype: str
         """
         return None
 
-    def _do_locate(self, scan_file: str) -> Optional[str]:
+    def _do_locate(self):
         """
-        Attempts to locate the reference file using the supplied scan file.
+        Attempts to locate the reference.
 
-        :param scan_file: the scan file to use as basis for locating the reference
-        :type scan_file: str
-        :return: the suggested reference file name, None if failed to do so
-        :rtype: str
+        :return: the suggested reference, None if failed to do so
         """
         raise NotImplementedError()
 
-    def locate(self, scan_file: str, must_exist: bool = False) -> Optional[str]:
+    def _post_check(self, ref) -> Optional[str]:
+        """
+        For checking the located reference.
+
+        :param ref: the reference to object
+        :return: None if successful check, otherwise error message
+        :rtype: str
+        """
+        return None
+
+    def locate(self):
         """
         Attempts to locate the reference file using the supplied scan file.
 
-        :param scan_file: the scan file to use as basis for locating the reference
-        :type scan_file: str
-        :param must_exist: whether the file must exist, returns None if it doesn't exist
-        :type must_exist: bool
-        :return: the suggested reference file name, None if failed to do so
-        :rtype: str
+        :return: the located reference, None if failed to locate
         """
-        msg = self._check(scan_file)
+        msg = self._pre_check()
         if msg is not None:
             raise Exception(msg)
-        result = self._do_locate(scan_file)
-        if (result is not None) and must_exist and (not os.path.exists(result)):
-            result = None
+        result = self._do_locate()
+        if result is not None:
+            msg = self._post_check(result)
+            if msg is not None:
+                raise Exception(msg)
         return result
 
     @classmethod
@@ -70,19 +73,87 @@ class AbstractReferenceLocator(Plugin, abc.ABC):
         else:
             raise Exception("Expected one reference locator plugin, but got %d from command-line: %s" % (len(plugins), cmdline))
 
-    @classmethod
-    def apply_locator(cls, cmdline: str, scan_file: str, must_exist: bool = False) -> Optional[str]:
-        """
-        Parses the locator commandline and applies it to the scan file to locate the reference.
 
-        :param cmdline: the command-line to process
-        :type cmdline: str
-        :param scan_file: the scan file to use as basis for locating the reference
-        :type scan_file: str
-        :param must_exist: whether the file must exist, returns None if it doesn't exist
-        :type must_exist: bool
-        :return: the suggested reference file name, None if failed to do so
+class AbstractFileBasedReferenceLocator(AbstractReferenceLocator, abc.ABC):
+    """
+    Ancestor for reference locators that use files to locate the reference files.
+    """
+
+    def __init__(self):
+        """
+        Initializes the locator.
+        """
+        self._base_file = None
+        self._must_exist = False
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        """
+        Creates an argument parser.
+
+        :return: the parser
+        :rtype: argparse.ArgumentParser
+        """
+        parser = super()._create_argparser()
+        parser.add_argument("-m", "--must_exist", action="store_true", help="Whether the determined reference file must exist", required=False)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        """
+        Initializes the object with the arguments of the parsed namespace.
+
+        :param ns: the parsed arguments
+        :type ns: argparse.Namespace
+        """
+        super()._apply_args(ns)
+        self._must_exist = ns.must_exist
+
+    @property
+    def base_file(self):
+        """
+        Returns the base file.
+
+        :return: the base file
         :rtype: str
         """
-        locator = cls.parse_locator(cmdline)
-        return locator.locate(scan_file, must_exist=must_exist)
+        return self._base_file
+
+    @base_file.setter
+    def base_file(self, path):
+        """
+        Sets the base file to use.
+
+        :param path: the base file
+        :type path: str
+        """
+        self._base_file = path
+
+    def _pre_check(self) -> Optional[str]:
+        """
+        Hook method that gets called before attempting to locate the file.
+
+        :return: the result of the check, None if successful otherwise error message
+        :rtype: str
+        """
+        result = super()._pre_check()
+
+        if result is None:
+            if self.base_file is None:
+                result = "No base file set!"
+
+        return result
+
+    def _post_check(self, ref) -> Optional[str]:
+        """
+        For checking the located reference.
+
+        :param ref: the reference to object
+        :return: None if successful check, otherwise error message
+        :rtype: str
+        """
+        result = super()._post_check(ref)
+
+        if result is None:
+            if self._must_exist and not os.path.exists(ref):
+                result = "Reference file does not exist: %s" % ref
+
+        return result

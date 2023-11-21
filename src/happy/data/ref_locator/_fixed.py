@@ -51,28 +51,23 @@ class FixedLocator(AbstractReferenceLocator):
         super()._apply_args(ns)
         self._reference_file = ns.reference_file
 
-    def _check(self, scan_file: str) -> Optional[str]:
+    def _pre_check(self) -> Optional[str]:
         """
         Hook method that gets called before attempting to locate the file.
 
-        :param scan_file: the scan file to use for locating
-        :type scan_file: str
         :return: the result of the check, None if successful otherwise error message
         :rtype: str
         """
-        result = super()._check(scan_file)
+        result = super()._pre_check()
         if result is None:
             if (self._reference_file is None) or (len(self._reference_file) == 0):
                 result = "No reference file specified!"
         return result
 
-    def _do_locate(self, scan_file: str) -> Optional[str]:
+    def _do_locate(self):
         """
         Attempts to locate the reference file using the supplied scan file.
 
-        :param scan_file: the scan file to use as basis for locating the reference
-        :type scan_file: str
         :return: the suggested reference file name, None if failed to do so
-        :rtype: str
         """
         return self._reference_file

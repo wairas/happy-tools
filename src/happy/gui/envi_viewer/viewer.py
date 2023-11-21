@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import os
 import pathlib
 import pygubu
+import sys
 import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -18,7 +19,7 @@ from ttkSimpleDialog import ttkSimpleDialog
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod
 from happy.data import LABEL_WHITEREF, configure_envi_settings
-from happy.data.ref_locator import AbstractReferenceLocator
+from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator
 from happy.preprocessors import Preprocessor
 from happy.gui.envi_viewer import ContoursManager, Contour
 from happy.gui.envi_viewer import DataManager
@@ -277,19 +278,33 @@ class ViewerApp:
 
         # locate black reference
         try:
-            ref = AbstractReferenceLocator.apply_locator(self.session.black_ref_locator, filename, must_exist=True)
+            loc = AbstractReferenceLocator.parse_locator(self.session.black_ref_locator)
+            if isinstance(loc, AbstractFileBasedReferenceLocator):
+                loc.base_file = filename
+            ref = loc.locate()
             if ref is not None:
-                self.load_blackref(ref, do_update=False)
+                if isinstance(ref, str):
+                    self.load_blackref(ref, do_update=False)
+                else:
+                    self.data.set_blackref_data(ref)
         except:
-            pass
+            print("Failed to load black reference!", file=sys.stderr)
+            traceback.print_exc()
 
         # locate white reference
         try:
-            ref = AbstractReferenceLocator.apply_locator(self.session.white_ref_locator, filename, must_exist=True)
+            loc = AbstractReferenceLocator.parse_locator(self.session.white_ref_locator)
+            if isinstance(loc, AbstractFileBasedReferenceLocator):
+                loc.base_file = filename
+            ref = loc.locate()
             if ref is not None:
-                self.load_whiteref(ref, do_update=False)
+                if isinstance(ref, str):
+                    self.load_whiteref(ref, do_update=False)
+                else:
+                    self.data.set_whiteref_data(ref)
         except:
-            pass
+            print("Failed to load white reference!", file=sys.stderr)
+            traceback.print_exc()
 
         if do_update:
             self.update()
