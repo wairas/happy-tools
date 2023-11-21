@@ -5,6 +5,7 @@ PROPERTIES = [
     "autodetect_channels",
     "keep_aspectratio",
     "check_scan_dimensions",
+    "export_to_scan_dir",
     "last_blackref_dir",
     "last_whiteref_dir",
     "last_scan_dir",
@@ -47,6 +48,7 @@ class SessionManager(AbstractSessionManager):
         self.autodetect_channels = False
         self.keep_aspectratio = False
         self.check_scan_dimensions = True
+        self.export_to_scan_dir = False
         self.last_blackref_dir = ""
         self.last_whiteref_dir = ""
         self.last_scan_dir = ""

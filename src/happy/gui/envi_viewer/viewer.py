@@ -52,6 +52,7 @@ class ViewerApp:
         self.state_keep_aspectratio = None
         self.state_autodetect_channels = None
         self.state_check_scan_dimensions = None
+        self.state_export_to_scan_dir = None
         self.state_annotation_color = None
         self.state_redis_host = None
         self.state_redis_port = None
@@ -83,6 +84,7 @@ class ViewerApp:
         self.checkbutton_autodetect_channels = builder.get_object("checkbutton_autodetect_channels", master)
         self.checkbutton_keep_aspectratio = builder.get_object("checkbutton_keep_aspectratio", master)
         self.checkbutton_check_scan_dimenions = builder.get_object("checkbutton_check_scan_dimensions", master)
+        self.checkbutton_export_to_scan_dir = builder.get_object("checkbutton_export_to_scan_dir", master)
         self.entry_annotation_color = builder.get_object("entry_annotation_color", master)
         self.entry_redis_host = builder.get_object("entry_redis_host", master)
         self.entry_redis_port = builder.get_object("entry_redis_port", master)
@@ -653,6 +655,7 @@ class ViewerApp:
         self.session.autodetect_channels = (self.state_autodetect_channels.get() == 1)
         self.session.keep_aspectratio = (self.state_keep_aspectratio.get() == 1)
         self.session.check_scan_dimensions = (self.state_check_scan_dimensions.get() == 1)
+        self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
         # last_blackref_dir
         # last_whiteref_dir
         # last_scan_dir
@@ -685,6 +688,7 @@ class ViewerApp:
         self.state_autodetect_channels.set(1 if self.session.autodetect_channels else 0)
         self.state_keep_aspectratio.set(1 if self.session.keep_aspectratio else 0)
         self.state_check_scan_dimensions.set(1 if self.session.check_scan_dimensions else 0)
+        self.state_export_to_scan_dir.set(1 if self.session.export_to_scan_dir else 0)
         # last_blackref_dir
         # last_whiteref_dir
         # last_scan_dir
@@ -871,7 +875,11 @@ class ViewerApp:
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
 
-        filename = self.save_image_file('Save image', self.session.last_image_dir, scan=self.session.last_scan_file)
+        if self.session.export_to_scan_dir:
+            initial_dir = os.path.dirname(self.data.scan_file)
+        else:
+            initial_dir = self.session.last_image_dir
+        filename = self.save_image_file('Save image', initial_dir, scan=self.session.last_scan_file)
         if filename is not None:
             self.session.last_image_dir = os.path.dirname(filename)
             image.save(filename)
@@ -945,6 +953,9 @@ class ViewerApp:
 
     def on_check_scan_dimensions_click(self):
         self.session.check_scan_dimensions = (self.state_check_scan_dimensions.get() == 1)
+
+    def on_export_to_scan_dir_click(self):
+        self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
 
     def on_scale_r_changed(self, event):
         self.red_scale_value.configure(text=self.scale_to_text(self.state_scale_r.get()))
@@ -1237,6 +1248,7 @@ def main(args=None):
     parser.add_argument("--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False, default=None)
     parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False, default=None)
     parser.add_argument("--check_scan_dimensions", action="store_true", help="whether to compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
+    parser.add_argument("--export_to_scan_dir", action="store_true", help="whether to export images to the scan directory rather than the last one used", required=False, default=None)
     parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default=None, required=False)
     parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default=None, required=False)
     parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=None, required=False)
