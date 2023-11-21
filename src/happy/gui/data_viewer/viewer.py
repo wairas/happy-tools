@@ -399,7 +399,7 @@ class ViewerApp:
             new_width = int(new_height * aspect_ratio)
 
         # Resize the image using PIL
-        rgb_image = rgb_image.resize((new_width, new_height), Image.ANTIALIAS)
+        rgb_image = rgb_image.resize((new_width, new_height), Image.LANCZOS)
 
         # Create a new PhotoImage object from the resized PIL image
         resized_image = ImageTk.PhotoImage(rgb_image)
