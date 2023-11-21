@@ -13,7 +13,7 @@ class BlackReferenceAverage(AbstractFileBasedBlackReferenceMethod):
         Basic initialization of the black reference method.
         """
         super().__init__()
-        self._black_reference_avg = None
+        self._avg = None
 
     def name(self) -> str:
         """
@@ -38,11 +38,10 @@ class BlackReferenceAverage(AbstractFileBasedBlackReferenceMethod):
         Hook method for initializing the black reference method.
         """
         super()._do_initialize()
-        self._black_reference_avg = []
         num_bands = self.reference.shape[2]
-        self._black_reference_avg = []
+        self._avg = []
         for i in range(num_bands):
-            self._black_reference_avg.append(np.average(self.reference[:, :, i]))
+            self._avg.append(np.average(self.reference[:, :, i]))
 
     def _do_apply(self, scan):
         """
@@ -53,5 +52,5 @@ class BlackReferenceAverage(AbstractFileBasedBlackReferenceMethod):
         """
         black_ref = np.empty_like(scan)
         for i in range(black_ref.shape[2]):
-            black_ref[:, :, i] = self._black_reference_avg[i]
+            black_ref[:, :, i] = self._avg[i]
         return scan - black_ref
