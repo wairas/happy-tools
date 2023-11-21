@@ -4,7 +4,7 @@ import spectral.io.envi as envi
 from happy.console.hsi_to_rgb.generate import normalize_data
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod, WhiteReferenceAnnotationAverage
-from happy.data.white_ref import LABEL_WHITEREF
+from happy.data import LABEL_WHITEREF
 from happy.preprocessors import MultiPreprocessor
 
 

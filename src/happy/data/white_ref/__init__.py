@@ -1,5 +1,4 @@
 from ._core import AbstractWhiteReferenceMethod, AbstractFileBasedWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
-from ._core import LABEL_WHITEREF
 from ._avg_annotation import WhiteReferenceAnnotationAverage
 from ._col_avg import WhiteReferenceColumnAverage
 from ._none import NoWhiteReference

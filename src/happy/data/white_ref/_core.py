@@ -5,7 +5,6 @@ import spectral.io.envi as envi
 from happy.base.registry import REGISTRY
 from seppl import Plugin, split_args, split_cmdline, args_to_objects
 
-LABEL_WHITEREF = "whiteref"
 """ the label to use for the white reference annotation. """
 
 

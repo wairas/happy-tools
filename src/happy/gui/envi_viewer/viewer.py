@@ -16,7 +16,8 @@ from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.data.black_ref import AbstractBlackReferenceMethod
-from happy.data.white_ref import AbstractWhiteReferenceMethod, LABEL_WHITEREF
+from happy.data.white_ref import AbstractWhiteReferenceMethod
+from happy.data import LABEL_WHITEREF
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.preprocessors import Preprocessor
 from happy.gui.envi_viewer import ContoursManager, Contour
