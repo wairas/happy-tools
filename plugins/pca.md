@@ -1,16 +1,21 @@
 # pca
 
-TODO
+Applies principal components analysis to the data.
 
 ```
-usage: pca [-h] [-n COMPONENTS] [-p PERCENT_PIXELS]
+usage: pca [-h] [-n COMPONENTS] [-p PERCENT_PIXELS] [-l LOAD] [-s SAVE]
 
-TODO
+Applies principal components analysis to the data.
 
 optional arguments:
   -h, --help            show this help message and exit
   -n COMPONENTS, --components COMPONENTS
-                        TODO (default: 5)
+                        The number of PCA components (default: 5)
   -p PERCENT_PIXELS, --percent_pixels PERCENT_PIXELS
-                        TODO (default: 100.0)
+                        The subset of pixels to use (0-100) (default: 100.0)
+  -l LOAD, --load LOAD  The file with the pickled sklearn PCA instance to load
+                        and use instead of building one each time data is
+                        passing through (default: None)
+  -s SAVE, --save SAVE  The file to save the fitted sklearn PCA instance to
+                        (default: None)
 ```
