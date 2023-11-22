@@ -23,9 +23,6 @@ class PCAPreprocessor(Preprocessor):
         super()._apply_args(ns)
         self.params["components"] = ns.components
         self.params["percent_pixels"] = ns.percent_pixels
-
-    def _initialize(self):
-        super()._initialize()
         self.pca = None
 
     def _do_fit(self, data, metadata=None):
