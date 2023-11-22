@@ -488,6 +488,7 @@ class DataManager:
                 if self.preprocessors is not None:
                     self.log("Applying preprocessing: %s" % str(self.preprocessors))
                     result[CALC_PREPROCESSORS_APPLIED] = False
+                    self.preprocessors.fit(self.norm_data)
                     self.norm_data, _ = self.preprocessors.apply(self.norm_data)
                     result[CALC_PREPROCESSORS_APPLIED] = True
                 self.log("...done!")
