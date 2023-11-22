@@ -8,11 +8,14 @@ class AbstractSessionManager(abc.ABC):
     For managing session parameters.
     """
 
-    def __init__(self):
+    def __init__(self, log_method=None):
         """
         Initializes the manager.
+
+        :param log_method: the log method to use (only takes a single str arg, the message)
         """
         super().__init__()
+        self.log_method = log_method
 
     def log(self, msg):
         """
@@ -21,7 +24,10 @@ class AbstractSessionManager(abc.ABC):
         :param msg: the message to output
         :type msg: str
         """
-        print(msg)
+        if self.log_method is not None:
+            self.log_method(msg)
+        else:
+            print(msg)
 
     def get_default_config_name(self):
         """

@@ -40,11 +40,13 @@ class SessionManager(AbstractSessionManager):
     For managing the session parameters.
     """
 
-    def __init__(self):
+    def __init__(self, log_method=None):
         """
         Initializes the manager.
+
+        :param log_method: the log method to use (only takes a single str arg, the message)
         """
-        super().__init__()
+        super().__init__(log_method=log_method)
         self.autodetect_channels = False
         self.keep_aspectratio = False
         self.check_scan_dimensions = True

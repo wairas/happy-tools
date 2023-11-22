@@ -11,6 +11,8 @@ from tkinter import messagebox
 import matplotlib.pyplot as plt
 import numpy as np
 import pygubu
+
+from datetime import datetime
 from PIL import Image, ImageTk
 from matplotlib.colors import Normalize
 from ttkSimpleDialog import ttkSimpleDialog
@@ -21,6 +23,8 @@ from happy.data import configure_envi_settings
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
+
+LOG_TIMESTAMP_FORMAT = "[%H:%M:%S.%f]"
 
 
 class ViewerApp:
@@ -82,7 +86,7 @@ class ViewerApp:
         builder.import_variables(self)
 
         # other variables
-        self.session = SessionManager()
+        self.session = SessionManager(log_method=self.log)
         self.reader = None
         self.updating = False
         self.stored_happy_data = None
@@ -118,7 +122,9 @@ class ViewerApp:
         :param msg: the logging message to output
         :type msg: str
         """
-        print(msg)
+        if msg != "":
+            msg = datetime.now().strftime(LOG_TIMESTAMP_FORMAT) + " " + msg
+            print(msg)
 
     def clear_plot(self):
         """
@@ -584,8 +590,10 @@ def main():
     parser.add_argument("-o", "--opacity", metavar="INT", help="the opacity to use (0-100)", default=None, type=int, required=False)
     parser.add_argument("--listbox_selectbackground", type=str, help="The background color to use for selected items in listboxes", default="#4a6984", required=False)
     parser.add_argument("--listbox_selectforeground", type=str, help="The foreground color to use for selected items in listboxes", default="#ffffff", required=False)
+    parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
     parsed = parser.parse_args()
     app = ViewerApp()
+    app.log_timestamp_format = parsed.log_timestamp_format
 
     # display settings
     app.set_listbox_selectbackground(parsed.listbox_selectbackground)

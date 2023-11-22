@@ -143,7 +143,7 @@ class ViewerApp:
 
         # init some vars
         self.photo_scan = None
-        self.session = SessionManager()
+        self.session = SessionManager(log_method=self.log)
         self.contours = ContoursManager()
         self.data = DataManager(self.contours, log_method=self.log)
         self.last_dims = None
