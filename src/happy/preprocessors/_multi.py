@@ -23,14 +23,9 @@ class MultiPreprocessor(Preprocessor):
             preprocessor_list = Preprocessor.parse_preprocessors(ns.preprocessors)
         self.params["preprocessor_list"] = preprocessor_list
 
-    def _do_fit(self, data, metadata=None):
-        for preprocessor in self.params.get('preprocessor_list', []):
-            preprocessor.fit(data, metadata)
-            data, metadata = preprocessor.apply(data, metadata)
-        return self
-
     def _do_apply(self, data, metadata=None):
         for preprocessor in self.params.get('preprocessor_list', []):
+            preprocessor.fit(data, metadata)
             data, metadata = preprocessor.apply(data, metadata)
         return data, metadata
 
