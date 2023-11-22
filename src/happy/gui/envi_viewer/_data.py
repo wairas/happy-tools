@@ -411,6 +411,7 @@ class DataManager:
             # apply preprocessing
             if self.preprocessors is not None:
                 self.norm_data, _ = self.preprocessors.apply(self.norm_data)
+            log("...done!")
 
     def dims(self):
         """
