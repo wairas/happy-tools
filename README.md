@@ -479,3 +479,7 @@ optional arguments:
                         Path to the output split file (default:
                         output_split.json)
 ```
+
+## Plugins
+
+See [here](plugins/README.md) for a list of plugins and their documentation.
