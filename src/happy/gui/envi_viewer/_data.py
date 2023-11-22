@@ -15,6 +15,7 @@ from opex import BBox
 CALC_BLACKREF_APPLIED = "blackref_applied"
 CALC_WHITEREF_APPLIED = "whiteref_applied"
 CALC_PREPROCESSORS_APPLIED = "preprocessors_applied"
+CALC_DIMENSIONS_DIFFER = "dimensions_differ"
 
 
 class DataManager:
@@ -101,11 +102,11 @@ class DataManager:
         self.scan_data = img.load()
         self.reset_norm_data()
         if len(self.get_wavelengths()) > 0:
-            if len(self.get_wavelengths()) != self.get_num_bands():
-                return "Number of defined wavelengths and number of bands in data differ: %d != %d" % (len(self.get_wavelengths()), self.get_num_bands())
+            if len(self.get_wavelengths()) != self.get_num_bands_scan():
+                return "Number of defined wavelengths and number of bands in data differ: %d != %d" % (len(self.get_wavelengths()), self.get_num_bands_scan())
         return None
 
-    def get_num_bands(self):
+    def get_num_bands_scan(self):
         """
         Returns the number of bands in the scan.
 
@@ -116,6 +117,18 @@ class DataManager:
             return 0
 
         return self.scan_data.shape[2]
+
+    def get_num_bands_norm(self):
+        """
+        Returns the number of bands in the normalized/preprocessed data.
+
+        :return: the number of bands, bands of scan if not present
+        :rtype: int
+        """
+        if self.norm_data is None:
+            return self.get_num_bands_scan()
+
+        return self.norm_data.shape[2]
 
     def get_wavelengths(self):
         """
@@ -482,6 +495,9 @@ class DataManager:
                 self.log("...failed with exception:")
                 self.log(traceback.format_exc())
 
+            if self.norm_data is not None:
+                result[CALC_DIMENSIONS_DIFFER] = (self.scan_data.shape != self.norm_data.shape)
+
         return result
 
     def update_image(self, r, g, b):
@@ -503,6 +519,10 @@ class DataManager:
         success = self.calc_norm_data()
 
         if self.norm_data is not None:
+            num_bands = self.get_num_bands_norm()
+            r = min(r, num_bands - 1)
+            g = min(g, num_bands - 1)
+            b = min(b, num_bands - 1)
             red_band = self.norm_data[:, :, r]
             green_band = self.norm_data[:, :, g]
             blue_band = self.norm_data[:, :, b]

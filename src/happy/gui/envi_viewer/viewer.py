@@ -22,7 +22,7 @@ from happy.data import LABEL_WHITEREF, LABEL_BLACKREF, configure_envi_settings
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.preprocessors import Preprocessor
 from happy.gui.envi_viewer import ContoursManager, Contour
-from happy.gui.envi_viewer import DataManager
+from happy.gui.envi_viewer import DataManager, CALC_DIMENSIONS_DIFFER
 from happy.gui.envi_viewer import MarkersManager
 from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
@@ -153,6 +153,7 @@ class ViewerApp:
         self.spectra_plot_raw = None
         self.spectra_plot_processed = None
         self.log_timestamp_format = LOG_TIMESTAMP_FORMAT
+        self.ignore_updates = False
 
     def run(self):
         self.mainwindow.mainloop()
@@ -263,11 +264,7 @@ class ViewerApp:
                     messagebox.showwarning("Different wavelengths", "Different wavelengths detected (see console for last/current)!")
 
         # configure scales
-        num_bands = self.data.get_num_bands()
-        self.red_scale.configure(to=num_bands - 1)
-        self.green_scale.configure(to=num_bands - 1)
-        self.blue_scale.configure(to=num_bands - 1)
-        self.label_dims.configure(text=DIMENSIONS % self.data.scan_data.shape)
+        self.set_data_dimensions(self.data.scan_data.shape, do_update=False)
 
         # set r/g/b from default bands?
         if self.session.autodetect_channels:
@@ -316,6 +313,35 @@ class ViewerApp:
             return
         if do_update:
             self.update()
+
+    def set_data_dimensions(self, dimensions, do_update=False):
+        """
+        Updates the sliders and dimensions display.
+
+        :param dimensions: the dimensions of the data (height,width,bands)
+        :param do_update: whether to update the image
+        :type do_update: bool
+        """
+        self.ignore_updates = True
+
+        num_bands = dimensions[2]
+        r = self.state_scale_r.get()
+        g = self.state_scale_g.get()
+        b = self.state_scale_b.get()
+        self.red_scale.configure(to=num_bands - 1)
+        self.green_scale.configure(to=num_bands - 1)
+        self.blue_scale.configure(to=num_bands - 1)
+        if r >= num_bands:
+            self.red_scale.set(num_bands - 1)
+        if g >= num_bands:
+            self.red_scale.set(num_bands - 1)
+        if b >= num_bands:
+            self.red_scale.set(num_bands - 1)
+        self.label_dims.configure(text=DIMENSIONS % dimensions)
+
+        self.ignore_updates = False
+        if do_update:
+            self.update_image()
 
     def set_wavelengths(self, r, g, b):
         """
@@ -444,7 +470,11 @@ class ViewerApp:
         """
         Updates the image.
         """
+        if self.ignore_updates:
+            return
         success = self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
+        if (CALC_DIMENSIONS_DIFFER in success) and success[CALC_DIMENSIONS_DIFFER]:
+            self.set_data_dimensions(self.data.norm_data.shape, do_update=False)
         # TODO make visible in UI
         self.log("calc steps: " + str(success))
         self.resize_image_label()
@@ -506,6 +536,8 @@ class ViewerApp:
         """
         Updates image and info.
         """
+        if self.ignore_updates:
+            return
         self.update_image()
         self.update_info()
 
@@ -1112,7 +1144,7 @@ class ViewerApp:
             return
 
         points = self.markers.to_spectra(self.data.scan_data)
-        x = [x for x in range(self.data.get_num_bands())]
+        x = [x for x in range(self.data.get_num_bands_scan())]
         if self.spectra_plot_raw is not None:
             plt.close(self.spectra_plot_raw)
         self.spectra_plot_raw = plt.figure(num='ENVI Viewer: Spectra (raw)')
@@ -1130,7 +1162,7 @@ class ViewerApp:
             return
 
         points = self.markers.to_spectra(self.data.norm_data)
-        x = [x for x in range(self.data.get_num_bands())]
+        x = [x for x in range(self.data.get_num_bands_norm())]
         if self.spectra_plot_processed is not None:
             plt.close(self.spectra_plot_processed)
         self.spectra_plot_processed = plt.figure(num='ENVI Viewer: Spectra (processed)')
