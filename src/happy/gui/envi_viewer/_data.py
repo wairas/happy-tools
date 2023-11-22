@@ -349,7 +349,12 @@ class DataManager:
                 if ref is not None:
                     self.set_blackref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right))
         else:
-            raise Exception("Unsupported reference locator: %s" % get_class_name(self.blackref_locator))
+            ref = self.blackref_locator.locate()
+            if ref is not None:
+                if isinstance(ref, str):
+                    self.set_blackref(ref)
+                else:
+                    raise Exception("Unhandled output of black reference locator %s: %s" % (self.blackref_locator.name(), get_class_name(ref)))
 
     def init_whiteref_data(self):
         """
@@ -374,7 +379,12 @@ class DataManager:
                 if ref is not None:
                     self.set_whiteref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right))
         else:
-            raise Exception("Unsupported reference locator: %s" % get_class_name(self.whiteref_locator))
+            ref = self.whiteref_locator.locate()
+            if ref is not None:
+                if isinstance(ref, str):
+                    self.set_whiteref(ref)
+                else:
+                    raise Exception("Unhandled output of white reference locator %s: %s" % (self.whiteref_locator.name(), get_class_name(ref)))
 
     def calc_norm_data(self, log):
         """
