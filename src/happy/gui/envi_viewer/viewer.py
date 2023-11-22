@@ -18,7 +18,7 @@ from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod
-from happy.data import LABEL_WHITEREF, configure_envi_settings
+from happy.data import LABEL_WHITEREF, LABEL_BLACKREF, configure_envi_settings
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.preprocessors import Preprocessor
 from happy.gui.envi_viewer import ContoursManager, Contour
@@ -625,7 +625,7 @@ class ViewerApp:
             if new_label is not None:
                 for contour in contours:
                     contour.label = new_label
-                if new_label == LABEL_WHITEREF:
+                if (new_label == LABEL_WHITEREF) or (new_label == LABEL_BLACKREF):
                     self.data.reset_norm_data()
                 self.update_info()
                 self.update_image()
