@@ -143,7 +143,7 @@ class ViewerApp:
         self.photo_scan = None
         self.session = SessionManager()
         self.contours = ContoursManager()
-        self.data = DataManager(self.contours)
+        self.data = DataManager(self.contours, log_method=self.log)
         self.last_dims = None
         self.last_wavelengths = None
         self.markers = MarkersManager()
@@ -440,7 +440,7 @@ class ViewerApp:
         """
         Updates the image.
         """
-        self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()), self.log)
+        self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
         self.resize_image_label()
         self.log("")
 

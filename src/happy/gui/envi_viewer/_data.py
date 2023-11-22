@@ -16,12 +16,13 @@ class DataManager:
     For managing the loaded data.
     """
 
-    def __init__(self, contours):
+    def __init__(self, contours, log_method=None):
         """
         Initializes the manager.
 
         :param contours: the contours manager
         :type contours: ContoursManager
+        :param log_method: the log method to use (only takes a single str arg, the message)
         """
         # _file: the filename
         # _img: the ENVI data structure
@@ -46,6 +47,19 @@ class DataManager:
         self.wavelengths = None
         self.contours = contours
         self.preprocessors = None
+        self.log_method = log_method
+
+    def log(self, msg):
+        """
+        Logs the message.
+
+        :param msg: the message to log
+        :type msg: str
+        """
+        if self.log_method is not None:
+            self.log_method(msg)
+        else:
+            print(msg)
 
     def has_scan(self):
         """
@@ -339,6 +353,7 @@ class DataManager:
                 self.blackref_locator.base_file = self.scan_file
                 ref = self.blackref_locator.locate()
                 if ref is not None:
+                    self.log("Using black reference file: %s" % ref)
                     self.set_blackref(ref)
         elif isinstance(self.blackref_locator, AbstractOPEXAnnotationBasedReferenceLocator):
             dims = self.scan_data.shape
@@ -347,11 +362,13 @@ class DataManager:
                 self.blackref_locator.annotations = annotations
                 ref = self.blackref_locator.locate()
                 if ref is not None:
+                    self.log("Using black reference annotation: %s" % str(ref.bbox))
                     self.set_blackref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right))
         else:
             ref = self.blackref_locator.locate()
             if ref is not None:
                 if isinstance(ref, str):
+                    self.log("Using black reference file: %s" % ref)
                     self.set_blackref(ref)
                 else:
                     raise Exception("Unhandled output of black reference locator %s: %s" % (self.blackref_locator.name(), get_class_name(ref)))
@@ -369,6 +386,7 @@ class DataManager:
                 self.whiteref_locator.base_file = self.scan_file
                 ref = self.whiteref_locator.locate()
                 if ref is not None:
+                    self.log("Using white reference file: %s" % ref)
                     self.set_whiteref(ref)
         elif isinstance(self.whiteref_locator, AbstractOPEXAnnotationBasedReferenceLocator):
             dims = self.scan_data.shape
@@ -377,25 +395,25 @@ class DataManager:
                 self.whiteref_locator.annotations = annotations
                 ref = self.whiteref_locator.locate()
                 if ref is not None:
+                    self.log("Using white reference annotation: %s" % str(ref.bbox))
                     self.set_whiteref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right))
         else:
             ref = self.whiteref_locator.locate()
             if ref is not None:
                 if isinstance(ref, str):
+                    self.log("Using white reference file: %s" % ref)
                     self.set_whiteref(ref)
                 else:
                     raise Exception("Unhandled output of white reference locator %s: %s" % (self.whiteref_locator.name(), get_class_name(ref)))
 
-    def calc_norm_data(self, log):
+    def calc_norm_data(self):
         """
         Calculates the normalized data.
-
-        :param log: the method for logging messages in the UI
         """
         if self.norm_data is not None:
             return
         if self.scan_data is not None:
-            log("Calculating...")
+            self.log("Calculating...")
             # some initialization
             self.init_blackref_data()
             self.init_whiteref_data()
@@ -403,25 +421,30 @@ class DataManager:
             # apply black reference
             if self.blackref_method is not None:
                 if (self.blackref_annotation is not None) and isinstance(self.blackref_method, AbstractAnnotationBasedBlackReferenceMethod):
+                    self.log("Applying black reference method: %s" % self.blackref_method.name())
                     self.blackref_method.reference = self.scan_data
                     self.blackref_method.annotation = self.blackref_annotation
                     self.norm_data = self.blackref_method.apply(self.norm_data)
                 elif self.blackref_data is not None:
+                    self.log("Applying black reference method: %s" % self.blackref_method.name())
                     self.blackref_method.reference = self.blackref_data
                     self.norm_data = self.blackref_method.apply(self.norm_data)
             # apply white reference
             if self.whiteref_method is not None:
                 if (self.whiteref_annotation is not None) and isinstance(self.whiteref_method, AbstractAnnotationBasedWhiteReferenceMethod):
+                    self.log("Applying white reference method: %s" % self.whiteref_method.name())
                     self.whiteref_method.reference = self.scan_data
                     self.whiteref_method.annotation = self.whiteref_annotation
                     self.norm_data = self.whiteref_method.apply(self.norm_data)
                 elif self.whiteref_data is not None:
+                    self.log("Applying white reference method: %s" % self.whiteref_method.name())
                     self.whiteref_method.reference = self.whiteref_data
                     self.norm_data = self.whiteref_method.apply(self.norm_data)
             # apply preprocessing
             if self.preprocessors is not None:
+                self.log("Applying preprocessing: %s" % str(self.preprocessors))
                 self.norm_data, _ = self.preprocessors.apply(self.norm_data)
-            log("...done!")
+            self.log("...done!")
 
     def dims(self):
         """
@@ -435,7 +458,7 @@ class DataManager:
         else:
             return self.norm_data.shape[1], self.norm_data.shape[0]
 
-    def update_image(self, r, g, b, log):
+    def update_image(self, r, g, b):
         """
         Updates the image.
 
@@ -445,12 +468,11 @@ class DataManager:
         :type g: int
         :param b: the blue channel to use
         :type b: int
-        :param log: the method for logging messages in the UI
         """
         if self.scan_data is None:
             return
 
-        self.calc_norm_data(log)
+        self.calc_norm_data()
 
         red_band = self.norm_data[:, :, r]
         green_band = self.norm_data[:, :, g]
