@@ -55,5 +55,5 @@ class WhiteReferenceColumnAverage(AbstractFileBasedWhiteReferenceMethod):
             raise Exception("The number of columns in the scan differ from the white reference ones: %d != %d" % (scan.shape[1], self.reference.shape[1]))
         result = scan.copy()
         for col in range(len(self._avg)):
-            result[:, col, :] -= self._avg[col]
+            result[:, col, :] /= self._avg[col]
         return result

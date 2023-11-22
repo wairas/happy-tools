@@ -1,5 +1,6 @@
-from ._core import AbstractBlackReferenceMethod, AbstractFileBasedBlackReferenceMethod
+from ._core import AbstractBlackReferenceMethod, AbstractFileBasedBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from ._avg import BlackReferenceAverage
+from ._avg_annotation import BlackReferenceAnnotationAverage
 from ._col_avg import BlackReferenceColumnAverage
 from ._none import NoBlackReference
 from ._same_size import SameSizeBlackReference

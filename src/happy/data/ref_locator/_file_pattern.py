@@ -70,7 +70,7 @@ class FilePatternLocator(AbstractFileBasedReferenceLocator):
 
     def _pre_check(self) -> Optional[str]:
         """
-        Hook method that gets called before attempting to locate the file.
+        Hook method that gets called before attempting to locate the reference data.
 
         :return: the result of the check, None if successful otherwise error message
         :rtype: str
@@ -83,9 +83,9 @@ class FilePatternLocator(AbstractFileBasedReferenceLocator):
 
     def _do_locate(self):
         """
-        Attempts to locate the reference file using the supplied scan file.
+        Attempts to locate the reference data.
 
-        :return: the suggested reference file name, None if failed to do so
+        :return: the suggested reference, None if failed to do so
         """
         p = os.path.dirname(self.base_file)
         n, e = os.path.splitext(os.path.basename(self.base_file))

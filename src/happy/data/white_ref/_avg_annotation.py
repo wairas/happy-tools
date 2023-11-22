@@ -49,5 +49,5 @@ class WhiteReferenceAnnotationAverage(AbstractAnnotationBasedWhiteReferenceMetho
         result = scan.copy()
         for i in range(len(whiteref_annotation)):
             if whiteref_annotation[i] != 1.0:
-                result[:, :, i] = result[:, :, i] / whiteref_annotation[i]
+                result[:, :, i] /= whiteref_annotation[i]
         return result

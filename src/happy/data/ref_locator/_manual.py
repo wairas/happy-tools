@@ -23,8 +23,8 @@ class ManualLocator(AbstractReferenceLocator):
 
     def _do_locate(self):
         """
-        Attempts to locate the reference file using the supplied scan file.
+        Attempts to locate the reference data.
 
-        :return: the suggested reference file name, None if failed to do so
+        :return: the suggested reference data, None if failed to do so
         """
         return None

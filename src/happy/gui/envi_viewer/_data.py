@@ -1,11 +1,14 @@
 import numpy as np
 import spectral.io.envi as envi
 
+from ._contours import ContoursManager, Contour
 from happy.console.hsi_to_rgb.generate import normalize_data
-from happy.data.black_ref import AbstractBlackReferenceMethod
-from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod, WhiteReferenceAnnotationAverage
-from happy.data import LABEL_WHITEREF
+from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
+from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
+from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
 from happy.preprocessors import MultiPreprocessor
+from seppl import get_class_name
+from opex import BBox
 
 
 class DataManager:
@@ -26,14 +29,18 @@ class DataManager:
         self.scan_file = None
         self.scan_img = None
         self.scan_data = None
+        self.blackref_locator = None
         self.blackref_method = None
         self.blackref_file = None
         self.blackref_img = None
         self.blackref_data = None
+        self.blackref_annotation = None
+        self.whiteref_locator = None
         self.whiteref_method = None
         self.whiteref_file = None
         self.whiteref_img = None
         self.whiteref_data = None
+        self.whiteref_annotation = None
         self.norm_data = None
         self.display_image = None
         self.wavelengths = None
@@ -137,6 +144,16 @@ class DataManager:
         self.whiteref_method = method
         self.reset_norm_data()
 
+    def set_whiteref_locator(self, locator):
+        """
+        Sets the locator for the white reference.
+        
+        :param locator: the locator to use
+        :type locator: AbstractReferenceLocator 
+        """
+        self.whiteref_locator = locator
+        self.reset_norm_data()
+
     def set_whiteref(self, path):
         """
         Sets the white reference.
@@ -154,6 +171,7 @@ class DataManager:
         self.whiteref_file = path
         self.whiteref_img = img
         self.whiteref_data = data
+        self.whiteref_annotation = None
         self.reset_norm_data()
         return None
 
@@ -171,6 +189,25 @@ class DataManager:
         self.whiteref_file = None
         self.whiteref_img = None
         self.whiteref_data = data
+        self.whiteref_annotation = None
+        self.reset_norm_data()
+        return None
+
+    def set_whiteref_annotation(self, ann):
+        """
+        Sets the white reference annotation tuple.
+
+        :param ann: the annotation rectangle to use (top,left,bottom,right)
+        :return: None if successfully added, otherwise error message
+        :rtype: str
+        """
+        if not self.has_scan():
+            return "Please load a scan first!"
+
+        self.whiteref_file = None
+        self.whiteref_img = None
+        self.whiteref_data = None
+        self.whiteref_annotation = ann
         self.reset_norm_data()
         return None
 
@@ -190,6 +227,16 @@ class DataManager:
         self.blackref_file = None
         self.blackref_img = None
         self.blackref_data = None
+        self.reset_norm_data()
+
+    def set_blackref_locator(self, locator):
+        """
+        Sets the locator for the black reference.
+
+        :param locator: the locator to use
+        :type locator: AbstractReferenceLocator 
+        """
+        self.blackref_locator = locator
         self.reset_norm_data()
 
     def set_blackref_method(self, method):
@@ -219,6 +266,7 @@ class DataManager:
         self.blackref_file = path
         self.blackref_img = img
         self.blackref_data = data
+        self.blackref_annotation = None
         self.reset_norm_data()
         return None
 
@@ -236,6 +284,25 @@ class DataManager:
         self.blackref_file = None
         self.blackref_img = None
         self.blackref_data = data
+        self.blackref_annotation = None
+        self.reset_norm_data()
+        return None
+
+    def set_blackref_annotation(self, ann):
+        """
+        Sets the black reference annotation tuple.
+
+        :param ann: the annotation rectangle to use (top,left,bottom,right)
+        :return: None if successfully added, otherwise error message
+        :rtype: str
+        """
+        if not self.has_scan():
+            return "Please load a scan first!"
+
+        self.blackref_file = None
+        self.blackref_img = None
+        self.blackref_data = None
+        self.blackref_annotation = ann
         self.reset_norm_data()
         return None
 
@@ -259,6 +326,56 @@ class DataManager:
         """
         self.norm_data = None
 
+    def init_blackref_data(self):
+        """
+        Initializes the black reference data, if necessary.
+        """
+        if self.blackref_data is not None:
+            return
+        if self.blackref_locator is None:
+            return
+        if isinstance(self.blackref_locator, AbstractFileBasedReferenceLocator):
+            if self.scan_file is not None:
+                self.blackref_locator.base_file = self.scan_file
+                ref = self.blackref_locator.locate()
+                if ref is not None:
+                    self.set_blackref(ref)
+        elif isinstance(self.blackref_locator, AbstractOPEXAnnotationBasedReferenceLocator):
+            dims = self.scan_data.shape
+            annotations = self.contours.to_opex(dims[0], dims[1])
+            if annotations is not None:
+                self.blackref_locator.annotations = annotations
+                ref = self.blackref_locator.locate()
+                if ref is not None:
+                    self.set_blackref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right))
+        else:
+            raise Exception("Unsupported reference locator: %s" % get_class_name(self.blackref_locator))
+
+    def init_whiteref_data(self):
+        """
+        Initializes the white reference data, if necessary.
+        """
+        if self.whiteref_data is not None:
+            return
+        if self.whiteref_locator is None:
+            return
+        if isinstance(self.whiteref_locator, AbstractFileBasedReferenceLocator):
+            if self.scan_file is not None:
+                self.whiteref_locator.base_file = self.scan_file
+                ref = self.whiteref_locator.locate()
+                if ref is not None:
+                    self.set_whiteref(ref)
+        elif isinstance(self.whiteref_locator, AbstractOPEXAnnotationBasedReferenceLocator):
+            dims = self.scan_data.shape
+            annotations = self.contours.to_opex(dims[0], dims[1])
+            if annotations is not None:
+                self.whiteref_locator.annotations = annotations
+                ref = self.whiteref_locator.locate()
+                if ref is not None:
+                    self.set_whiteref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right))
+        else:
+            raise Exception("Unsupported reference locator: %s" % get_class_name(self.whiteref_locator))
+
     def calc_norm_data(self, log):
         """
         Calculates the normalized data.
@@ -269,22 +386,27 @@ class DataManager:
             return
         if self.scan_data is not None:
             log("Calculating...")
+            # some initialization
+            self.init_blackref_data()
+            self.init_whiteref_data()
             self.norm_data = self.scan_data
             # apply black reference
-            if self.blackref_data is not None:
-                if self.blackref_method is not None:
+            if self.blackref_method is not None:
+                if (self.blackref_annotation is not None) and isinstance(self.blackref_method, AbstractAnnotationBasedBlackReferenceMethod):
+                    self.blackref_method.reference = self.scan_data
+                    self.blackref_method.annotation = self.blackref_annotation
+                    self.norm_data = self.blackref_method.apply(self.norm_data)
+                elif self.blackref_data is not None:
                     self.blackref_method.reference = self.blackref_data
                     self.norm_data = self.blackref_method.apply(self.norm_data)
             # apply white reference
-            if self.whiteref_data is not None:
-                if self.whiteref_method is not None:
+            if self.whiteref_method is not None:
+                if (self.whiteref_annotation is not None) and isinstance(self.whiteref_method, AbstractAnnotationBasedWhiteReferenceMethod):
+                    self.whiteref_method.reference = self.scan_data
+                    self.whiteref_method.annotation = self.whiteref_annotation
+                    self.norm_data = self.whiteref_method.apply(self.norm_data)
+                elif self.whiteref_data is not None:
                     self.whiteref_method.reference = self.whiteref_data
-                    if isinstance(self.whiteref_method, AbstractAnnotationBasedWhiteReferenceMethod):
-                        contours = self.contours.get_contours(LABEL_WHITEREF)
-                        if len(contours) == 1:
-                            height, width, _ = self.scan_data.shape
-                            bbox = contours[0].to_absolute(width, height).bbox()
-                            self.whiteref_method.annotation = (bbox.top, bbox.left, bbox.bottom, bbox.right)
                     self.norm_data = self.whiteref_method.apply(self.norm_data)
             # apply preprocessing
             if self.preprocessors is not None:
@@ -330,18 +452,28 @@ class DataManager:
         rgb_image = np.dstack((norm_red, norm_green, norm_blue))
         self.display_image = (rgb_image * 255).astype(np.uint8)
 
-    def get_scan_subimage(self, contour):
+    def get_scan_subimage(self, contour=None, bbox=None):
         """
-        Returns the subimage of the scan that encompasses the bbox of the contour.
+        Returns the sub-image of the scan that encompasses the bbox of the contour.
 
         :param contour: the contour to use for extracting the subset of the scan
         :type contour: Contour
-        :return: the sub-image of the scan, None if no scane
+        :param bbox: the OPEX BBox to use
+        :type bbox: BBox
+        :return: the sub-image of the scan, None if no scan
         """
         if not self.has_scan():
             return None
 
         h, w, _ = self.scan_data.shape
-        bbox = contour.to_absolute(w, h).bbox()
-        result = self.scan_img[bbox.top:bbox.bottom, bbox.left:bbox.right, :]
-        return result
+        
+        if contour is not None:
+            bbox = contour.to_absolute(w, h).bbox()
+            result = self.scan_img[bbox.top:bbox.bottom, bbox.left:bbox.right, :]
+            return result
+        
+        if bbox is not None:
+            result = self.scan_img[bbox.top:bbox.bottom, bbox.left:bbox.right, :]
+            return result
+
+        return None

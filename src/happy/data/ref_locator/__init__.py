@@ -1,4 +1,5 @@
-from ._core import AbstractReferenceLocator, AbstractFileBasedReferenceLocator
+from ._core import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractAnnotationBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
 from ._file_pattern import FilePatternLocator
 from ._fixed import FixedLocator
+from ._from_annotation import FromAnnotationLocator
 from ._manual import ManualLocator

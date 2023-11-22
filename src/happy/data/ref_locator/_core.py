@@ -4,7 +4,8 @@ import os
 
 from typing import Optional
 from happy.base.registry import REGISTRY
-from seppl import Plugin, split_args, split_cmdline, args_to_objects
+from seppl import Plugin, split_args, split_cmdline, args_to_objects, get_class_name
+from opex import ObjectPredictions
 
 
 class AbstractReferenceLocator(Plugin, abc.ABC):
@@ -155,5 +156,71 @@ class AbstractFileBasedReferenceLocator(AbstractReferenceLocator, abc.ABC):
         if result is None:
             if self._must_exist and not os.path.exists(ref):
                 result = "Reference file does not exist: %s" % ref
+
+        return result
+
+
+class AbstractAnnotationBasedReferenceLocator(AbstractReferenceLocator, abc.ABC):
+    """
+    Ancestor for reference locators that use annotations to locate the reference data.
+    """
+
+    def __init__(self):
+        """
+        Initializes the locator.
+        """
+        self._annotations = None
+
+    @property
+    def annotations(self):
+        """
+        Returns the annotations.
+
+        :return: the annotations
+        """
+        return self._annotations
+
+    @annotations.setter
+    def annotations(self, ann):
+        """
+        Sets the annotations to use.
+
+        :param ann: the annotations
+        """
+        self._annotations = ann
+
+    def _pre_check(self) -> Optional[str]:
+        """
+        Hook method that gets called before attempting to locate the reference data.
+
+        :return: the result of the check, None if successful otherwise error message
+        :rtype: str
+        """
+        result = super()._pre_check()
+
+        if result is None:
+            if self.annotations is None:
+                result = "No annotations set!"
+
+        return result
+
+
+class AbstractOPEXAnnotationBasedReferenceLocator(AbstractAnnotationBasedReferenceLocator, abc.ABC):
+    """
+    Ancestor for reference locators that use OPEX annotations to locate the reference data.
+    """
+
+    def _pre_check(self) -> Optional[str]:
+        """
+        Hook method that gets called before attempting to locate the reference data.
+
+        :return: the result of the check, None if successful otherwise error message
+        :rtype: str
+        """
+        result = super()._pre_check()
+
+        if result is None:
+            if not isinstance(self.annotations, ObjectPredictions):
+                result = "Annotations are derived from %s but: %s" % (get_class_name(ObjectPredictions), get_class_name(self.annotations))
 
         return result
