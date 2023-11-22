@@ -476,7 +476,8 @@ class ViewerApp:
         if (CALC_DIMENSIONS_DIFFER in success) and success[CALC_DIMENSIONS_DIFFER]:
             self.set_data_dimensions(self.data.norm_data.shape, do_update=False)
         # TODO make visible in UI
-        self.log("calc steps: " + str(success))
+        if len(success) > 0:
+            self.log("calc steps: " + str(success))
         self.resize_image_label()
         self.log("")
 
