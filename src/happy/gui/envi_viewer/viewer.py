@@ -11,6 +11,7 @@ import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
 
+from datetime import datetime
 from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
@@ -25,12 +26,13 @@ from happy.gui.envi_viewer import DataManager
 from happy.gui.envi_viewer import MarkersManager
 from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
-from seppl import get_class_name
 
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
 
 DIMENSIONS = "H: %d, W: %d, C: %d"
+
+LOG_TIMESTAMP_FORMAT = "[%H:%M:%S.%f]"
 
 
 class ViewerApp:
@@ -150,6 +152,7 @@ class ViewerApp:
         self.sam = SamManager()
         self.spectra_plot_raw = None
         self.spectra_plot_processed = None
+        self.log_timestamp_format = LOG_TIMESTAMP_FORMAT
 
     def run(self):
         self.mainwindow.mainloop()
@@ -162,6 +165,7 @@ class ViewerApp:
         :type msg: str
         """
         if msg != "":
+            msg = datetime.now().strftime(LOG_TIMESTAMP_FORMAT) + " " + msg
             print(msg)
             if hasattr(self, "text_log") and (self.text_log is not None):
                 self.text_log.insert(tk.END, "\n" + msg)
@@ -1251,8 +1255,10 @@ def main(args=None):
     parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual", default=None, required=False)
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
     parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
+    parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
     parsed = parser.parse_args(args=args)
     app = ViewerApp()
+    app.log_timestamp_format = parsed.log_timestamp_format
 
     # override session data
     app.session.load()
