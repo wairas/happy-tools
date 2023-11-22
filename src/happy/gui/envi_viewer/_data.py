@@ -1,5 +1,6 @@
 import numpy as np
 import spectral.io.envi as envi
+import traceback
 
 from ._contours import ContoursManager, Contour
 from happy.console.hsi_to_rgb.generate import normalize_data
@@ -9,6 +10,11 @@ from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedRe
 from happy.preprocessors import MultiPreprocessor
 from seppl import get_class_name
 from opex import BBox
+
+
+CALC_BLACKREF_APPLIED = "blackref_applied"
+CALC_WHITEREF_APPLIED = "whiteref_applied"
+CALC_PREPROCESSORS_APPLIED = "preprocessors_applied"
 
 
 class DataManager:
@@ -409,42 +415,62 @@ class DataManager:
     def calc_norm_data(self):
         """
         Calculates the normalized data.
+
+        :return: whether steps succeeded
+        :rtype: dict
         """
+        result = dict()
         if self.norm_data is not None:
-            return
+            return result
         if self.scan_data is not None:
             self.log("Calculating...")
-            # some initialization
-            self.init_blackref_data()
-            self.init_whiteref_data()
-            self.norm_data = self.scan_data
-            # apply black reference
-            if self.blackref_method is not None:
-                if (self.blackref_annotation is not None) and isinstance(self.blackref_method, AbstractAnnotationBasedBlackReferenceMethod):
-                    self.log("Applying black reference method: %s" % self.blackref_method.name())
-                    self.blackref_method.reference = self.scan_data
-                    self.blackref_method.annotation = self.blackref_annotation
-                    self.norm_data = self.blackref_method.apply(self.norm_data)
-                elif self.blackref_data is not None:
-                    self.log("Applying black reference method: %s" % self.blackref_method.name())
-                    self.blackref_method.reference = self.blackref_data
-                    self.norm_data = self.blackref_method.apply(self.norm_data)
-            # apply white reference
-            if self.whiteref_method is not None:
-                if (self.whiteref_annotation is not None) and isinstance(self.whiteref_method, AbstractAnnotationBasedWhiteReferenceMethod):
-                    self.log("Applying white reference method: %s" % self.whiteref_method.name())
-                    self.whiteref_method.reference = self.scan_data
-                    self.whiteref_method.annotation = self.whiteref_annotation
-                    self.norm_data = self.whiteref_method.apply(self.norm_data)
-                elif self.whiteref_data is not None:
-                    self.log("Applying white reference method: %s" % self.whiteref_method.name())
-                    self.whiteref_method.reference = self.whiteref_data
-                    self.norm_data = self.whiteref_method.apply(self.norm_data)
-            # apply preprocessing
-            if self.preprocessors is not None:
-                self.log("Applying preprocessing: %s" % str(self.preprocessors))
-                self.norm_data, _ = self.preprocessors.apply(self.norm_data)
-            self.log("...done!")
+            try:
+                # some initialization
+                self.init_blackref_data()
+                self.init_whiteref_data()
+                self.norm_data = self.scan_data
+                # apply black reference
+                if self.blackref_method is not None:
+                    if (self.blackref_annotation is not None) and isinstance(self.blackref_method, AbstractAnnotationBasedBlackReferenceMethod):
+                        self.log("Applying black reference method: %s" % self.blackref_method.name())
+                        result[CALC_BLACKREF_APPLIED] = False
+                        self.blackref_method.reference = self.scan_data
+                        self.blackref_method.annotation = self.blackref_annotation
+                        self.norm_data = self.blackref_method.apply(self.norm_data)
+                        result[CALC_BLACKREF_APPLIED] = True
+                    elif self.blackref_data is not None:
+                        self.log("Applying black reference method: %s" % self.blackref_method.name())
+                        result[CALC_BLACKREF_APPLIED] = False
+                        self.blackref_method.reference = self.blackref_data
+                        self.norm_data = self.blackref_method.apply(self.norm_data)
+                        result[CALC_BLACKREF_APPLIED] = True
+                # apply white reference
+                if self.whiteref_method is not None:
+                    if (self.whiteref_annotation is not None) and isinstance(self.whiteref_method, AbstractAnnotationBasedWhiteReferenceMethod):
+                        self.log("Applying white reference method: %s" % self.whiteref_method.name())
+                        result[CALC_WHITEREF_APPLIED] = False
+                        self.whiteref_method.reference = self.scan_data
+                        self.whiteref_method.annotation = self.whiteref_annotation
+                        self.norm_data = self.whiteref_method.apply(self.norm_data)
+                        result[CALC_WHITEREF_APPLIED] = True
+                    elif self.whiteref_data is not None:
+                        self.log("Applying white reference method: %s" % self.whiteref_method.name())
+                        result[CALC_WHITEREF_APPLIED] = False
+                        self.whiteref_method.reference = self.whiteref_data
+                        self.norm_data = self.whiteref_method.apply(self.norm_data)
+                        result[CALC_WHITEREF_APPLIED] = True
+                # apply preprocessing
+                if self.preprocessors is not None:
+                    self.log("Applying preprocessing: %s" % str(self.preprocessors))
+                    result[CALC_PREPROCESSORS_APPLIED] = False
+                    self.norm_data, _ = self.preprocessors.apply(self.norm_data)
+                    result[CALC_PREPROCESSORS_APPLIED] = True
+                self.log("...done!")
+            except:
+                self.log("...failed with exception:")
+                self.log(traceback.format_exc())
+
+        return result
 
     def dims(self):
         """
@@ -472,7 +498,8 @@ class DataManager:
         if self.scan_data is None:
             return
 
-        self.calc_norm_data()
+        success = self.calc_norm_data()
+        self.log(str(success))
 
         red_band = self.norm_data[:, :, r]
         green_band = self.norm_data[:, :, g]
