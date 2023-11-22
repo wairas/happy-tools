@@ -444,7 +444,9 @@ class ViewerApp:
         """
         Updates the image.
         """
-        self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
+        success = self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
+        # TODO make visible in UI
+        self.log("calc steps: " + str(success))
         self.resize_image_label()
         self.log("")
 

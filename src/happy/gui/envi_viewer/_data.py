@@ -412,11 +412,23 @@ class DataManager:
                 else:
                     raise Exception("Unhandled output of white reference locator %s: %s" % (self.whiteref_locator.name(), get_class_name(ref)))
 
+    def dims(self):
+        """
+        Returns the dimensions of the loaded data.
+
+        :return: the tuple (w,h) of the data, None if no data
+        :rtype: tuple
+        """
+        if self.norm_data is None:
+            return None
+        else:
+            return self.norm_data.shape[1], self.norm_data.shape[0]
+
     def calc_norm_data(self):
         """
         Calculates the normalized data.
 
-        :return: whether steps succeeded
+        :return: which steps succeeded
         :rtype: dict
         """
         result = dict()
@@ -472,18 +484,6 @@ class DataManager:
 
         return result
 
-    def dims(self):
-        """
-        Returns the dimensions of the loaded data.
-
-        :return: the tuple (w,h) of the data, None if no data
-        :rtype: tuple
-        """
-        if self.norm_data is None:
-            return None
-        else:
-            return self.norm_data.shape[1], self.norm_data.shape[0]
-
     def update_image(self, r, g, b):
         """
         Updates the image.
@@ -494,23 +494,27 @@ class DataManager:
         :type g: int
         :param b: the blue channel to use
         :type b: int
+        :return: which steps succeeded
+        :rtype: dict
         """
         if self.scan_data is None:
-            return
+            return dict()
 
         success = self.calc_norm_data()
-        self.log(str(success))
 
-        red_band = self.norm_data[:, :, r]
-        green_band = self.norm_data[:, :, g]
-        blue_band = self.norm_data[:, :, b]
+        if self.norm_data is not None:
+            red_band = self.norm_data[:, :, r]
+            green_band = self.norm_data[:, :, g]
+            blue_band = self.norm_data[:, :, b]
 
-        norm_red = normalize_data(red_band)
-        norm_green = normalize_data(green_band)
-        norm_blue = normalize_data(blue_band)
+            norm_red = normalize_data(red_band)
+            norm_green = normalize_data(green_band)
+            norm_blue = normalize_data(blue_band)
 
-        rgb_image = np.dstack((norm_red, norm_green, norm_blue))
-        self.display_image = (rgb_image * 255).astype(np.uint8)
+            rgb_image = np.dstack((norm_red, norm_green, norm_blue))
+            self.display_image = (rgb_image * 255).astype(np.uint8)
+
+        return success
 
     def get_scan_subimage(self, contour=None, bbox=None):
         """
