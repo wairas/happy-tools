@@ -18,6 +18,9 @@ HAPPY_DEFAULT_MODULES = ",".join(
 # the environment variable to use for overriding the default modules
 HAPPY_ENV_MODULES = "HAPPY_MODULES"
 
+# the environment variable to use for excluding modules
+HAPPY_ENV_MODULES_EXCL = "HAPPY_MODULES_EXCL"
+
 # the known entrypoints in setup.py
 ENTRYPOINT_BLACKREF_METHODS = "happy.blackref_methods"
 ENTRYPOINT_WHITEREF_METHODS = "happy.whiteref_methods"
@@ -45,10 +48,25 @@ class HappyRegistry(Registry):
     """
 
     def __init__(self, default_modules=HAPPY_DEFAULT_MODULES,
-                 env_modules=HAPPY_ENV_MODULES):
+                 env_modules=HAPPY_ENV_MODULES,
+                 excluded_modules=None,
+                 excluded_env_modules=HAPPY_ENV_MODULES_EXCL):
+        """
+
+        :param default_modules: the default modules to use for registering plugins, comma-separated string of module names or list of module names
+        :type default_modules: str or list
+        :param env_modules: the environment variable to retrieve the modules from (overrides default ones)
+        :type env_modules: str
+        :param excluded_modules: the modules to exclude from registering plugins, comma-separated string of module names or list of module names, ignored if None
+        :type excluded_modules: str or list
+        :param excluded_env_modules: the environment variable to retrieve the excluded modules from (overrides manually set ones)
+        :type excluded_env_modules: str
+        """
         super().__init__(mode=MODE_DYNAMIC,
                          default_modules=default_modules,
                          env_modules=env_modules,
+                         excluded_modules=excluded_modules,
+                         excluded_env_modules=excluded_env_modules,
                          enforce_uniqueness=True)
 
     def all_plugins(self) -> Dict[str, Plugin]:
