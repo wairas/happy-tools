@@ -195,7 +195,7 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
             black_ref_locator=None, black_ref_method=None, white_ref_locator=None, white_ref_method=None,
             pattern_mask="mask.hdr", pattern_labels="mask.json",
             pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_annotations=FILENAME_PH_SAMPLEID + ".json",
-            include_input=False, dry_run=False, verbose=False):
+            no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False, verbose=False):
     """
     Converts the specified file.
 
@@ -225,6 +225,10 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
     :type pattern_png: str
     :param pattern_annotations: the file name pattern for the OPEX JSON annotations
     :type pattern_annotations: str
+    :param no_implicit_background: whether to require explicit annotations for the background or all annotated pixels are considered background (implicit)
+    :type no_implicit_background: bool
+    :param unlabelled: the value to use for not explicitly labelled pixels
+    :type unlabelled: int
     :param include_input: whether to copy the PNG/JSON files into the output directory as well
     :type include_input: bool
     :param dry_run: whether to omit saving data/creating dirs
@@ -267,19 +271,25 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
     # label lookup
     label_map = dict()
     labels_set = set()
+    if no_implicit_background:
+        label_offset = unlabelled + 1
+    else:
+        label_offset = 1
     if labels is not None:
         labels_set = set(labels)
-        for index, label in enumerate(labels, start=1):
+        for index, label in enumerate(labels, start=label_offset):
             label_map[label] = index
 
     # create mask
     img = Image.new("L", (width, height))
     draw = ImageDraw.Draw(img)
+    if no_implicit_background:
+        draw.rectangle(((0, 0), (width-1, height-1)), fill=unlabelled)
     ann = ObjectPredictions.load_json_from_file(path_ann)
     for obj in ann.objects:
         if (labels is None) or (obj.label in labels_set):
             if obj.label not in label_map:
-                label_map[obj.label] = len(label_map) + 1
+                label_map[obj.label] = len(label_map) + label_offset
             poly = [tuple(x) for x in obj.polygon.points]
             draw.polygon(poly, fill=label_map[obj.label])
 
@@ -296,7 +306,10 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
 
         # label map/wavelengths
         wavelengths = [0]
-        reverse_label_map = {"0": "Background"}
+        if no_implicit_background:
+            reverse_label_map = {str(unlabelled): "Unlabelled"}
+        else:
+            reverse_label_map = {"0": "Background"}
         for k in label_map:
             reverse_label_map[str(label_map[k])] = k
             wavelengths.append(label_map[k])
@@ -316,7 +329,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
              black_ref_locator=None, black_ref_method=None, white_ref_locator=None, white_ref_method=None,
              pattern_mask="mask.hdr", pattern_labels="mask.json",
              pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_annotations=FILENAME_PH_SAMPLEID + ".json",
-             include_input=False, dry_run=False, verbose=False):
+             no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False, verbose=False):
     """
     Generates fake RGB images from the HSI images found in the specified directories.
 
@@ -346,6 +359,10 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     :type pattern_png: str
     :param pattern_annotations: the file name pattern for the OPEX JSON annotations
     :type pattern_annotations: str
+    :param no_implicit_background: whether to require explicit annotations for the background or all annotated pixels are considered background (implicit)
+    :type no_implicit_background: bool
+    :param unlabelled: the value to use for not explicitly labelled pixels
+    :type unlabelled: int
     :param include_input: whether to copy the PNG/JSON files into the output directory as well
     :type include_input: bool
     :param dry_run: whether to omit saving the PNG images
@@ -392,7 +409,9 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
                 white_ref_locator=white_ref_locator, white_ref_method=white_ref_method,
                 pattern_mask=pattern_mask, pattern_labels=pattern_labels,
                 pattern_png=pattern_png, pattern_annotations=pattern_annotations,
-                labels=labels, include_input=include_input, dry_run=dry_run, verbose=verbose)
+                labels=labels, include_input=include_input,
+                no_implicit_background=no_implicit_background, unlabelled=unlabelled,
+                dry_run=dry_run, verbose=verbose)
 
 
 def main(args=None):
@@ -412,6 +431,8 @@ def main(args=None):
     parser.add_argument("-o", "--output_dir", type=str, metavar="DIR", help="The directory to store the fake RGB PNG images instead of alongside the HSI images.", required=False)
     parser.add_argument("-f", "--output_format", choices=OUTPUT_FORMATS, default=OUTPUT_FORMAT_DIRTREE_WITH_DATA, help="Defines how to store the data in the output directory.", required=True)
     parser.add_argument("-l", "--labels", type=str, help="The comma-separated list of object labels to export ('Background' is automatically added).", required=True)
+    parser.add_argument("-N", "--no_implicit_background", action="store_true", help="whether to require explicit annotations for the background rather than assuming all un-annotated pixels are background", required=False)
+    parser.add_argument("-u", "--unlabelled", type=int, default=0, help="The value to use for pixels that do not have an explicit annotation (label values start after this value)", required=False)
     parser.add_argument("--black_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating black references, eg rl-manual; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
     parser.add_argument("--black_ref_method", metavar="METHOD", help="the black reference method to use for applying black references, eg br-same-size; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
     parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
@@ -430,6 +451,7 @@ def main(args=None):
              white_ref_locator=parsed.white_ref_locator, white_ref_method=parsed.white_ref_method,
              pattern_mask=parsed.pattern_mask, pattern_labels=parsed.pattern_labels,
              pattern_png=parsed.pattern_png, pattern_annotations=parsed.pattern_annotations,
+             no_implicit_background=parsed.no_implicit_background, unlabelled=parsed.unlabelled,
              include_input=parsed.include_input, dry_run=parsed.dry_run, verbose=parsed.verbose)
 
 

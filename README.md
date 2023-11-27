@@ -249,8 +249,8 @@ optional arguments:
 
 ```
 usage: happy-opex2happy [-h] -i DIR [DIR ...] [-r] [-o DIR] -f
-                        {flat,dir-tree,dir-tree-with-data} -l LABELS
-                        [--black_ref_locator LOCATOR]
+                        {flat,dir-tree,dir-tree-with-data} -l LABELS [-N]
+                        [-u UNLABELLED] [--black_ref_locator LOCATOR]
                         [--black_ref_method METHOD]
                         [--white_ref_locator LOCATOR]
                         [--white_ref_method METHOD] [--pattern_mask PATTERN]
@@ -274,6 +274,14 @@ optional arguments:
   -l LABELS, --labels LABELS
                         The comma-separated list of object labels to export
                         ('Background' is automatically added). (default: None)
+  -N, --no_implicit_background
+                        whether to require explicit annotations for the
+                        background rather than assuming all un-annotated
+                        pixels are background (default: False)
+  -u UNLABELLED, --unlabelled UNLABELLED
+                        The value to use for pixels that do not have an
+                        explicit annotation (label values start after this
+                        value) (default: 0)
   --black_ref_locator LOCATOR
                         the reference locator scheme to use for locating black
                         references, eg rl-manual; requires: dir-tree-with-data
