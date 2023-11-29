@@ -6,15 +6,17 @@ import shutil
 import traceback
 
 import numpy as np
-from spectral import envi
-import spectral.io.envi as envi_load
 from PIL import Image, ImageDraw
 from opex import ObjectPredictions
+from spectral import envi
+
+from happy.data import DataManager
 from happy.data import HappyData, configure_envi_settings
-from happy.writers import HappyWriter
-from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator
-from happy.data.white_ref import AbstractWhiteReferenceMethod
+from happy.data.annotations import ContoursManager
 from happy.data.black_ref import AbstractBlackReferenceMethod
+from happy.data.ref_locator import AbstractReferenceLocator
+from happy.data.white_ref import AbstractWhiteReferenceMethod
+from happy.writers import HappyWriter
 
 OUTPUT_FORMAT_FLAT = "flat"
 OUTPUT_FORMAT_DIRTREE = "dir-tree"
@@ -37,6 +39,15 @@ FILENAME_PLACEHOLDERS = [
 ]
 
 
+def log(msg):
+    """
+    For logging messages.
+
+    :param msg: the message to print
+    """
+    print(msg)
+
+
 def locate_opex(input_dirs, recursive, verbose, opex_files):
     """
     Locates the PNG/OPEX JSON pairs.
@@ -55,7 +66,7 @@ def locate_opex(input_dirs, recursive, verbose, opex_files):
 
     for input_dir in input_dirs:
         if verbose:
-            print("Entering: %s" % input_dir)
+            log("Entering: %s" % input_dir)
 
         for f in os.listdir(input_dir):
             full = os.path.join(input_dir, f)
@@ -65,7 +76,7 @@ def locate_opex(input_dirs, recursive, verbose, opex_files):
                 if recursive:
                     locate_opex(full, recursive, verbose, opex_files)
                     if verbose:
-                        print("Back in: %s" % input_dir)
+                        log("Back in: %s" % input_dir)
                 else:
                     continue
 
@@ -77,7 +88,7 @@ def locate_opex(input_dirs, recursive, verbose, opex_files):
             img_path = prefix + ".png"
             if not os.path.exists(img_path):
                 if verbose:
-                    print("No annotation JSON/PNG pair for: %s" % (prefix + ".*"))
+                    log("No annotation JSON/PNG pair for: %s" % (prefix + ".*"))
                 continue
             else:
                 opex_files.append(ann_path)
@@ -95,8 +106,7 @@ def get_sample_id(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 
-def envi_to_happy(path_ann, output_dir, black_ref_locator=None, black_ref_method=None,
-                  white_ref_locator=None, white_ref_method=None, dry_run=False, verbose=False):
+def envi_to_happy(path_ann, output_dir, datamanager, dry_run=False, verbose=False):
     """
     Converts the envi data into happy format.
 
@@ -104,71 +114,32 @@ def envi_to_happy(path_ann, output_dir, black_ref_locator=None, black_ref_method
     :type path_ann: str
     :param output_dir: the directory to store the happy data in
     :type output_dir: str
-    :param black_ref_locator: reference locator for black reference files, ignored if None
-    :type black_ref_locator: AbstractReferenceLocator
-    :param black_ref_method: the black reference method to apply, ignored if None
-    :type black_ref_method: AbstractBlackReferenceMethod
-    :param white_ref_locator: reference locator for white reference files, ignored if None
-    :type white_ref_locator: AbstractReferenceLocator
-    :param white_ref_method: the white reference method to apply, ignored if None
-    :type white_ref_method: AbstractWhiteReferenceMethod
+    :param datamanager: the data manager instance to use
+    :type datamanager: DataManager
     :param dry_run: whether to omit saving data/creating dirs
     :type dry_run: bool
     :param verbose: whether to be more verbose with the output
     :type verbose: bool
     """
     if verbose:
-        print("  --> converting envi to happy format")
+        log("  --> converting envi to happy format")
 
     path_hdr = os.path.splitext(path_ann)[0] + ".hdr"
     if not os.path.exists(path_hdr):
-        print("    --> not found: %s" % path_hdr)
+        log("    --> not found: %s" % path_hdr)
         return
 
     if verbose:
-        print("    --> loading: %s" % path_hdr)
-    scan = envi_load.open(path_hdr).load()
+        log("    --> loading: %s" % path_hdr)
 
-    if black_ref_locator is not None:
-        if isinstance(black_ref_locator, AbstractFileBasedReferenceLocator):
-            black_ref_locator.base_file = path_hdr
-            black_ref_file = black_ref_locator.locate()
-            if black_ref_file is not None:
-                if os.path.exists(black_ref_file):
-                    if verbose:
-                        print("    --> loading black ref: %s" % black_ref_file)
-                    black_ref = envi_load.open(path_hdr).load()
-                    black_ref_method.reference = black_ref
-                    scan = black_ref_method.apply(scan)
-                else:
-                    print("    --> black ref file not found: %s" % black_ref_file)
-        else:
-            black_ref = black_ref_locator.locate()
-            black_ref_method.reference = black_ref
-            scan = black_ref_method.apply(scan)
+    datamanager.set_scan(path_hdr)
+    datamanager.set_annotations(path_ann)
+    datamanager.calc_norm_data()
 
-    if white_ref_locator is not None:
-        if isinstance(white_ref_locator, AbstractFileBasedReferenceLocator):
-            white_ref_locator.base_file = path_hdr
-            white_ref_file = white_ref_locator.locate()
-            if white_ref_file is not None:
-                if os.path.exists(white_ref_file):
-                    if verbose:
-                        print("    --> loading white ref: %s" % white_ref_file)
-                    white_ref = envi_load.open(path_hdr).load()
-                    white_ref_method.reference = white_ref
-                    scan = white_ref_method.apply(scan)
-            else:
-                print("    --> white ref file not found: %s" % white_ref_file)
-        else:
-            white_ref = white_ref_locator.locate()
-            white_ref_method.reference = white_ref
-            scan = white_ref_method.apply(scan)
-
-    data = HappyData(get_sample_id(path_ann), DEFAULT_REGION_ID, scan, {}, {})
+    data = HappyData(get_sample_id(path_ann), DEFAULT_REGION_ID, datamanager.norm_data, {}, {})
     if not dry_run:
         if verbose:
-            print("    --> writing happy data")
+            log("    --> writing happy data")
         writer = HappyWriter(base_dir=output_dir)
         writer.write_data(data)
 
@@ -191,8 +162,7 @@ def pattern_to_filename(pattern, placeholder_map):
     return result
 
 
-def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, labels=None,
-            black_ref_locator=None, black_ref_method=None, white_ref_locator=None, white_ref_method=None,
+def convert(path_ann, path_png, output_dir, datamanager, output_format=OUTPUT_FORMAT_FLAT, labels=None,
             pattern_mask="mask.hdr", pattern_labels="mask.json",
             pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_annotations=FILENAME_PH_SAMPLEID + ".json",
             no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False, verbose=False):
@@ -209,14 +179,8 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
     :type output_format: str
     :param labels: the list of labels to transfer from OPEX into ENVI
     :type labels: list
-    :param black_ref_locator: reference locator for black reference files, ignored if None
-    :type black_ref_locator: AbstractReferenceLocator
-    :param black_ref_method: the black reference method to apply, ignored if None
-    :type black_ref_method: AbstractBlackReferenceMethod
-    :param white_ref_locator: reference locator for white reference files, ignored if None
-    :type white_ref_locator: AbstractReferenceLocator
-    :param white_ref_method: the white reference method to apply, ignored if None
-    :type white_ref_method: AbstractWhiteReferenceMethod
+    :param datamanager: the data manager instance to use
+    :type datamanager: DataManager
     :param pattern_mask: the file name pattern for the mask
     :type pattern_mask: str
     :param pattern_labels: the file name pattern for the mask label map
@@ -237,7 +201,7 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
     :type verbose: bool
     """
     if verbose:
-        print("- %s" % path_ann)
+        log("- %s" % path_ann)
 
     sample_id = os.path.splitext(os.path.basename(path_ann))[0]
     pattern_map = {
@@ -256,13 +220,10 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
     output_png = os.path.join(output_path, pattern_to_filename(pattern_png, pattern_map))
     output_ann = os.path.join(output_path, pattern_to_filename(pattern_annotations, pattern_map))
     if verbose:
-        print("  --> output dir: %s" % output_path)
+        log("  --> output dir: %s" % output_path)
 
     if output_format == OUTPUT_FORMAT_DIRTREE_WITH_DATA:
-        envi_to_happy(path_ann, output_dir,
-                      black_ref_locator=black_ref_locator, black_ref_method=black_ref_method,
-                      white_ref_locator=white_ref_locator, white_ref_method=white_ref_method,
-                      dry_run=dry_run, verbose=verbose)
+        envi_to_happy(path_ann, output_dir, datamanager, dry_run=dry_run, verbose=verbose)
 
     # get dimensions
     img = Image.open(path_png)
@@ -300,7 +261,7 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
         # copy input?
         if include_input:
             if verbose:
-                print("    --> copying JSON/PNG")
+                log("    --> copying JSON/PNG")
             shutil.copy(path_ann, output_ann)
             shutil.copy(path_png, output_png)
 
@@ -314,13 +275,13 @@ def convert(path_ann, path_png, output_dir, output_format=OUTPUT_FORMAT_FLAT, la
             reverse_label_map[str(label_map[k])] = k
             wavelengths.append(label_map[k])
         if verbose:
-            print("    --> writing label map: %s" % output_labels)
+            log("    --> writing label map: %s" % output_labels)
         with open(output_labels, "w") as fp:
             json.dump(reverse_label_map, fp, indent=2)
 
         # envi mask
         if verbose:
-            print("    --> writing envi mask: %s" % output_envi)
+            log("    --> writing envi mask: %s" % output_envi)
         envi.save_image(output_envi, np.array(img), dtype=np.uint8, force=True, interleave='BSQ',
                         metadata={'wavelength': wavelengths})
 
@@ -399,14 +360,18 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
         white_ref_method = None
         white_ref_locator = None
 
+    datamanager = DataManager(ContoursManager(), log_method=log)
+    datamanager.set_blackref_locator(black_ref_locator)
+    datamanager.set_blackref_method(black_ref_method)
+    datamanager.set_whiteref_locator(white_ref_locator)
+    datamanager.set_whiteref_method(white_ref_method)
+
     ann_paths = []
     locate_opex(input_dirs, recursive, verbose, ann_paths)
 
     for ann_path in ann_paths:
         img_path = os.path.splitext(ann_path)[0] + ".png"
-        convert(ann_path, img_path, output_dir=output_dir, output_format=output_format,
-                black_ref_locator=black_ref_locator, black_ref_method=black_ref_method,
-                white_ref_locator=white_ref_locator, white_ref_method=white_ref_method,
+        convert(ann_path, img_path, output_dir, datamanager, output_format=output_format,
                 pattern_mask=pattern_mask, pattern_labels=pattern_labels,
                 pattern_png=pattern_png, pattern_annotations=pattern_annotations,
                 labels=labels, include_input=include_input,
