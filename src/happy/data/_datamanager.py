@@ -9,7 +9,7 @@ from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotatio
 from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
 from happy.preprocessors import MultiPreprocessor
 from seppl import get_class_name
-from opex import BBox
+from opex import BBox, ObjectPredictions
 
 
 CALC_BLACKREF_APPLIED = "blackref_applied"
@@ -148,6 +148,35 @@ class DataManager:
                     self.wavelengths[i] = metadata["wavelength"][i]
 
         return self.wavelengths
+
+    def has_annotations(self):
+        """
+        Checks whether any contours are present.
+
+        :return: True if contours are present
+        :rtype: bool
+        """
+        return self.contours.has_contours()
+
+    def clear_annotations(self):
+        """
+        Removes all currently set contours.
+        """
+        self.contours.clear()
+
+    def set_annotations(self, path):
+        """
+        Loads the annotations in OPEX JSON format.
+
+        :param path: the OPEX JSON file to load
+        :type path: str
+        """
+        if not self.has_scan():
+            return "Please load a scan first!"
+
+        ann = ObjectPredictions.load_json_from_file(path)
+        self.contours.from_opex(ann, self.scan_data.shape[1], self.scan_data.shape[0])
+        self.reset_norm_data()
 
     def has_whiteref(self):
         """
