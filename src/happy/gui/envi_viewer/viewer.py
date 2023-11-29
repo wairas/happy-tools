@@ -145,7 +145,7 @@ class ViewerApp:
         self.photo_scan = None
         self.session = SessionManager(log_method=self.log)
         self.contours = ContoursManager()
-        self.data = DataManager(self.contours, log_method=self.log)
+        self.data = DataManager(contours=self.contours, log_method=self.log)
         self.last_dims = None
         self.last_wavelengths = None
         self.markers = MarkersManager()

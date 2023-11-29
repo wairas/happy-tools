@@ -23,11 +23,11 @@ class DataManager:
     For managing the loaded data.
     """
 
-    def __init__(self, contours, log_method=None):
+    def __init__(self, contours=None, log_method=None):
         """
         Initializes the manager.
 
-        :param contours: the contours manager
+        :param contours: the contours manager, creates one automatically if None
         :type contours: ContoursManager
         :param log_method: the log method to use (only takes a single str arg, the message)
         """
@@ -52,7 +52,7 @@ class DataManager:
         self.norm_data = None
         self.display_image = None
         self.wavelengths = None
-        self.contours = contours
+        self.contours = contours if (contours is not None) else ContoursManager()
         self.preprocessors = None
         self.log_method = log_method
 

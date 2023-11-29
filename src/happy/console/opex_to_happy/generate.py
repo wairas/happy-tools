@@ -360,7 +360,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
         white_ref_method = None
         white_ref_locator = None
 
-    datamanager = DataManager(ContoursManager(), log_method=log)
+    datamanager = DataManager(log_method=log)
     datamanager.set_blackref_locator(black_ref_locator)
     datamanager.set_blackref_method(black_ref_method)
     datamanager.set_whiteref_locator(white_ref_locator)
