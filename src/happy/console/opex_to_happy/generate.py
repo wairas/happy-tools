@@ -12,7 +12,6 @@ from spectral import envi
 
 from happy.data import DataManager
 from happy.data import HappyData, configure_envi_settings
-from happy.data.annotations import ContoursManager
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.data.white_ref import AbstractWhiteReferenceMethod
