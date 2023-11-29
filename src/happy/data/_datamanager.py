@@ -2,7 +2,7 @@ import numpy as np
 import spectral.io.envi as envi
 import traceback
 
-from ._contours import ContoursManager, Contour
+from happy.data.annotations import ContoursManager, Contour
 from happy.console.hsi_to_rgb.generate import normalize_data
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod

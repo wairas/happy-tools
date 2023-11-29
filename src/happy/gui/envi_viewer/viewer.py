@@ -21,9 +21,9 @@ from happy.data.white_ref import AbstractWhiteReferenceMethod
 from happy.data import LABEL_WHITEREF, LABEL_BLACKREF, configure_envi_settings
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.preprocessors import Preprocessor
-from happy.gui.envi_viewer import ContoursManager, Contour
-from happy.gui.envi_viewer import DataManager, CALC_DIMENSIONS_DIFFER
-from happy.gui.envi_viewer import MarkersManager
+from happy.data import DataManager, CALC_DIMENSIONS_DIFFER
+from happy.data.annotations import ContoursManager, Contour
+from happy.data.annotations import MarkersManager
 from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
 

@@ -1,7 +1,7 @@
 import copy
+import json
 from dataclasses import dataclass
 from datetime import datetime
-import json
 from operator import itemgetter
 
 from PIL import Image, ImageDraw
@@ -185,6 +185,34 @@ class ContoursManager:
         if len(self.metadata) > 0:
             result.meta = copy.copy(self.metadata)
         return result
+
+    def from_opex(self, predictions, width, height):
+        """
+        Turns the OPEX annotations into contours.
+
+        :param predictions: the ObjectPredictions annotations to load
+        :type predictions: ObjectPredictions
+        :param width: the width of the image, used for normalizing the coordinates
+        :type width: int
+        :param height: the height of the image, used for normalizing the coordinates
+        :type height: int
+        :return: whether successfully imported
+        :rtype: bool
+        """
+        self.clear()
+        if isinstance(predictions.meta, dict):
+            self.metadata.update(predictions.meta)
+        contours = list()
+        for obj in predictions.objects:
+            points = []
+            for x, y in obj.polygon.points:
+                points.append((x / width, y / height))
+            meta = None
+            if isinstance(obj.meta, dict):
+                meta = obj.meta.copy()
+            contour = Contour(points=points, label=obj.label, normalized=True, meta=meta)
+            contours.append(contour)
+        self.add(contours)
 
     def has_contours(self):
         """
