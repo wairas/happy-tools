@@ -394,7 +394,7 @@ def main(args=None):
     parser.add_argument("--pattern_annotations", metavar="PATTERN", help="the pattern to use for saving the OPEX JSON annotation file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=FILENAME_PH_SAMPLEID + ".json", required=False)
     parser.add_argument("-I", "--include_input", action="store_true", help="whether to copy the PNG/JSON file across to the output dir", required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
-    add_logging_level(parser, short_opt="-L")
+    add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
     generate(parsed.input_dir, parsed.output_dir,
