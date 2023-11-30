@@ -40,6 +40,7 @@ setup(
         "scikit-learn",
         "matplotlib",
         "seppl>=0.0.11",
+        "wai.logging",
     ],
     package_dir={
         '': 'src'

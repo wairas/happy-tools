@@ -1,9 +1,16 @@
+import abc
+import argparse
 import importlib.util
 import json
+import logging
 import sys
 
 from typing import Dict
-from seppl import get_class_name, get_class
+from seppl import get_class_name, get_class, Plugin
+from wai.logging import add_logging_level, add_logger_name, set_logging_level, LOGGING_WARNING
+
+
+ENV_HAPPY_LOGLEVEL = "HAPPY_LOGLEVEL"
 
 
 def get_func(funcname: str):
@@ -122,3 +129,55 @@ class ConfigurableObject:
             with open(f, "r") as fp:
                 d = json.load(fp)
                 return cls.create_from_dict(d, c=c)
+
+
+class PluginWithLogging(Plugin, abc.ABC):
+
+    def __init__(self):
+        """
+        Initializes the plugin.
+        """
+        super().__init__()
+        self.logging_level = LOGGING_WARNING
+        self.logger_name = self.name()
+        self._logger = None
+
+    def logger(self) -> logging.Logger:
+        """
+        Returns the logger instance to use.
+
+        :return: the logger
+        :rtype: logging.Logger
+        """
+        if self._logger is None:
+            if (self.logger_name is not None) and (len(self.logger_name) > 0):
+                logger_name = self.logger_name
+            else:
+                logger_name = self.name()
+            self._logger = logging.getLogger(logger_name)
+            set_logging_level(self._logger, self.logging_level)
+        return self._logger
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        """
+        Creates an argument parser.
+
+        :return: the parser
+        :rtype: argparse.ArgumentParser
+        """
+        parser = super()._create_argparser()
+        add_logging_level(parser, short_opt="-V")
+        add_logger_name(parser, short_opt="-A")
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        """
+        Initializes the object with the arguments of the parsed namespace.
+
+        :param ns: the parsed arguments
+        :type ns: argparse.Namespace
+        """
+        super()._apply_args(ns)
+        self.logging_level = ns.logging_level
+        self.logger_name = ns.logger_name
+        self._logger = None

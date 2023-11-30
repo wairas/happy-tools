@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import argparse
 import json
+import logging
 import os
 import shutil
 import traceback
@@ -10,8 +11,10 @@ from PIL import Image, ImageDraw
 from opex import ObjectPredictions
 from spectral import envi
 
+from wai.logging import add_logging_level, set_logging_level
+from happy.base.app import init_app
 from happy.data import DataManager
-from happy.data import HappyData, configure_envi_settings
+from happy.data import HappyData
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.data.white_ref import AbstractWhiteReferenceMethod
@@ -38,16 +41,19 @@ FILENAME_PLACEHOLDERS = [
 ]
 
 
+logger = logging.getLogger("opex2happy")
+
+
 def log(msg):
     """
     For logging messages.
 
     :param msg: the message to print
     """
-    print(msg)
+    logger.info(msg)
 
 
-def locate_opex(input_dirs, recursive, verbose, opex_files):
+def locate_opex(input_dirs, recursive, opex_files):
     """
     Locates the PNG/OPEX JSON pairs.
 
@@ -55,8 +61,6 @@ def locate_opex(input_dirs, recursive, verbose, opex_files):
     :type input_dirs: str or list
     :param recursive: whether to look for OPEX files recursively
     :type recursive: bool
-    :param verbose: whether to be more verbose with the output
-    :type verbose: bool
     :param opex_files: for collecting the OPEX JSON files
     :type opex_files: list
     """
@@ -64,8 +68,7 @@ def locate_opex(input_dirs, recursive, verbose, opex_files):
         input_dirs = [input_dirs]
 
     for input_dir in input_dirs:
-        if verbose:
-            log("Entering: %s" % input_dir)
+        logger.info("Entering: %s" % input_dir)
 
         for f in os.listdir(input_dir):
             full = os.path.join(input_dir, f)
@@ -73,9 +76,8 @@ def locate_opex(input_dirs, recursive, verbose, opex_files):
             # directory?
             if os.path.isdir(full):
                 if recursive:
-                    locate_opex(full, recursive, verbose, opex_files)
-                    if verbose:
-                        log("Back in: %s" % input_dir)
+                    locate_opex(full, recursive, opex_files)
+                    logger.info("Back in: %s" % input_dir)
                 else:
                     continue
 
@@ -86,8 +88,7 @@ def locate_opex(input_dirs, recursive, verbose, opex_files):
             prefix = os.path.splitext(ann_path)[0]
             img_path = prefix + ".png"
             if not os.path.exists(img_path):
-                if verbose:
-                    log("No annotation JSON/PNG pair for: %s" % (prefix + ".*"))
+                logger.info("No annotation JSON/PNG pair for: %s" % (prefix + ".*"))
                 continue
             else:
                 opex_files.append(ann_path)
@@ -105,7 +106,7 @@ def get_sample_id(path):
     return os.path.splitext(os.path.basename(path))[0]
 
 
-def envi_to_happy(path_ann, output_dir, datamanager, dry_run=False, verbose=False):
+def envi_to_happy(path_ann, output_dir, datamanager, dry_run=False):
     """
     Converts the envi data into happy format.
 
@@ -117,19 +118,15 @@ def envi_to_happy(path_ann, output_dir, datamanager, dry_run=False, verbose=Fals
     :type datamanager: DataManager
     :param dry_run: whether to omit saving data/creating dirs
     :type dry_run: bool
-    :param verbose: whether to be more verbose with the output
-    :type verbose: bool
     """
-    if verbose:
-        log("  --> converting envi to happy format")
+    logger.info("  --> converting envi to happy format")
 
     path_hdr = os.path.splitext(path_ann)[0] + ".hdr"
     if not os.path.exists(path_hdr):
-        log("    --> not found: %s" % path_hdr)
+        logger.info("    --> not found: %s" % path_hdr)
         return
 
-    if verbose:
-        log("    --> loading: %s" % path_hdr)
+    logger.info("    --> loading: %s" % path_hdr)
 
     datamanager.set_scan(path_hdr)
     datamanager.set_annotations(path_ann)
@@ -137,8 +134,7 @@ def envi_to_happy(path_ann, output_dir, datamanager, dry_run=False, verbose=Fals
 
     data = HappyData(get_sample_id(path_ann), DEFAULT_REGION_ID, datamanager.norm_data, {}, {})
     if not dry_run:
-        if verbose:
-            log("    --> writing happy data")
+        logger.info("    --> writing happy data")
         writer = HappyWriter(base_dir=output_dir)
         writer.write_data(data)
 
@@ -164,7 +160,7 @@ def pattern_to_filename(pattern, placeholder_map):
 def convert(path_ann, path_png, output_dir, datamanager, output_format=OUTPUT_FORMAT_FLAT, labels=None,
             pattern_mask="mask.hdr", pattern_labels="mask.json",
             pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_annotations=FILENAME_PH_SAMPLEID + ".json",
-            no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False, verbose=False):
+            no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False):
     """
     Converts the specified file.
 
@@ -196,11 +192,8 @@ def convert(path_ann, path_png, output_dir, datamanager, output_format=OUTPUT_FO
     :type include_input: bool
     :param dry_run: whether to omit saving data/creating dirs
     :type dry_run: bool
-    :param verbose: whether to be more verbose with the output
-    :type verbose: bool
     """
-    if verbose:
-        log("- %s" % path_ann)
+    logger.info("- %s" % path_ann)
 
     sample_id = os.path.splitext(os.path.basename(path_ann))[0]
     pattern_map = {
@@ -218,11 +211,10 @@ def convert(path_ann, path_png, output_dir, datamanager, output_format=OUTPUT_FO
     output_labels = os.path.join(output_path, pattern_to_filename(pattern_labels, pattern_map))
     output_png = os.path.join(output_path, pattern_to_filename(pattern_png, pattern_map))
     output_ann = os.path.join(output_path, pattern_to_filename(pattern_annotations, pattern_map))
-    if verbose:
-        log("  --> output dir: %s" % output_path)
+    logger.info("  --> output dir: %s" % output_path)
 
     if output_format == OUTPUT_FORMAT_DIRTREE_WITH_DATA:
-        envi_to_happy(path_ann, output_dir, datamanager, dry_run=dry_run, verbose=verbose)
+        envi_to_happy(path_ann, output_dir, datamanager, dry_run=dry_run)
 
     # get dimensions
     img = Image.open(path_png)
@@ -259,8 +251,7 @@ def convert(path_ann, path_png, output_dir, datamanager, output_format=OUTPUT_FO
 
         # copy input?
         if include_input:
-            if verbose:
-                log("    --> copying JSON/PNG")
+            logger.info("    --> copying JSON/PNG")
             shutil.copy(path_ann, output_ann)
             shutil.copy(path_png, output_png)
 
@@ -273,14 +264,12 @@ def convert(path_ann, path_png, output_dir, datamanager, output_format=OUTPUT_FO
         for k in label_map:
             reverse_label_map[str(label_map[k])] = k
             wavelengths.append(label_map[k])
-        if verbose:
-            log("    --> writing label map: %s" % output_labels)
+        logger.info("    --> writing label map: %s" % output_labels)
         with open(output_labels, "w") as fp:
             json.dump(reverse_label_map, fp, indent=2)
 
         # envi mask
-        if verbose:
-            log("    --> writing envi mask: %s" % output_envi)
+        logger.info("    --> writing envi mask: %s" % output_envi)
         envi.save_image(output_envi, np.array(img), dtype=np.uint8, force=True, interleave='BSQ',
                         metadata={'wavelength': wavelengths})
 
@@ -289,7 +278,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
              black_ref_locator=None, black_ref_method=None, white_ref_locator=None, white_ref_method=None,
              pattern_mask="mask.hdr", pattern_labels="mask.json",
              pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_annotations=FILENAME_PH_SAMPLEID + ".json",
-             no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False, verbose=False):
+             no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False):
     """
     Generates fake RGB images from the HSI images found in the specified directories.
 
@@ -327,8 +316,6 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     :type include_input: bool
     :param dry_run: whether to omit saving the PNG images
     :type dry_run: bool
-    :param verbose: whether to be more verbose with the output
-    :type verbose: bool
     """
 
     if output_format not in OUTPUT_FORMATS:
@@ -366,7 +353,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     datamanager.set_whiteref_method(white_ref_method)
 
     ann_paths = []
-    locate_opex(input_dirs, recursive, verbose, ann_paths)
+    locate_opex(input_dirs, recursive, ann_paths)
 
     for ann_path in ann_paths:
         img_path = os.path.splitext(ann_path)[0] + ".png"
@@ -375,7 +362,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
                 pattern_png=pattern_png, pattern_annotations=pattern_annotations,
                 labels=labels, include_input=include_input,
                 no_implicit_background=no_implicit_background, unlabelled=unlabelled,
-                dry_run=dry_run, verbose=verbose)
+                dry_run=dry_run)
 
 
 def main(args=None):
@@ -385,7 +372,7 @@ def main(args=None):
     :param args: the commandline arguments, uses sys.argv if not supplied
     :type args: list
     """
-    configure_envi_settings()
+    init_app()
     parser = argparse.ArgumentParser(
         description="Turns annotations (PNG and OPEX JSON) into Happy ENVI format.",
         prog="happy-opex2happy",
@@ -407,8 +394,9 @@ def main(args=None):
     parser.add_argument("--pattern_annotations", metavar="PATTERN", help="the pattern to use for saving the OPEX JSON annotation file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=FILENAME_PH_SAMPLEID + ".json", required=False)
     parser.add_argument("-I", "--include_input", action="store_true", help="whether to copy the PNG/JSON file across to the output dir", required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
-    parser.add_argument("-v", "--verbose", action="store_true", help="whether to be more verbose with the output", required=False)
+    add_logging_level(parser, short_opt="-L")
     parsed = parser.parse_args(args=args)
+    set_logging_level(logger, parsed.logging_level)
     generate(parsed.input_dir, parsed.output_dir,
              recursive=parsed.recursive, output_format=parsed.output_format, labels=parsed.labels.split(","),
              black_ref_locator=parsed.black_ref_locator, black_ref_method=parsed.black_ref_method,
@@ -416,7 +404,7 @@ def main(args=None):
              pattern_mask=parsed.pattern_mask, pattern_labels=parsed.pattern_labels,
              pattern_png=parsed.pattern_png, pattern_annotations=parsed.pattern_annotations,
              no_implicit_background=parsed.no_implicit_background, unlabelled=parsed.unlabelled,
-             include_input=parsed.include_input, dry_run=parsed.dry_run, verbose=parsed.verbose)
+             include_input=parsed.include_input, dry_run=parsed.dry_run)
 
 
 def sys_main() -> int:
