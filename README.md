@@ -185,9 +185,11 @@ optional arguments:
 
 ```
 usage: happy-hsi2rgb [-h] -i INPUT_DIR [INPUT_DIR ...] [-r] [-e EXTENSION]
-                     [-b BLACK_REFERENCE] [-w WHITE_REFERENCE] [-a]
-                     [--red INT] [--green INT] [--blue INT] [-o OUTPUT_DIR]
-                     [--width INT] [--height INT] [-n] [-v]
+                     [--black_ref_locator LOCATOR] [--black_ref_method METHOD]
+                     [--white_ref_locator LOCATOR] [--white_ref_method METHOD]
+                     [-a] [--red INT] [--green INT] [--blue INT]
+                     [-o OUTPUT_DIR] [--width INT] [--height INT] [-n]
+                     [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Fake RGB image generator for HSI files.
 
@@ -199,12 +201,18 @@ optional arguments:
                         (default: False)
   -e EXTENSION, --extension EXTENSION
                         The file extension to look for (default: .hdr)
-  -b BLACK_REFERENCE, --black_reference BLACK_REFERENCE
-                        Path to the black reference file (ENVI format)
-                        (default: None)
-  -w WHITE_REFERENCE, --white_reference WHITE_REFERENCE
-                        Path to the white reference file (ENVI format)
-                        (default: None)
+  --black_ref_locator LOCATOR
+                        the reference locator scheme to use for locating black
+                        references, eg rl-manual (default: None)
+  --black_ref_method METHOD
+                        the black reference method to use for applying black
+                        references, eg br-same-size (default: None)
+  --white_ref_locator LOCATOR
+                        the reference locator scheme to use for locating
+                        whites references, eg rl-manual (default: None)
+  --white_ref_method METHOD
+                        the white reference method to use for applying white
+                        references, eg wr-same-size (default: None)
   -a, --autodetect_channels
                         whether to determine the channels from the meta-data
                         (overrides the manually specified channels) (default:
@@ -223,8 +231,8 @@ optional arguments:
   --height INT          the height to scale the images to (<= 0 uses image
                         dimension) (default: 0)
   -n, --dry_run         whether to omit saving the PNG images (default: False)
-  -v, --verbose         whether to be more verbose with the output (default:
-                        False)
+  -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        The logging level to use. (default: WARN)
 ```
 
 
