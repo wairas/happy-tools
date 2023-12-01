@@ -3,7 +3,6 @@ import spectral.io.envi as envi
 import traceback
 
 from happy.data.annotations import ContoursManager, Contour
-from happy.console.hsi_to_rgb.generate import normalize_data
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
@@ -530,6 +529,23 @@ class DataManager:
 
         return result
 
+    def _normalize_data(self, data):
+        """
+        Normalizes data.
+
+        :param data: the data to normalize
+        :return: the normalized data
+        """
+        min_value = np.min(data)
+        max_value = np.max(data)
+        data_range = max_value - min_value
+
+        if data_range == 0:  # Handle division by zero
+            data = np.zeros_like(data)
+        else:
+            data = (data - min_value) / data_range
+        return data
+
     def update_image(self, r, g, b):
         """
         Updates the image.
@@ -557,9 +573,9 @@ class DataManager:
             green_band = self.norm_data[:, :, g]
             blue_band = self.norm_data[:, :, b]
 
-            norm_red = normalize_data(red_band)
-            norm_green = normalize_data(green_band)
-            norm_blue = normalize_data(blue_band)
+            norm_red = self._normalize_data(red_band)
+            norm_green = self._normalize_data(green_band)
+            norm_blue = self._normalize_data(blue_band)
 
             rgb_image = np.dstack((norm_red, norm_green, norm_blue))
             self.display_image = (rgb_image * 255).astype(np.uint8)
