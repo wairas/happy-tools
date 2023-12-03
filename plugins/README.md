@@ -23,7 +23,6 @@
 * [happy-reader](happy-reader.md)
 
 ## HAPPY data preprocessors
-* [black-ref](black-ref.md)
 * [crop](crop.md)
 * [derivative](derivative.md)
 * [down-sample](down-sample.md)
@@ -35,7 +34,6 @@
 * [snv](snv.md)
 * [std-scaler](std-scaler.md)
 * [wavelength-subset](wavelength-subset.md)
-* [white-ref](white-ref.md)
 
 ## HAPPY data writers
 * [happy-writer](happy-writer.md)
