@@ -4,11 +4,12 @@ import os
 
 from typing import Optional
 from happy.base.registry import REGISTRY
-from seppl import Plugin, split_args, split_cmdline, args_to_objects, get_class_name
+from happy.base.core import PluginWithLogging
+from seppl import split_args, split_cmdline, args_to_objects, get_class_name
 from opex import ObjectPredictions
 
 
-class AbstractReferenceLocator(Plugin, abc.ABC):
+class AbstractReferenceLocator(PluginWithLogging, abc.ABC):
     """
     Ancestor for schemes that locate reference data.
     """
@@ -84,6 +85,7 @@ class AbstractFileBasedReferenceLocator(AbstractReferenceLocator, abc.ABC):
         """
         Initializes the locator.
         """
+        super().__init__()
         self._base_file = None
         self._must_exist = False
 
@@ -169,6 +171,7 @@ class AbstractAnnotationBasedReferenceLocator(AbstractReferenceLocator, abc.ABC)
         """
         Initializes the locator.
         """
+        super().__init__()
         self._annotations = None
 
     @property

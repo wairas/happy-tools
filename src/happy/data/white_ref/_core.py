@@ -3,12 +3,13 @@ import argparse
 import spectral.io.envi as envi
 
 from happy.base.registry import REGISTRY
-from seppl import Plugin, split_args, split_cmdline, args_to_objects
+from happy.base.core import PluginWithLogging
+from seppl import split_args, split_cmdline, args_to_objects
 
 """ the label to use for the white reference annotation. """
 
 
-class AbstractWhiteReferenceMethod(Plugin, abc.ABC):
+class AbstractWhiteReferenceMethod(PluginWithLogging, abc.ABC):
     """
     Ancestor for methods that apply a white reference to scans.
     """
@@ -17,6 +18,7 @@ class AbstractWhiteReferenceMethod(Plugin, abc.ABC):
         """
         Basic initialization of the white reference method.
         """
+        super().__init__()
         self._initialized = False
         self._reference = None
 

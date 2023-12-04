@@ -42,6 +42,7 @@ class WhiteReferenceColumnAverage(AbstractFileBasedWhiteReferenceMethod):
         self._avg = []
         for col in range(num_columns):
             self._avg.append(np.mean(self.reference[:, col, :], axis=0))
+        self.logger().info(f"avg: {self._avg}")
 
     def _do_apply(self, scan):
         """

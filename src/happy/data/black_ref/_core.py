@@ -3,10 +3,11 @@ import argparse
 import spectral.io.envi as envi
 
 from happy.base.registry import REGISTRY
-from seppl import Plugin, split_args, split_cmdline, args_to_objects
+from happy.base.core import PluginWithLogging
+from seppl import split_args, split_cmdline, args_to_objects
 
 
-class AbstractBlackReferenceMethod(Plugin, abc.ABC):
+class AbstractBlackReferenceMethod(PluginWithLogging, abc.ABC):
     """
     Ancestor for methods that apply a black reference to scans.
     """
@@ -15,6 +16,7 @@ class AbstractBlackReferenceMethod(Plugin, abc.ABC):
         """
         Basic initialization of the black reference method.
         """
+        super().__init__()
         self._initialized = False
         self._reference = None
 

@@ -3,13 +3,18 @@
 Reference locator that uses the supplied pattern and applies that to the incoming scan file name to generate the reference file name.
 
 ```
-usage: rl-file-pattern [-h] [-m] [-p PATTERN]
+usage: rl-file-pattern [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                       [-A LOGGER_NAME] [-m] [-p PATTERN]
 
 Reference locator that uses the supplied pattern and applies that to the
 incoming scan file name to generate the reference file name.
 
 optional arguments:
   -h, --help            show this help message and exit
+  -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        The logging level to use. (default: WARN)
+  -A LOGGER_NAME, --logger_name LOGGER_NAME
+                        The custom name to use for the logger (default: None)
   -m, --must_exist      Whether the determined reference file must exist
                         (default: False)
   -p PATTERN, --pattern PATTERN

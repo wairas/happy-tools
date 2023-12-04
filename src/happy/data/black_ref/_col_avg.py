@@ -42,6 +42,7 @@ class BlackReferenceColumnAverage(AbstractFileBasedBlackReferenceMethod):
         self._avg = []
         for col in range(num_columns):
             self._avg.append(np.mean(self.reference[:, col, :], axis=0))
+        self.logger().info(f"average: {self._avg}")
 
     def _do_apply(self, scan):
         """

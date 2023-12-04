@@ -10,6 +10,7 @@ class FixedLocator(AbstractReferenceLocator):
         """
         Initializes the locator.
         """
+        super().__init__()
         self._reference_file = None
 
     def name(self) -> str:

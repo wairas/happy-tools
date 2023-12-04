@@ -46,6 +46,7 @@ class BlackReferenceAnnotationAverage(AbstractAnnotationBasedBlackReferenceMetho
         blackref_annotation = []
         for i in range(num_bands):
             blackref_annotation.append(np.average(blackref[:, :, i]))
+        self.logger().info(f"blackref_annotation: {blackref_annotation}")
         result = scan.copy()
         for i in range(len(blackref_annotation)):
             if blackref_annotation[i] != 1.0:

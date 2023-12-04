@@ -90,4 +90,5 @@ class FilePatternLocator(AbstractFileBasedReferenceLocator):
         p = os.path.dirname(self.base_file)
         n, e = os.path.splitext(os.path.basename(self.base_file))
         result = self._pattern.replace(PH_PATH, p).replace(PH_NAME, n).replace(PH_EXT, e)
+        self.logger().info(f"ref file: {result}")
         return result

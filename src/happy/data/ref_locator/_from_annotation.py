@@ -78,4 +78,5 @@ class FromAnnotationLocator(AbstractOPEXAnnotationBasedReferenceLocator):
             if obj.label == self._label:
                 result = obj
                 break
+        self.logger().info(f"annotation obj: {result}")
         return result
