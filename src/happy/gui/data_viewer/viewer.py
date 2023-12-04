@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import argparse
+import logging
 import os
 import pathlib
 import tkinter as tk
@@ -12,19 +13,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pygubu
 
-from datetime import datetime
 from PIL import Image, ImageTk
 from matplotlib.colors import Normalize
 from ttkSimpleDialog import ttkSimpleDialog
 
+from wai.logging import add_logging_level, set_logging_level
 from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
 
+PROG = "happy-data-viewer"
+
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
 
-LOG_TIMESTAMP_FORMAT = "[%H:%M:%S.%f]"
+logger = logging.getLogger(PROG)
 
 
 class ViewerApp:
@@ -123,8 +126,7 @@ class ViewerApp:
         :type msg: str
         """
         if msg != "":
-            msg = datetime.now().strftime(LOG_TIMESTAMP_FORMAT) + " " + msg
-            print(msg)
+            logger.info(msg)
 
     def clear_plot(self):
         """
@@ -579,7 +581,7 @@ def main():
     init_app()
     parser = argparse.ArgumentParser(
         description="Viewer for HAPPy data folder structures.",
-        prog="happy-data-viewer",
+        prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--base_folder", help="Base folder to display", default=None, required=False)
     parser.add_argument("--sample", help="The sample to load", default=None, required=False)
@@ -590,10 +592,10 @@ def main():
     parser.add_argument("-o", "--opacity", metavar="INT", help="the opacity to use (0-100)", default=None, type=int, required=False)
     parser.add_argument("--listbox_selectbackground", type=str, help="The background color to use for selected items in listboxes", default="#4a6984", required=False)
     parser.add_argument("--listbox_selectforeground", type=str, help="The foreground color to use for selected items in listboxes", default="#ffffff", required=False)
-    parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
+    add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args()
+    set_logging_level(logger, parsed.logging_level)
     app = ViewerApp()
-    app.log_timestamp_format = parsed.log_timestamp_format
 
     # display settings
     app.set_listbox_selectbackground(parsed.listbox_selectbackground)

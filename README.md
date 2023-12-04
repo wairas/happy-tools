@@ -21,7 +21,6 @@ usage: happy-data-viewer [-h] [--base_folder BASE_FOLDER] [--sample SAMPLE]
                          [--repeat REPEAT] [-r INT] [-g INT] [-b INT] [-o INT]
                          [--listbox_selectbackground LISTBOX_SELECTBACKGROUND]
                          [--listbox_selectforeground LISTBOX_SELECTFOREGROUND]
-                         [--log_timestamp_format FORMAT]
 
 Viewer for HAPPy data folder structures.
 
@@ -48,10 +47,6 @@ optional arguments:
   --listbox_selectforeground LISTBOX_SELECTFOREGROUND
                         The foreground color to use for selected items in
                         listboxes (default: #ffffff)
-  --log_timestamp_format FORMAT
-                        the format string for the logging timestamp, see: http
-                        s://docs.python.org/3/library/datetime.html#strftime-
-                        and-strptime-format-codes (default: [%H:%M:%S.%f])
 ```
 
 
