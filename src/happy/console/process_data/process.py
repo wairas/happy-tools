@@ -76,15 +76,20 @@ def main():
         if not isinstance(obj, Preprocessor):
             raise Exception("Expected plugin derived from %s but found at #%d: %s"
                             % (get_class_name(Preprocessor), i+1, get_class_name(obj)))
-    preprocessors = MultiPreprocessor(preprocessor_list=objs)
+    preprocessors = None
+    if len(objs) > 0:
+        preprocessors = MultiPreprocessor(preprocessor_list=objs)
 
     # execute pipeline
     for sample_id in reader.get_sample_ids():
         print("\n--> Processing:", sample_id)
         data_list = reader.load_data(sample_id)
         for data in data_list:
-            processed = data.apply_preprocess(preprocessors)
-            writer.write_data(processed)
+            if preprocessors is not None:
+                processed = data.apply_preprocess(preprocessors)
+                writer.write_data(processed)
+            else:
+                writer.write_data(data)
 
 
 def sys_main() -> int:
