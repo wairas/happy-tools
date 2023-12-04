@@ -1,14 +1,16 @@
 import abc
 import os
 
-from seppl import Plugin, split_args, split_cmdline, args_to_objects
+from seppl import split_args, split_cmdline, args_to_objects
+from happy.base.core import PluginWithLogging
 from happy.base.registry import REGISTRY
 from typing import List, Optional
 
 
-class Preprocessor(Plugin, abc.ABC):
+class Preprocessor(PluginWithLogging, abc.ABC):
     
     def __init__(self, **kwargs):
+        super().__init__()
         self.params = kwargs
         # Handle additional positional arguments if needed
 

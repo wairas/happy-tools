@@ -9,7 +9,7 @@ class WavelengthSubsetPreprocessor(Preprocessor):
         return "wavelength-subset"
 
     def description(self) -> str:
-        return "TODO"
+        return "Returns the specified subset of wavelengths."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()

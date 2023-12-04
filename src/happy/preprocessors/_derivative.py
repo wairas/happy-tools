@@ -10,7 +10,7 @@ class DerivativePreprocessor(Preprocessor):
         return "derivative"
 
     def description(self) -> str:
-        return "TODO"
+        return "Applies Savitzky-Golay to the data."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()

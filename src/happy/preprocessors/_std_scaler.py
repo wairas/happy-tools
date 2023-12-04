@@ -8,7 +8,7 @@ class StandardScalerPreprocessor(Preprocessor):
         return "std-scaler"
 
     def description(self) -> str:
-        return "TODO"
+        return "Standardize features by removing the mean and scaling to unit variance."
 
     def _do_apply(self, data, metadata=None):
         scaler = StandardScaler()

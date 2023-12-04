@@ -9,7 +9,7 @@ class SNVPreprocessor(Preprocessor):
         return "snv"
 
     def description(self) -> str:
-        return "TODO"
+        return "Standard normal variate"
 
     def _do_apply(self, data, metadata=None):
         #is_ragged = check_ragged_data(data)

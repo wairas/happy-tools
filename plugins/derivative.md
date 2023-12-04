@@ -1,14 +1,20 @@
 # derivative
 
-TODO
+Applies Savitzky-Golay to the data.
 
 ```
-usage: derivative [-h] [-w WINDOW_LENGTH] [-p POLYORDER] [-d DERIV]
+usage: derivative [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                  [-A LOGGER_NAME] [-w WINDOW_LENGTH] [-p POLYORDER]
+                  [-d DERIV]
 
-TODO
+Applies Savitzky-Golay to the data.
 
 optional arguments:
   -h, --help            show this help message and exit
+  -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        The logging level to use. (default: WARN)
+  -A LOGGER_NAME, --logger_name LOGGER_NAME
+                        The custom name to use for the logger (default: None)
   -w WINDOW_LENGTH, --window_length WINDOW_LENGTH
                         TODO (default: 5)
   -p POLYORDER, --polyorder POLYORDER

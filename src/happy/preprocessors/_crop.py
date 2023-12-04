@@ -10,16 +10,16 @@ class CropPreprocessor(Preprocessor):
         return "crop"
 
     def description(self) -> str:
-        return "TODO"
+        return "Crops the data to the specified rectangle."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-x", "--x", type=int, help="TODO", required=False, default=0)
-        parser.add_argument("-y", "--y", type=int, help="TODO", required=False, default=0)
-        parser.add_argument("-W", "--width", type=int, help="TODO", required=False, default=0)
-        parser.add_argument("-H", "--height", type=int, help="TODO", required=False, default=0)
-        parser.add_argument("-p", "--pad", action="store_true", help="TODO", required=False)
-        parser.add_argument("-v", "--pad_value", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-x", "--x", type=int, help="The left of the cropping rectangle", required=False, default=0)
+        parser.add_argument("-y", "--y", type=int, help="The top of the cropping rectangle", required=False, default=0)
+        parser.add_argument("-W", "--width", type=int, help="The width of the cropping rectangle", required=False, default=0)
+        parser.add_argument("-H", "--height", type=int, help="The height of the cropping rectangle", required=False, default=0)
+        parser.add_argument("-p", "--pad", action="store_true", help="Whether to pad if necessary", required=False)
+        parser.add_argument("-v", "--pad_value", type=int, help="The value to pad with", required=False, default=0)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
@@ -36,8 +36,8 @@ class CropPreprocessor(Preprocessor):
 
         if current_height >= target_height and current_width >= target_width:
             # Array is already larger than or equal to the target size, return as is
-            # print(f"Current dimensions: {current_height}x{current_width}, Target dimensions: {target_height}x{target_width}")
-            # print("No padding needed.")
+            self.logger().info(f"Current dimensions: {current_height}x{current_width}, Target dimensions: {target_height}x{target_width}")
+            self.logger().info("No padding needed.")
             return array
 
         # Calculate the padding amounts
@@ -87,20 +87,20 @@ class CropPreprocessor(Preprocessor):
         width = self.params.get('width', 0)
         pad = self.params.get('pad', True)
         pad_value = self.params.get('pad_value', 0)
-        # print(data.shape)
+        self.logger().info(data.shape)
         # cropped_data = data[y:y + height, x:x + width, :]
         cropped_data = data[y:y + height, x:x + width, :]
-        # print(y)
-        # print(height)
-        # print(cropped_data.shape)
+        self.logger().info(f"y: {y}")
+        self.logger().info(f"height: {height}")
+        self.logger().info(f"cropped_data.shape: {cropped_data.shape}")
         if pad:
-            # print("do pad")
+            self.logger().info("do pad")
             cropped_data = self.pad_array(cropped_data, height, width, pad_value)
-        # print(f"padded:{cropped_data.shape}")
+        self.logger().info(f"padded: {cropped_data.shape}")
         # Update the pixel_data dictionary
         new_meta_data = self.update_pixel_data(metadata, x, y, width, height, pad, pad_value)
 
-        # print("pp shape")
-        # print(new_meta_data["mask"]["data"].shape)
+        self.logger().info("pp shape")
+        self.logger().info(new_meta_data["mask"]["data"].shape)
 
         return cropped_data, new_meta_data

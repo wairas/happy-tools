@@ -10,13 +10,13 @@ class PadPreprocessor(Preprocessor):
         return "pad"
 
     def description(self) -> str:
-        return "TODO"
+        return "Pads the data to the specified dimensions with the supplied value"
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-W", "--width", type=int, help="TODO", required=False, default=0)
-        parser.add_argument("-H", "--height", type=int, help="TODO", required=False, default=0)
-        parser.add_argument("-v", "--pad_value", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-W", "--width", type=int, help="The width to pad to", required=False, default=0)
+        parser.add_argument("-H", "--height", type=int, help="The height to pad to", required=False, default=0)
+        parser.add_argument("-v", "--pad_value", type=int, help="The value to pad with", required=False, default=0)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
@@ -30,8 +30,8 @@ class PadPreprocessor(Preprocessor):
 
         if current_height >= target_height and current_width >= target_width:
             # Array is already larger than or equal to the target size, return as is
-            # print(f"Current dimensions: {current_height}x{current_width}, Target dimensions: {target_height}x{target_width}")
-            # print("No padding needed.")
+            self.logger().info(f"Current dimensions: {current_height}x{current_width}, Target dimensions: {target_height}x{target_width}")
+            self.logger().info("No padding needed.")
             return array
 
         # Calculate the padding amounts
@@ -44,7 +44,7 @@ class PadPreprocessor(Preprocessor):
             padding.append((0, 0))
 
         # Create a new array with the desired target size
-        # print(f"Padding array with pad_height: {pad_height}, pad_width: {pad_width}")
+        self.logger().info(f"Padding array with pad_height: {pad_height}, pad_width: {pad_width}")
         padded_array = np.pad(array, padding, mode='constant', constant_values=pad_value)
 
         return padded_array
@@ -76,14 +76,14 @@ class PadPreprocessor(Preprocessor):
         height = self.params.get('height', 0)
         width = self.params.get('width', 0)
         pad_value = self.params.get('pad_value', 0)
-        # print(data.shape)
+        self.logger().info(data.shape)
 
         pad_data = self.pad_array(data, height, width, pad_value)
-        # print(f"padded:{pad_data.shape}")
+        self.logger().info(f"padded:{pad_data.shape}")
         # Update the pixel_data dictionary
         new_meta_data = self.update_pixel_data(metadata, width, height, pad_value)
 
-        # print("pp shape")
-        # print(new_meta_data["mask"]["data"].shape)
+        self.logger().info("pp shape")
+        self.logger().info(new_meta_data["mask"]["data"].shape)
 
         return pad_data, new_meta_data

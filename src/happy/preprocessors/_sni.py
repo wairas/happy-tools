@@ -10,7 +10,7 @@ class SpectralNoiseInterpolator(Preprocessor):
         return "sni"
 
     def description(self) -> str:
-        return "TODO"
+        return "Spectral noise interpolation"
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
@@ -28,7 +28,7 @@ class SpectralNoiseInterpolator(Preprocessor):
     def calculate_gradient(self, data):
         # Calculate the gradient along the spectral dimension
         spectral_gradient = np.gradient(data, axis=2)
-        #print(f"data:{data.shape} grad:{spectral_gradient.shape}")
+        self.logger().info(f"data:{data.shape} grad:{spectral_gradient.shape}")
         return spectral_gradient
 
     def identify_noisy_pixels(self, gradient_data):
