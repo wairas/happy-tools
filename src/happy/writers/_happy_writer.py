@@ -20,8 +20,6 @@ class HappyWriter(HappyDataWriter):
                 self._write_data(happy_data, datatype_mapping)
         elif isinstance(happy_data_or_list, HappyData):
             self._write_single_data(happy_data_or_list, datatype_mapping)
-        else:
-            raise ValueError("Input should be either a HappyData object or a list of HappyData objects.")
 
     def get_datatype_mapping_for(self, datatype_mapping, outputname):
         if datatype_mapping is None:

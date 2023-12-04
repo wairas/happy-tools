@@ -56,6 +56,4 @@ class MatlabWriter(HappyDataWriter):
                 self._write_data(happy_data, datatype_mapping=datatype_mapping)
         elif isinstance(happy_data_or_list, HappyData):
             self._write_item(happy_data_or_list)
-        else:
-            raise Exception("Unsupported data type: %s" % str(type(happy_data_or_list)))
 
