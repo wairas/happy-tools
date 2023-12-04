@@ -176,7 +176,7 @@ class HappyReader(HappyDataReader):
                 wavelengths = envi_reader.get_wavelengths()
 
             # Create HappyData object for this region
-            happy_data = HappyData(sample_id, region_name, hyperspec_data, hyperspec_metadata, metadata_dict, wavelengths)
+            happy_data = HappyData(sample_id, region_name, hyperspec_data, hyperspec_metadata, metadata_dict, wavenumbers=wavelengths)
 
             return happy_data
         else:
