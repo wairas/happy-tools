@@ -4,7 +4,7 @@ import traceback
 
 import numpy as np
 
-from happy.data import configure_envi_settings
+from happy.base.app import init_app
 from happy.evaluators import PredictionActualHandler, RegressionEvaluator
 from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
 from happy.models.sklearn import create_model, REGRESSION_MODEL_MAP
@@ -34,7 +34,7 @@ def default_pixel_selectors() -> str:
 
 
 def main():
-    configure_envi_settings()
+    init_app()
     parser = argparse.ArgumentParser(
         description='Evaluate regression model on Happy Data using specified splits and pixel selector.',
         prog="happy-scikit-regression-build",

@@ -4,14 +4,14 @@ import spectral.io.envi as envi
 import sys
 import traceback
 
-from happy.data import configure_envi_settings
+from happy.base.app import init_app
 
 
 PROG = "happy-hdr-info"
 
 
 def main():
-    configure_envi_settings()
+    init_app()
     parser = argparse.ArgumentParser(
         description='Load and print information about an HDR file.',
         prog=PROG,

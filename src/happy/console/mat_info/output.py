@@ -5,11 +5,11 @@ import scipy.io as sio
 import sys
 import traceback
 
-from happy.data import configure_envi_settings
+from happy.base.app import init_app
 
 
 def main():
-    configure_envi_settings()
+    init_app()
     parser = argparse.ArgumentParser(
         description='Load and display structs from a MATLAB file.',
         prog="happy-mat-info",

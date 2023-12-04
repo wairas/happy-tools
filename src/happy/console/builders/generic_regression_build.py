@@ -5,8 +5,8 @@ import traceback
 
 import numpy as np
 
+from happy.base.app import init_app
 from happy.base.core import load_class
-from happy.data import configure_envi_settings
 from happy.evaluators import PredictionActualHandler, RegressionEvaluator
 from happy.models.generic import GenericSpectroscopyModel, GenericScikitSpectroscopyModel
 from happy.models.spectroscopy import create_false_color_image, SpectroscopyModel
@@ -16,7 +16,7 @@ from happy.writers import CSVTrainingDataWriter
 
 
 def main():
-    configure_envi_settings()
+    init_app()
     parser = argparse.ArgumentParser(
         description='Evaluate regression model on Happy Data using specified class from Python module.',
         prog="happy-generic-regression-build",

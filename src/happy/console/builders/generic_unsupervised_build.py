@@ -3,15 +3,15 @@ import os
 import time
 import traceback
 
+from happy.base.app import init_app
 from happy.base.core import load_class
-from happy.data import configure_envi_settings
 from happy.models.generic import GenericUnsupervisedPixelClusterer
 from happy.models.unsupervised_pixel_clusterer import create_false_color_image, create_prediction_image, UnsupervisedPixelClusterer
 from happy.splitters import HappySplitter
 
 
 def main():
-    configure_envi_settings()
+    init_app()
     parser = argparse.ArgumentParser(
         description='Evaluate clustering on hyperspectral data using specified class from Python module.',
         prog="happy-generic-unsupervised-build",
