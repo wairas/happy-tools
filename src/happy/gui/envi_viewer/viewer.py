@@ -3,6 +3,7 @@ import argparse
 import copy
 import io
 import json
+import logging
 import matplotlib.pyplot as plt
 import os
 import pathlib
@@ -16,6 +17,7 @@ from PIL import ImageTk, Image
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
+from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod
@@ -28,10 +30,14 @@ from happy.data.annotations import MarkersManager
 from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
 
+PROG = "happy-envi-viewer"
+
 PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
 
 DIMENSIONS = "H: %d, W: %d, C: %d"
+
+logger = logging.getLogger(PROG)
 
 LOG_TIMESTAMP_FORMAT = "[%H:%M:%S.%f]"
 
@@ -153,7 +159,6 @@ class ViewerApp:
         self.sam = SamManager()
         self.spectra_plot_raw = None
         self.spectra_plot_processed = None
-        self.log_timestamp_format = LOG_TIMESTAMP_FORMAT
         self.ignore_updates = False
 
     def run(self):
@@ -167,10 +172,9 @@ class ViewerApp:
         :type msg: str
         """
         if msg != "":
-            msg = datetime.now().strftime(LOG_TIMESTAMP_FORMAT) + " " + msg
-            print(msg)
+            logger.info(msg)
             if hasattr(self, "text_log") and (self.text_log is not None):
-                self.text_log.insert(tk.END, "\n" + msg)
+                self.text_log.insert(tk.END, "\n" + datetime.now().strftime(LOG_TIMESTAMP_FORMAT) + " " + msg)
 
     def open_envi_file(self, title, initial_dir):
         """
@@ -1264,7 +1268,7 @@ def main(args=None):
     init_app()
     parser = argparse.ArgumentParser(
         description="ENVI Hyperspectral Image Viewer.\nOffers contour detection using SAM (Segment-Anything: https://github.com/waikato-datamining/pytorch/tree/master/segment-anything)",
-        prog="happy-envi-viewer",
+        prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--scan", type=str, help="Path to the scan file (ENVI format)", required=False)
     parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)", required=False)
@@ -1292,9 +1296,10 @@ def main(args=None):
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
     parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
     parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
+    add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
+    set_logging_level(logger, parsed.logging_level)
     app = ViewerApp()
-    app.log_timestamp_format = parsed.log_timestamp_format
 
     # override session data
     app.session.load()
