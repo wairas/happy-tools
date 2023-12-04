@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import os
+from happy.data import HappyData
 from ._happydata_writer import HappyDataWriter
 import scipy.io as sio
 
@@ -33,7 +34,7 @@ class MatlabWriter(HappyDataWriter):
         super()._apply_args(ns)
         self._output_format = ns.output_format
 
-    def _write_data(self, happy_data, datatype_mapping=None):
+    def _write_item(self, happy_data, datatype_mapping=None):
         sample_id = happy_data.sample_id
         region_id = happy_data.region_id
         os.makedirs(self.base_dir, exist_ok=True)
@@ -48,4 +49,13 @@ class MatlabWriter(HappyDataWriter):
         # TODO class?
         # TODO y?
         sio.savemat(filepath, save_dic)
+
+    def _write_data(self, happy_data_or_list, datatype_mapping=None):
+        if isinstance(happy_data_or_list, list):
+            for happy_data in happy_data_or_list:
+                self._write_data(happy_data, datatype_mapping=datatype_mapping)
+        elif isinstance(happy_data_or_list, HappyData):
+            self._write_item(happy_data_or_list)
+        else:
+            raise Exception("Unsupported data type: %s" % str(type(happy_data_or_list)))
 
