@@ -1,14 +1,20 @@
+import argparse
+import logging
 import sys
 import traceback
 
 from seppl import split_args, args_to_objects, get_class_name, is_help_requested
-from happy.data import configure_envi_settings
+from wai.logging import set_logging_level, LOGGING_INFO, add_logging_level
+from happy.base.app import init_app
 from happy.base.registry import REGISTRY, print_help, print_help_all
 from happy.readers import HappyDataReader
 from happy.preprocessors import Preprocessor, MultiPreprocessor
 from happy.writers import HappyDataWriter
 
 PROG = "happy-process-data"
+
+
+logger = logging.getLogger(PROG)
 
 
 def default_pipeline() -> str:
@@ -22,7 +28,7 @@ def default_pipeline() -> str:
 
 
 def main():
-    configure_envi_settings()
+    init_app()
     args = sys.argv[1:]
     help_requested, help_all, help_plugin = is_help_requested(args)
     if help_requested:
@@ -31,7 +37,8 @@ def main():
         elif help_plugin is not None:
             print_help(help_plugin)
         else:
-            print("usage: " + PROG + " reader [preprocessor(s)] writer [-h|--help|--help-all|--help-plugin NAME]")
+            print("usage: " + PROG + " reader [preprocessor(s)] writer [-h|--help|--help-all|--help-plugin NAME] ")
+            print("       [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]")
             print()
             print("Processes data using the specified pipeline.")
             print()
@@ -43,6 +50,8 @@ def main():
             print("  -h, --help            show this help message and exit")
             print("  --help-all            show the help for all plugins and exit")
             print("  --help-plugin NAME    show the help for plugin NAME and exit")
+            print("  -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}")
+            print("                        The logging level to use. (default: WARN)")
             print("")
             print()
         sys.exit(0)
@@ -53,7 +62,12 @@ def main():
     plugins.update(REGISTRY.preprocessors())
     plugins.update(REGISTRY.happydata_writers())
     split = split_args(args, list(plugins.keys()))
-    objs = args_to_objects(split, plugins, allow_global_options=False)
+    objs = args_to_objects(split, plugins, allow_global_options=True)
+
+    parser = argparse.ArgumentParser()
+    add_logging_level(parser, short_opt="-V")
+    parsed = parser.parse_args(split[""] if ("" in split) else [])
+    set_logging_level(logger, parsed.logging_level)
 
     # check pipeline
     if len(objs) < 2:
@@ -82,7 +96,7 @@ def main():
 
     # execute pipeline
     for sample_id in reader.get_sample_ids():
-        print("\n--> Processing:", sample_id)
+        logger.info("Processing: %s" % sample_id)
         data_list = reader.load_data(sample_id)
         for data in data_list:
             if preprocessors is not None:

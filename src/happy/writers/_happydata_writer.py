@@ -1,12 +1,13 @@
 import abc
 import argparse
-from seppl import Plugin
+from happy.base.core import PluginWithLogging
 from happy.data import HappyData
 
 
-class HappyDataWriter(Plugin, abc.ABC):
+class HappyDataWriter(PluginWithLogging, abc.ABC):
 
     def __init__(self, base_dir=None):
+        super().__init__()
         self.base_dir = base_dir
         self._initialized = False
 

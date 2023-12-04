@@ -149,7 +149,7 @@ class HappyReader(HappyDataReader):
 
     def _load_region(self, sample_id: str, region_name: str) -> HappyData:
         hyperspec_file_path = os.path.join(self.base_dir, sample_id, region_name, f'{sample_id}'+".hdr")
-        print(f"{sample_id}:{region_name}")
+        self.logger().info(f"{sample_id}:{region_name}")
         base_path = os.path.join(self.base_dir, sample_id, region_name)
 
         if os.path.exists(hyperspec_file_path):
