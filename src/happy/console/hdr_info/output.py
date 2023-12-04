@@ -7,13 +7,17 @@ import traceback
 from happy.data import configure_envi_settings
 
 
+PROG = "happy-hdr-info"
+
+
 def main():
     configure_envi_settings()
     parser = argparse.ArgumentParser(
         description='Load and print information about an HDR file.',
-        prog="happy-hdr-info",
+        prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--input_file', type=str, help='Path to the HDR file', required=True)
+    parser.add_argument('-f', '--full', action="store_true", help='Whether to output all fields', required=False)
     parser.add_argument('-o', '--output_file', type=str, help='Path to output file; prints to stdout if omitted', default=None)
     args = parser.parse_args()
 
@@ -36,6 +40,26 @@ def main():
     output.write(f"Reflectance Scale Factor: {header.get('reflectance scale factor', 'N/A')}\n")
     output.write(f"Interleave Factor: {header.get('interleave factor', 'N/A')}\n")
     output.write(f"Data Ignore Value: {header.get('data ignore value', 'N/A')}\n")
+    if args.full:
+        basic = [
+            'lines',
+            'samples',
+            'bands',
+            'data type',
+            'interleave',
+            'byte order',
+            'file type',
+            'map info',
+            'coordinate system string',
+            'reflectance scale factor',
+            'interleave factor',
+            'data ignore value',
+        ]
+        output.write("Other fields:\n")
+        for k in header:
+            if k in basic:
+                continue
+            output.write("- %s: %s\n" % (k, str(header[k])))
 
     if output != sys.stdout:
         output.close()
