@@ -17,23 +17,16 @@ class HappyWriter(HappyDataWriter):
         print(f"write_data {datatype_mapping}")
         if isinstance(happy_data_or_list, list):
             for happy_data in happy_data_or_list:
-                self._write_single_data(happy_data,datatype_mapping)
+                self._write_data(happy_data, datatype_mapping)
         elif isinstance(happy_data_or_list, HappyData):
             self._write_single_data(happy_data_or_list, datatype_mapping)
         else:
             raise ValueError("Input should be either a HappyData object or a list of HappyData objects.")
 
     def get_datatype_mapping_for(self, datatype_mapping, outputname):
-        #outputname = outputname.strip("'")
-        #print(f"checking: {outputname!r}")
-        #print(datatype_mapping)
-        #for key in datatype_mapping:
-            #print(f"Key repr: {key!r}")
         if datatype_mapping is None:
-            #print("none")
             return None
         if outputname not in datatype_mapping:
-            #print("not in")
             return None
         return datatype_mapping[outputname]
         
