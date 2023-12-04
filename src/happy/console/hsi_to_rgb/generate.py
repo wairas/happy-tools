@@ -13,7 +13,10 @@ from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.data.white_ref import AbstractWhiteReferenceMethod
 
-logger = logging.getLogger("hsi2rgb")
+
+PROG = "happy-hsi2rgb"
+
+logger = logging.getLogger(PROG)
 
 
 def log(msg):
@@ -157,7 +160,7 @@ def main(args=None):
     init_app()
     parser = argparse.ArgumentParser(
         description="Fake RGB image generator for HSI files.",
-        prog="happy-hsi2rgb",
+        prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-i", "--input_dir", nargs="+", type=str, help="Path to the scan file (ENVI format)", required=True)
     parser.add_argument("-r", "--recursive", action="store_true", help="whether to traverse the directories recursively", required=False)
