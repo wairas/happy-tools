@@ -132,7 +132,14 @@ def envi_to_happy(path_ann, output_dir, datamanager, dry_run=False):
     datamanager.set_annotations(path_ann)
     datamanager.calc_norm_data()
 
-    data = HappyData(get_sample_id(path_ann), DEFAULT_REGION_ID, datamanager.norm_data, {}, {})
+    wavenumbers = None
+    wl_dict = datamanager.get_wavelengths()
+    if len(wl_dict) > 0:
+        wavenumbers = []
+        for k in wl_dict:
+            wavenumbers.append(wl_dict[k])
+
+    data = HappyData(get_sample_id(path_ann), DEFAULT_REGION_ID, datamanager.norm_data, {}, {}, wavenumbers=wavenumbers)
     if not dry_run:
         logger.info("    --> writing happy data")
         writer = HappyWriter(base_dir=output_dir)
