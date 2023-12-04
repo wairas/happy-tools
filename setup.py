@@ -35,7 +35,7 @@ setup(
         "pygubu==0.31",
         "redis",
         "ttkSimpleDialog==1.2.1",
-        "opex",
+        "opex>=0.0.3",
         "shapely",
         "scikit-learn",
         "matplotlib",
