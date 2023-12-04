@@ -1,13 +1,21 @@
 import argparse
+import logging
 import os
 import traceback
 
 import matplotlib.pyplot as plt
 
-from happy.data import configure_envi_settings
+from wai.logging import add_logging_level, set_logging_level
+from happy.base.app import init_app
 from happy.pixel_selectors import PixelSelector, MultiSelector
 from happy.preprocessors import Preprocessor, WavelengthSubsetPreprocessor
 from happy.readers import HappyReader
+
+
+PROG = "happy-plot-preproc"
+
+
+logger = logging.getLogger(PROG)
 
 
 def default_preprocessors() -> str:
@@ -28,28 +36,35 @@ def default_pixel_selectors() -> str:
 
 
 def main():
-    configure_envi_settings()
+    init_app()
     parser = argparse.ArgumentParser(
         description="Plot set of pixels with various pre-processing setups.",
-        prog="happy-plot-preproc",
+        prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', "--input_dir", type=str, help="Folder containing HAPPy data files", required=True)
     parser.add_argument('-f', '--from_index', type=int, help='The first wavelength index to include (0-based)', required=False, default=60)
     parser.add_argument('-t', '--to_index', type=int, help='The last wavelength index to include (0-based)', required=False, default=189)
     parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data separately; use "multi-pp" if you need to combine multiple steps. Either preprocessor command-line(s) or file with one preprocessor command-line per line.', required=False, default=default_preprocessors())
     parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use. Either pixel selector command-line(s) or file with one pixel selector command-line per line.', required=False, default=default_pixel_selectors())
+    add_logging_level(parser, short_opt="-V")
     args = parser.parse_args()
+    set_logging_level(logger, args.logging_level)
+
+    if not os.path.exists(args.input_dir):
+        raise Exception("Input dir does not exist: %s" % args.input_dir)
 
     parent_folder = os.path.basename(os.path.dirname(args.input_dir))
     base_folder = os.path.dirname(os.path.dirname(args.input_dir))
     sample_id = f"{parent_folder}:{os.path.basename(args.input_dir)}"
-    print(f"sample_id:{sample_id}  base:{base_folder}")
+    logger.info(f"sample_id:{sample_id}, base:{base_folder}")
 
     # Create a HappyReader instance
     happy_reader = HappyReader(base_folder)
 
     # Load the HappyData for the given sample ID
     happy_data = happy_reader.load_data(sample_id)
+    if len(happy_data) == 0:
+        raise Exception("Failed to load data for sample ID: %s" % sample_id)
 
     w = WavelengthSubsetPreprocessor(from_index=args.from_index, to_index=args.to_index)
     d = happy_data[0].apply_preprocess(w)
