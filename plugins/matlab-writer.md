@@ -4,7 +4,7 @@ Writes data in Matlab format.
 
 ```
 usage: matlab-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                     [-A LOGGER_NAME] -b BASE_DIR [-f OUTPUT_FORMAT]
+                     [-A LOGGER_NAME] -b BASE_DIR [-o OUTPUT]
 
 Writes data in Matlab format.
 
@@ -16,7 +16,7 @@ optional arguments:
                         The custom name to use for the logger (default: None)
   -b BASE_DIR, --base_dir BASE_DIR
                         The base directory for the data (default: None)
-  -f OUTPUT_FORMAT, --output_format OUTPUT_FORMAT
-                        The format for the output filename (default:
+  -o OUTPUT, --output OUTPUT
+                        The pattern for the output files. (default:
                         {BASEDIR}/{SAMPLEID}.{REPEAT}.mat)
 ```

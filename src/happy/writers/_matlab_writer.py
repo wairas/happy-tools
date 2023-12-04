@@ -27,7 +27,7 @@ class MatlabWriter(HappyDataWriter):
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-f", "--output_format", type=str, help="The format for the output filename", default=DEFAULT_OUTPUT, required=False)
+        parser.add_argument("-o", "--output", type=str, help="The pattern for the output files.", default=DEFAULT_OUTPUT, required=False)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
