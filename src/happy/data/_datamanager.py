@@ -404,7 +404,7 @@ class DataManager:
                     self.set_blackref(ref)
         elif isinstance(self.blackref_locator, AbstractOPEXAnnotationBasedReferenceLocator):
             dims = self.scan_data.shape
-            annotations = self.contours.to_opex(dims[0], dims[1])
+            annotations = self.contours.to_opex(dims[1], dims[0])
             if annotations is not None:
                 self.blackref_locator.annotations = annotations
                 ref = self.blackref_locator.locate()
@@ -437,7 +437,7 @@ class DataManager:
                     self.set_whiteref(ref)
         elif isinstance(self.whiteref_locator, AbstractOPEXAnnotationBasedReferenceLocator):
             dims = self.scan_data.shape
-            annotations = self.contours.to_opex(dims[0], dims[1])
+            annotations = self.contours.to_opex(dims[1], dims[0])
             if annotations is not None:
                 self.whiteref_locator.annotations = annotations
                 ref = self.whiteref_locator.locate()
