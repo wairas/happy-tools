@@ -17,6 +17,8 @@ optional arguments:
   -b BASE_DIR, --base_dir BASE_DIR
                         The base directory for the data (default: None)
   -o OUTPUT, --output OUTPUT
-                        The pattern for the output files. (default:
+                        The pattern for the output files; The following
+                        placeholders are available for the output pattern:
+                        {REPEAT}, {BASEDIR}, {SAMPLEID} (default:
                         {BASEDIR}/{SAMPLEID}.{REPEAT}.mat)
 ```

@@ -38,6 +38,7 @@
 ## HAPPY data writers
 * [happy-writer](happy-writer.md)
 * [matlab-writer](matlab-writer.md)
+* [png-writer](png-writer.md)
 
 ## Pixel selectors
 * [column-wise-ps](column-wise-ps.md)

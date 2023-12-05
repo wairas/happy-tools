@@ -6,3 +6,4 @@ from ._happy_writer import HappyWriter
 from ._mat_writer import MatWriter
 from ._numpy_writer import NumpyWriter
 from ._matlab_writer import MatlabWriter
+from ._png_writer import PNGWriter
