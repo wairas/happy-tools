@@ -13,8 +13,8 @@ from spectral import envi
 
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
-from happy.data import DataManager
-from happy.data import HappyData
+from happy.data import DataManager, HappyData
+from happy.data.annotations import locate_opex
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.data.white_ref import AbstractWhiteReferenceMethod
@@ -51,47 +51,6 @@ def log(msg):
     :param msg: the message to print
     """
     logger.info(msg)
-
-
-def locate_opex(input_dirs, recursive, opex_files):
-    """
-    Locates the PNG/OPEX JSON pairs.
-
-    :param input_dirs: the input dir(s) to traverse
-    :type input_dirs: str or list
-    :param recursive: whether to look for OPEX files recursively
-    :type recursive: bool
-    :param opex_files: for collecting the OPEX JSON files
-    :type opex_files: list
-    """
-    if isinstance(input_dirs, str):
-        input_dirs = [input_dirs]
-
-    for input_dir in input_dirs:
-        logger.info("Entering: %s" % input_dir)
-
-        for f in os.listdir(input_dir):
-            full = os.path.join(input_dir, f)
-
-            # directory?
-            if os.path.isdir(full):
-                if recursive:
-                    locate_opex(full, recursive, opex_files)
-                    logger.info("Back in: %s" % input_dir)
-                else:
-                    continue
-
-            if not f.lower().endswith(".json"):
-                continue
-
-            ann_path = os.path.join(input_dir, f)
-            prefix = os.path.splitext(ann_path)[0]
-            img_path = prefix + ".png"
-            if not os.path.exists(img_path):
-                logger.info("No annotation JSON/PNG pair for: %s" % (prefix + ".*"))
-                continue
-            else:
-                opex_files.append(ann_path)
 
 
 def get_sample_id(path):
@@ -360,7 +319,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     datamanager.set_whiteref_method(white_ref_method)
 
     ann_paths = []
-    locate_opex(input_dirs, recursive, ann_paths)
+    locate_opex(input_dirs, recursive, ann_paths, require_png=True, logger=logger)
 
     for ann_path in ann_paths:
         img_path = os.path.splitext(ann_path)[0] + ".png"
