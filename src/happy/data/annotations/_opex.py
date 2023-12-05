@@ -2,16 +2,16 @@ import logging
 import os
 
 
-def locate_opex(input_dirs, recursive, opex_files, require_png=False, logger=None):
+def locate_opex(input_dirs, opex_files, recursive=False, require_png=False, logger=None):
     """
     Locates the PNG/OPEX JSON pairs.
 
     :param input_dirs: the input dir(s) to traverse
     :type input_dirs: str or list
-    :param recursive: whether to look for OPEX files recursively
-    :type recursive: bool
     :param opex_files: for collecting the OPEX JSON files
     :type opex_files: list
+    :param recursive: whether to look for OPEX files recursively
+    :type recursive: bool
     :param require_png: whether a PNG file must be present as well
     :type require_png: bool
     :param logger: the optional logger instance to use for outputting logging information
