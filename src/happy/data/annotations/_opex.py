@@ -30,7 +30,7 @@ def locate_opex(input_dirs, opex_files, recursive=False, require_png=False, logg
             # directory?
             if os.path.isdir(full):
                 if recursive:
-                    locate_opex(full, recursive, opex_files)
+                    locate_opex(full, opex_files, recursive=recursive, require_png=require_png)
                     if logger is not None:
                         logger.info("Back in: %s" % input_dir)
                 else:
