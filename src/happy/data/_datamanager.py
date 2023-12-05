@@ -2,6 +2,7 @@ import numpy as np
 import spectral.io.envi as envi
 import traceback
 
+from PIL import Image
 from happy.data.annotations import ContoursManager, Contour
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
@@ -581,6 +582,33 @@ class DataManager:
             self.display_image = (rgb_image * 255).astype(np.uint8)
 
         return success
+
+    def output_image(self, r, g, b, output, width=0, height=0):
+        """
+        Updates the image and saves it to the specified file.
+
+        :param r: the red channel to use
+        :type r: int
+        :param g: the green channel to use
+        :type g: int
+        :param b: the blue channel to use
+        :type b: int
+        :param output: the file to save the image to
+        :type output: str
+        :param width: the custom width to use, ignored if <=0
+        :type width: int
+        :param height: the custom height to use, ignored if <=0
+        :type height: int
+        """
+        self.update_image(r, g, b)
+        image = Image.fromarray(self.display_image)
+        act_width, act_height = image.size
+        if width > 0:
+            act_width = width
+        if height > 0:
+            act_height = height
+        image = image.resize((act_width, act_height), Image.LANCZOS)
+        image.save(output)
 
     def get_scan_subimage(self, contour=None, bbox=None):
         """
