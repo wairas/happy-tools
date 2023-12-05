@@ -64,6 +64,7 @@ setup(
             "happy-hsi2rgb=happy.console.hsi_to_rgb.generate:sys_main",
             "happy-mat-info=happy.console.mat_info.output:sys_main",
             "happy-opex2happy=happy.console.opex_to_happy.generate:sys_main",
+            "happy-opex-labels=happy.console.opex_labels.generate:sys_main",
             "happy-process-data=happy.console.process_data.process:sys_main",
             "happy-plot-preproc=happy.console.plot_preproc.output:sys_main",
             "happy-scikit-regression-build=happy.console.builders.regression_build:sys_main",
