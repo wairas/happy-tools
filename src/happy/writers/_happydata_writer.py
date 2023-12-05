@@ -4,6 +4,27 @@ from happy.base.core import PluginWithLogging
 from happy.data import HappyData
 
 
+PH_BASEDIR = "{BASEDIR}"
+PH_SAMPLEID = "{SAMPLEID}"
+PH_REPEAT = "{REPEAT}"
+PLACEHOLDERS_OUTPUT = {
+    PH_BASEDIR,
+    PH_SAMPLEID,
+    PH_REPEAT,
+}
+
+
+def output_pattern_help():
+    """
+    Outputs a help string to be used in the options, listing the available placeholders
+    for the output pattern.
+
+    :return: the pattern help string
+    :rtype: str
+    """
+    return "The following placeholders are available for the output pattern: %s" % ", ".join(PLACEHOLDERS_OUTPUT)
+
+
 class HappyDataWriter(PluginWithLogging, abc.ABC):
 
     def __init__(self, base_dir=None):
@@ -23,6 +44,12 @@ class HappyDataWriter(PluginWithLogging, abc.ABC):
 
     def _initialize(self):
         self._initialized = True
+
+    def _expand_output(self, output, sample_id, region_id):
+        result = output.replace(PH_BASEDIR, self.base_dir)
+        result = result.replace(PH_SAMPLEID, sample_id)
+        result = result.replace(PH_REPEAT, region_id)
+        return result
 
     def _write_data(self, happy_data_or_list, datatype_mapping=None):
         raise NotImplementedError()
