@@ -2,13 +2,9 @@ import argparse
 import numpy as np
 import os
 from happy.data import HappyData
-from ._happydata_writer import HappyDataWriter
+from ._happydata_writer import HappyDataWriter, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, output_pattern_help
 import scipy.io as sio
 
-
-PH_BASEDIR = "{BASEDIR}"
-PH_SAMPLEID = "{SAMPLEID}"
-PH_REPEAT = "{REPEAT}"
 
 DEFAULT_OUTPUT = PH_BASEDIR + "/" + PH_SAMPLEID + "." + PH_REPEAT + ".mat"
 
@@ -17,7 +13,7 @@ class MatlabWriter(HappyDataWriter):
 
     def __init__(self, base_dir=None):
         super().__init__(base_dir=base_dir)
-        self._output_format = DEFAULT_OUTPUT
+        self._output = DEFAULT_OUTPUT
 
     def name(self) -> str:
         return "matlab-writer"
@@ -27,18 +23,20 @@ class MatlabWriter(HappyDataWriter):
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-o", "--output", type=str, help="The pattern for the output files.", default=DEFAULT_OUTPUT, required=False)
+        parser.add_argument("-o", "--output", type=str, help="The pattern for the output files; " + output_pattern_help(), default=DEFAULT_OUTPUT, required=False)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
         super()._apply_args(ns)
-        self._output_format = ns.output_format
+        self._output = ns.output
 
     def _write_item(self, happy_data, datatype_mapping=None):
         sample_id = happy_data.sample_id
         region_id = happy_data.region_id
+        self.logger().info("Creating dir: %s" % self.base_dir)
         os.makedirs(self.base_dir, exist_ok=True)
-        filepath = self._output_format.replace(PH_BASEDIR, self.base_dir).replace(PH_SAMPLEID, sample_id).replace(PH_REPEAT, region_id)
+        filepath = self._expand_output(self._output, sample_id, region_id)
+        self.logger().info("Writing: %s" % filepath)
         save_dic = dict()
         save_dic["normcube"] = happy_data.data
         if happy_data.wavenumbers is not None:
