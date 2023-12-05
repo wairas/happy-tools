@@ -319,7 +319,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     datamanager.set_whiteref_method(white_ref_method)
 
     ann_paths = []
-    locate_opex(input_dirs, recursive, ann_paths, require_png=True, logger=logger)
+    locate_opex(input_dirs, ann_paths, recursive=recursive, require_png=True, logger=logger)
 
     for ann_path in ann_paths:
         img_path = os.path.splitext(ann_path)[0] + ".png"
