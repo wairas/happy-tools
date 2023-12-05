@@ -21,6 +21,8 @@ def _add_plugins_to_index(heading: str, plugins: dict, help_format: str, lines: 
     :type lines: list
     """
     plugin_names = sorted(plugins.keys())
+    if len(plugin_names) == 0:
+        return
     if help_format == HELP_FORMAT_MARKDOWN:
         lines.append("## " + heading)
         for name in plugin_names:
@@ -61,28 +63,34 @@ def output_help(modules: List[str] = None, help_format: str = HELP_FORMAT_TEXT, 
     if index is not None:
         # reset registry
         registry = HappyRegistry(default_modules=modules)
-        lines = []
+        header_lines = []
         if help_format == HELP_FORMAT_MARKDOWN:
-            lines.append("# HAPPy plugins")
-            lines.append("")
+            header_lines.append("# HAPPy plugins")
+            header_lines.append("")
         elif help_format == HELP_FORMAT_TEXT:
             heading = "HAPPy plugins"
-            lines.append(heading)
-            lines.append("=" * len(heading))
-            lines.append("")
+            header_lines.append(heading)
+            header_lines.append("=" * len(heading))
+            header_lines.append("")
         else:
             raise Exception("Unsupported format for index: %s" % help_format)
-        _add_plugins_to_index("Black reference methods", registry.blackref_methods(), help_format, lines)
-        _add_plugins_to_index("White reference methods", registry.whiteref_methods(), help_format, lines)
-        _add_plugins_to_index("Reference locators", registry.ref_locators(), help_format, lines)
-        _add_plugins_to_index("HAPPY data readers", registry.happydata_readers(), help_format, lines)
-        _add_plugins_to_index("HAPPY data preprocessors", registry.preprocessors(), help_format, lines)
-        _add_plugins_to_index("HAPPY data writers", registry.happydata_writers(), help_format, lines)
-        _add_plugins_to_index("Pixel selectors", registry.pixel_selectors(), help_format, lines)
-        _add_plugins_to_index("Region extractors", registry.region_extractors(), help_format, lines)
-        index_file = os.path.join(output_path, index)
-        with open(index_file, "w") as fp:
-            fp.write("\n".join(lines))
+        plugin_lines = []
+        _add_plugins_to_index("Black reference methods", registry.blackref_methods(), help_format, plugin_lines)
+        _add_plugins_to_index("White reference methods", registry.whiteref_methods(), help_format, plugin_lines)
+        _add_plugins_to_index("Reference locators", registry.ref_locators(), help_format, plugin_lines)
+        _add_plugins_to_index("HAPPY data readers", registry.happydata_readers(), help_format, plugin_lines)
+        _add_plugins_to_index("HAPPY data preprocessors", registry.preprocessors(), help_format, plugin_lines)
+        _add_plugins_to_index("HAPPY data writers", registry.happydata_writers(), help_format, plugin_lines)
+        _add_plugins_to_index("Pixel selectors", registry.pixel_selectors(), help_format, plugin_lines)
+        _add_plugins_to_index("Region extractors", registry.region_extractors(), help_format, plugin_lines)
+        if len(plugin_lines) < 0:
+            print("No plugins listed, skipping output of index file.")
+        else:
+            index_file = os.path.join(output_path, index)
+            os.makedirs(os.path.dirname(index_file), exist_ok=True)
+            with open(index_file, "w") as fp:
+                fp.write("\n".join(header_lines))
+                fp.write("\n".join(plugin_lines))
 
 
 def main():
