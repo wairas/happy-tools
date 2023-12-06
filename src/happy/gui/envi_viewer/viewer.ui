@@ -228,6 +228,66 @@
                 </child>
               </object>
             </child>
+            <child>
+              <object class="tk.Menuitem.Submenu" id="submenu6">
+                <property name="label" translatable="yes">View</property>
+                <property name="tearoff">false</property>
+                <child>
+                  <object class="tk.Menuitem.Submenu" id="submenu7">
+                    <property name="label" translatable="yes">Zoom</property>
+                    <property name="tearoff">false</property>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_fit" named="True">
+                        <property name="command" type="command" cbtype="simple">on_zoom_fit</property>
+                        <property name="label" translatable="yes">Best fit</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_25" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                        <property name="label" translatable="yes">25%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_50" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                        <property name="label" translatable="yes">50%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_75" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                        <property name="label" translatable="yes">75%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_100" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                        <property name="label" translatable="yes">100%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_150" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                        <property name="label" translatable="yes">150%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_200" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                        <property name="label" translatable="yes">200%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_400" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                        <property name="label" translatable="yes">400%</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
       </object>
@@ -272,14 +332,25 @@
                               <property name="side">top</property>
                             </layout>
                             <child>
-                              <object class="ttk.Label" id="label_image" named="True">
-                                <property name="takefocus">false</property>
+                              <object class="pygubu.builder.widgets.scrollbarhelper" id="scrollbarhelper_canvas" named="True">
+                                <property name="scrolltype">both</property>
+                                <property name="usemousewheel">true</property>
                                 <layout manager="pack">
                                   <property name="anchor">nw</property>
+                                  <property name="expand">true</property>
+                                  <property name="fill">both</property>
                                   <property name="padx">5</property>
                                   <property name="pady">5</property>
                                   <property name="side">top</property>
                                 </layout>
+                                <child>
+                                  <object class="tk.Canvas" id="canvas_image" named="True">
+                                    <layout manager="pack">
+                                      <property name="anchor">nw</property>
+                                      <property name="side">top</property>
+                                    </layout>
+                                  </object>
+                                </child>
                               </object>
                             </child>
                           </object>

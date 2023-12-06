@@ -90,7 +90,10 @@ class ViewerApp:
         self.notebook = builder.get_object("notebook", master)
         # image
         self.frame_image = builder.get_object("frame_image", master)
-        self.image_label = builder.get_object("label_image", master)
+        self.image_canvas = builder.get_object("canvas_image", master)
+        color = ttk.Style().lookup("TFrame", "background", default="white")
+        self.image_canvas.configure(background=color)
+        self.scrollbarhelper_canvas = builder.get_object("scrollbarhelper_canvas", master)
         # info
         self.text_info = builder.get_object("text_info", master)
         # options
@@ -147,7 +150,7 @@ class ViewerApp:
 
         # mouse events
         # https://tkinterexamples.com/events/mouse/
-        self.image_label.bind("<Button-1>", self.on_image_click)
+        self.image_canvas.bind("<Button-1>", self.on_image_click)
         self.label_r_value.bind("<Button-1>", self.on_label_r_click)
         self.label_g_value.bind("<Button-1>", self.on_label_g_click)
         self.label_b_value.bind("<Button-1>", self.on_label_b_click)
@@ -402,7 +405,7 @@ class ViewerApp:
         self.green_scale.set(g)
         self.blue_scale.set(b)
 
-    def get_image_label_dims(self):
+    def get_image_canvas_dims(self):
         """
         Returns the dimensions of the image label displaying the data.
 
@@ -481,26 +484,46 @@ class ViewerApp:
             result = (self.frame_image.winfo_width() - 10, self.frame_image.winfo_height() - 10)
         return result
 
-    def resize_image_label(self):
+    def resize_image_canvas(self):
         """
         Computes the scaled image and updates the GUI.
         """
-        dims = self.get_image_label_dims()
+        if not self.data.has_scan():
+            return
+
+        if self.session.zoom < 0:
+            dims = self.get_image_canvas_dims()
+            if dims is not None:
+                dims = self.fit_image_into_dims(dims[0], dims[1], self.session.keep_aspectratio)
+        else:
+            if self.session.keep_aspectratio:
+                dims = (self.data.scan_data.shape[1], self.data.scan_data.shape[0])
+                dims = (int(dims[0] * self.session.zoom / 100), int(dims[1] * self.session.zoom / 100))
+            else:
+                dims = self.get_image_canvas_dims()
+                if dims is not None:
+                    canvas_ratio = dims[0] / dims[1]
+                    image_ratio = self.data.scan_data.shape[1] / self.data.scan_data.shape[0]
+                    dims = (dims[0] / image_ratio * canvas_ratio, dims[1] / image_ratio * canvas_ratio)
+                    dims = (int(dims[0] * self.session.zoom / 100), int(dims[1] * self.session.zoom / 100))
+
         if dims is None:
             return
-        dims = self.fit_image_into_dims(dims[0], dims[1], self.session.keep_aspectratio)
-        if dims is None:
-            return
-        image = self.get_scaled_image(dims[0], dims[1])
+
+        width = dims[0]
+        height = dims[1]
+        image = self.get_scaled_image(width, height)
         if image is not None:
-            image_sam_points = self.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
-            if image_sam_points is not None:
-                image.paste(image_sam_points, (0, 0), image_sam_points)
-            image_contours = self.contours.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_markers = self.markers.to_overlay(width, height, int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            if image_markers is not None:
+                image.paste(image_markers, (0, 0), image_markers)
+            image_contours = self.contours.to_overlay(width, height, self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
             self.photo_scan = ImageTk.PhotoImage(image=image)
-            self.image_label.config(image=self.photo_scan)
+            self.image_canvas.create_image(0, 0, image=self.photo_scan, anchor=tk.NW)
+            self.image_canvas.config(width=width, height=height)
+            self.image_canvas.configure(scrollregion=(0, 0, width - 2, height - 2))
 
     def update_image(self):
         """
@@ -514,7 +537,7 @@ class ViewerApp:
         # TODO make visible in UI
         if len(success) > 0:
             self.log("calc steps: " + str(success))
-        self.resize_image_label()
+        self.resize_image_canvas()
         self.log("")
 
     def update_info(self):
@@ -666,8 +689,8 @@ class ViewerApp:
 
         :param event: the event that triggered the adding
         """
-        x = event.x / self.image_label.winfo_width()
-        y = event.y / self.image_label.winfo_height()
+        x = self.image_canvas.canvasx(event.x) / self.photo_scan.width()
+        y = self.image_canvas.canvasy(event.y) / self.photo_scan.height()
         point = (x, y)
         self.markers.add(point)
         self.log("Marker point added: %s" % str(point))
@@ -679,8 +702,8 @@ class ViewerApp:
 
         :param event: the event that triggered the label setting
         """
-        x = event.x / self.image_label.winfo_width()
-        y = event.y / self.image_label.winfo_height()
+        x = event.x / self.image_canvas.winfo_width()
+        y = event.y / self.image_canvas.winfo_height()
         contours = self.contours.contains(x, y)
         if len(contours) > 0:
             labels = set([x.label for x in contours])
@@ -755,6 +778,7 @@ class ViewerApp:
         self.session.preprocessing = self.text_preprocessing.get("1.0", "end-1c")
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
         self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
+        # zoom
 
     def session_to_state(self):
         """
@@ -790,6 +814,8 @@ class ViewerApp:
         self.text_preprocessing.insert(tk.END, self.session.preprocessing)
         self.state_export_overlay_annotations.set(1 if self.session.export_overlay_annotations else 0)
         self.state_export_keep_aspectratio.set(1 if self.session.export_keep_aspectratio else 0)
+        # zoom
+
         # activate
         self.apply_black_ref(do_update=False)
         self.apply_white_ref(do_update=False)
@@ -950,7 +976,7 @@ class ViewerApp:
         if self.session.export_keep_aspectratio:
             dims = self.data.dims()
         else:
-            dims = self.get_image_label_dims()
+            dims = self.get_image_canvas_dims()
         if dims is None:
             return
         dims = self.fit_image_into_dims(dims[0], dims[1], self.session.export_keep_aspectratio)
@@ -1065,7 +1091,7 @@ class ViewerApp:
         self.update_image()
 
     def on_window_resize(self, event):
-        self.resize_image_label()
+        self.resize_image_canvas()
 
     def on_image_click(self, event=None):
         # modifiers: https://tkdocs.com/shipman/event-handlers.html
@@ -1147,7 +1173,7 @@ class ViewerApp:
         # add contours
         self.contours.add([Contour(points=x, meta=copy.copy(meta)) for x in contours])
         # update contours/image
-        self.resize_image_label()
+        self.resize_image_canvas()
 
     def on_tools_sam_click(self, event=None):
         if not self.sam.is_connected():
@@ -1159,7 +1185,7 @@ class ViewerApp:
             return
 
         # image
-        dims = self.get_image_label_dims()
+        dims = self.get_image_canvas_dims()
         if dims is None:
             messagebox.showerror("Error", "No image available!")
             return
@@ -1178,7 +1204,7 @@ class ViewerApp:
         content = buf.getvalue()
 
         # absolute marker points
-        points = self.markers.to_absolute(self.image_label.winfo_width(), self.image_label.winfo_height())
+        points = self.markers.to_absolute(self.image_canvas.winfo_width(), self.image_canvas.winfo_height())
         self.markers.clear()
 
         # predict contours
@@ -1301,6 +1327,19 @@ class ViewerApp:
         self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
         messagebox.showinfo("Meta-data", "Current meta-data:\n\n%s" % s)
 
+    def on_zoom_click(self, event=None):
+        if (event is not None) and (event.startswith("command_zoom_")):
+            try:
+                zoom = int(event.replace("command_zoom_", ""))
+                self.session.zoom = zoom
+                self.update_image()
+            except:
+                self.log("Failed to extract zoom from: %s" % event)
+
+    def on_zoom_fit(self, event=None):
+        self.session.zoom = -1
+        self.update_image()
+
     def on_button_sam_connect_click(self, event=None):
         if self.sam.is_connected():
             self.log("Disconnecting SAM...")
@@ -1358,6 +1397,7 @@ def main(args=None):
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
     parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
     parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
+    parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%) or -1 for automatic fit", default=-1, type=int, required=False)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
