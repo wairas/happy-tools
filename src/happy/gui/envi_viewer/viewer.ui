@@ -454,6 +454,29 @@
                                             </layout>
                                           </object>
                                         </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label_predefined_labels" named="True">
+                                            <property name="text" translatable="yes">Predefined labels</property>
+                                            <layout manager="grid">
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">5</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_predefined_labels" named="True">
+                                            <property name="textvariable">string:state_predefined_labels</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">5</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
                                       </object>
                                     </child>
                                   </object>

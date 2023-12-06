@@ -57,7 +57,8 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [-w WHITE_REFERENCE] [-r INT] [-g INT] [-b INT]
                          [--autodetect_channels] [--keep_aspectratio]
                          [--check_scan_dimensions] [--export_to_scan_dir]
-                         [--annotation_color HEXCOLOR] [--redis_host HOST]
+                         [--annotation_color HEXCOLOR]
+                         [--predefined_labels LIST] [--redis_host HOST]
                          [--redis_port PORT] [--redis_pw PASSWORD]
                          [--redis_in CHANNEL] [--redis_out CHANNEL]
                          [--redis_connect] [--marker_size INT]
@@ -106,6 +107,9 @@ optional arguments:
   --annotation_color HEXCOLOR
                         the color to use for the annotations like contours
                         (hex color) (default: None)
+  --predefined_labels LIST
+                        the comma-separated list of labels to use (default:
+                        None)
   --redis_host HOST     The Redis host to connect to (IP or hostname)
                         (default: None)
   --redis_port PORT     The port the Redis server is listening on (default:

@@ -16,6 +16,7 @@ PROPERTIES = [
     "scale_g",
     "scale_b",
     "annotation_color",
+    "predefined_labels",
     "redis_host",
     "redis_port",
     "redis_pw",
@@ -61,6 +62,7 @@ class SessionManager(AbstractSessionManager):
         self.scale_g = 0
         self.scale_b = 0
         self.annotation_color = "#ff0000"
+        self.predefined_labels = ""
         self.redis_host = "localhost"
         self.redis_port = 6379
         self.redis_pw = None

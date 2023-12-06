@@ -29,6 +29,7 @@ from happy.data.annotations import ContoursManager, Contour
 from happy.data.annotations import MarkersManager
 from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
+from happy.gui.dialog import asklist
 from opex import ObjectPredictions
 
 PROG = "happy-envi-viewer"
@@ -65,6 +66,7 @@ class ViewerApp:
         self.state_check_scan_dimensions = None
         self.state_export_to_scan_dir = None
         self.state_annotation_color = None
+        self.state_predefined_labels = None
         self.state_redis_host = None
         self.state_redis_port = None
         self.state_redis_pw = None
@@ -97,6 +99,7 @@ class ViewerApp:
         self.checkbutton_check_scan_dimenions = builder.get_object("checkbutton_check_scan_dimensions", master)
         self.checkbutton_export_to_scan_dir = builder.get_object("checkbutton_export_to_scan_dir", master)
         self.entry_annotation_color = builder.get_object("entry_annotation_color", master)
+        self.entry_predefined_labels = builder.get_object("entry_predefined_labels", master)
         self.entry_redis_host = builder.get_object("entry_redis_host", master)
         self.entry_redis_port = builder.get_object("entry_redis_port", master)
         self.entry_redis_in = builder.get_object("entry_redis_in", master)
@@ -685,11 +688,25 @@ class ViewerApp:
                 text = "Please enter the label to apply to %d contours:" % len(contours)
             else:
                 text = "Please enter the label"
-            new_label = ttkSimpleDialog.askstring(
-                title="Object label",
-                prompt=text,
-                initialvalue="" if (len(labels) != 1) else list(labels)[0],
-                parent=self.mainwindow)
+            if len(self.state_predefined_labels.get()) > 0:
+                items = list(self.state_predefined_labels.get().split(","))
+                if "" not in items:
+                    items.insert(0, "")
+                label = "" if (len(labels) != 1) else list(labels)[0]
+                if label not in items:
+                    label = ""
+                new_label = asklist(
+                    title="Object label",
+                    prompt=text,
+                    items=items,
+                    initialvalue=label,
+                    parent=self.mainwindow)
+            else:
+                new_label = ttkSimpleDialog.askstring(
+                    title="Object label",
+                    prompt=text,
+                    initialvalue="" if (len(labels) != 1) else list(labels)[0],
+                    parent=self.mainwindow)
             if new_label is not None:
                 for contour in contours:
                     contour.label = new_label
@@ -722,6 +739,7 @@ class ViewerApp:
         self.session.scale_g = self.state_scale_g.get()
         self.session.scale_b = self.state_scale_b.get()
         self.session.annotation_color = self.state_annotation_color.get()
+        self.session.predefined_labels = self.state_predefined_labels.get()
         self.session.redis_host = self.state_redis_host.get()
         self.session.redis_port = self.state_redis_port.get()
         self.session.redis_pw = self.state_redis_pw.get()
@@ -755,6 +773,7 @@ class ViewerApp:
         self.state_scale_g.set(self.session.scale_g)
         self.state_scale_b.set(self.session.scale_b)
         self.state_annotation_color.set(self.session.annotation_color)
+        self.state_predefined_labels.set(self.session.predefined_labels)
         self.state_redis_host.set(self.session.redis_host)
         self.state_redis_port.set(self.session.redis_port)
         self.state_redis_pw.set(self.session.redis_pw)
@@ -1323,6 +1342,7 @@ def main(args=None):
     parser.add_argument("--check_scan_dimensions", action="store_true", help="whether to compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
     parser.add_argument("--export_to_scan_dir", action="store_true", help="whether to export images to the scan directory rather than the last one used", required=False, default=None)
     parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default=None, required=False)
+    parser.add_argument("--predefined_labels", metavar="LIST", help="the comma-separated list of labels to use", default=None, required=False)
     parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default=None, required=False)
     parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=None, required=False)
     parser.add_argument("--redis_pw", metavar="PASSWORD", type=str, help="The password to use with the Redis server", default=None, required=False)
