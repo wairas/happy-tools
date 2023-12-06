@@ -68,7 +68,7 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [--white_ref_locator LOCATOR]
                          [--white_ref_method METHOD]
                          [--preprocessing PIPELINE]
-                         [--log_timestamp_format FORMAT]
+                         [--log_timestamp_format FORMAT] [--zoom PERCENT]
                          [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 ENVI Hyperspectral Image Viewer. Offers contour detection using SAM (Segment-
@@ -146,6 +146,8 @@ optional arguments:
                         the format string for the logging timestamp, see: http
                         s://docs.python.org/3/library/datetime.html#strftime-
                         and-strptime-format-codes (default: [%H:%M:%S.%f])
+  --zoom PERCENT        the initial zoom to use (%) or -1 for automatic fit
+                        (default: -1)
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
 ```
