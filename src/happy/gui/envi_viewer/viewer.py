@@ -29,6 +29,7 @@ from happy.data.annotations import ContoursManager, Contour
 from happy.data.annotations import MarkersManager
 from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
+from opex import ObjectPredictions
 
 PROG = "happy-envi-viewer"
 
@@ -189,6 +190,33 @@ class ViewerApp:
         """
         filetypes = (
             ('ENVI files', '*.hdr'),
+            ('All files', '*.*')
+        )
+
+        filename = fd.askopenfilename(
+            title=title,
+            initialdir=initial_dir,
+            filetypes=filetypes)
+        if filename == "":
+            filename = None
+        if isinstance(filename, tuple):
+            filename = None
+
+        return filename
+
+    def open_opex_file(self, title, initial_dir):
+        """
+        Allows the user to select an OPEX JSON annotation file.
+
+        :param title: the title for the open dialog
+        :type title: str
+        :param initial_dir: the initial directory in use
+        :type initial_dir: str
+        :return: the chosen filename, None if cancelled
+        :rtype: str
+        """
+        filetypes = (
+            ('OPEX JSON files', '*.json'),
             ('All files', '*.*')
         )
 
@@ -858,7 +886,6 @@ class ViewerApp:
         filename = self.open_envi_file('Open black reference', self.session.last_blackref_dir)
 
         if filename is not None:
-            print(filename)
             self.session.last_blackref_dir = os.path.dirname(filename)
             self.load_blackref(filename, do_update=True)
 
@@ -881,6 +908,21 @@ class ViewerApp:
         if filename is not None:
             self.session.last_whiteref_dir = os.path.dirname(filename)
             self.load_whiteref(filename, do_update=True)
+
+    def on_file_importannotations_click(self, event=None):
+        """
+        Allows the user to select a JSON file for loading OPEX annotations from.
+        """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+
+        filename = self.open_opex_file('Open OPEX JSON annotations', self.session.last_scan_dir)
+
+        if filename is not None:
+            preds = ObjectPredictions.load_json_from_file(filename)
+            self.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
+            self.update_image()
 
     def on_file_exportimage_click(self, event=None):
         """

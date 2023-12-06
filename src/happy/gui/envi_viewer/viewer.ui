@@ -64,6 +64,16 @@
                   <object class="tk.Menuitem.Separator" id="separator7" />
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_file_importannotations" named="True">
+                    <property name="command" type="command" cbtype="simple">on_file_importannotations_click</property>
+                    <property name="label" translatable="yes">Import annotations...</property>
+                    <property name="underline">0</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator10" />
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_file_exportimage" named="True">
                     <property name="accelerator">Ctrl+E</property>
                     <property name="command" type="command" cbtype="simple">on_file_exportimage_click</property>
