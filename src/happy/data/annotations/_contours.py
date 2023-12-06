@@ -1,5 +1,7 @@
 import copy
 import json
+import sys
+import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from operator import itemgetter
@@ -278,6 +280,18 @@ class ContoursManager:
                 if polygon.contains(point):
                     result.append(contour)
         return result
+
+    def remove(self, contours):
+        """
+        Removes all the contours.
+
+        :param contours: the list of contours to remove
+        :type contours: list
+        """
+        for contour in contours:
+            for contours in self.contours:
+                if contour in contours:
+                    contours.remove(contour)
 
     def has_metadata(self):
         """

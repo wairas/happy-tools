@@ -702,8 +702,8 @@ class ViewerApp:
 
         :param event: the event that triggered the label setting
         """
-        x = event.x / self.image_canvas.winfo_width()
-        y = event.y / self.image_canvas.winfo_height()
+        x = self.image_canvas.canvasx(event.x) / self.photo_scan.width()
+        y = self.image_canvas.canvasy(event.y) / self.photo_scan.height()
         contours = self.contours.contains(x, y)
         if len(contours) > 0:
             labels = set([x.label for x in contours])
@@ -744,6 +744,19 @@ class ViewerApp:
         """
         self.markers.clear()
         self.log("Marker points cleared")
+
+    def remove_annotations(self, event):
+        """
+        Removes annotations that the click position covers.
+        """
+        x = self.image_canvas.canvasx(event.x) / self.photo_scan.width()
+        y = self.image_canvas.canvasy(event.y) / self.photo_scan.height()
+        contours = self.contours.contains(x, y)
+        if len(contours) > 0:
+            answer = messagebox.askquestion("Remove annotations", "Remove %d annotations?" % len(contours))
+            if answer == messagebox.YES:
+                self.contours.remove(contours)
+            self.update_image()
 
     def state_to_session(self):
         """
@@ -1109,6 +1122,9 @@ class ViewerApp:
         # ctrl -> clear
         elif state == 0x0004:
             self.clear_markers()
+        # ctrl+shift -> remove annotation
+        elif state == 0x0005:
+            self.remove_annotations(event)
 
     def on_label_r_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
