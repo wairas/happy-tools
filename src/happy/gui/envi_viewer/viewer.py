@@ -1413,7 +1413,7 @@ def main(args=None):
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
     parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
     parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
-    parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%) or -1 for automatic fit", default=-1, type=int, required=False)
+    parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%%) or -1 for automatic fit", default=-1, type=int, required=False)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
