@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <interface version="1.3">
   <object class="tk.Toplevel" id="toplevel" named="True">
-    <property name="geometry">1024x768</property>
+    <property name="geometry">1280x800</property>
     <property name="resizable">both</property>
     <property name="title" translatable="yes">ENVI Viewer</property>
     <child>
