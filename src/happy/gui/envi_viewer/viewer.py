@@ -130,6 +130,7 @@ class ViewerApp:
         self.label_r_value = builder.get_object("label_r_value", master)
         self.label_g_value = builder.get_object("label_g_value", master)
         self.label_b_value = builder.get_object("label_b_value", master)
+        self.label_calc_norm_data = builder.get_object("label_calc_norm_data", master)
 
         # accelerators are just strings, we need to bind them to actual methods
         # https://tkinterexamples.com/events/keyboard/
@@ -534,9 +535,10 @@ class ViewerApp:
         success = self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
         if (CALC_DIMENSIONS_DIFFER in success) and success[CALC_DIMENSIONS_DIFFER]:
             self.set_data_dimensions(self.data.norm_data.shape, do_update=False)
-        # TODO make visible in UI
+        # make visible in UI
         if len(success) > 0:
-            self.log("calc steps: " + str(success))
+            self.label_calc_norm_data["text"] = self.data.calc_norm_data_indicator(success)
+            self.log("calc_norm_data steps: " + str(success))
         self.resize_image_canvas()
         self.log("")
 

@@ -1258,6 +1258,26 @@
                         </layout>
                       </object>
                     </child>
+                    <child>
+                      <object class="ttk.Separator" id="separator11">
+                        <property name="orient">vertical</property>
+                        <layout manager="pack">
+                          <property name="expand">false</property>
+                          <property name="fill">y</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="ttk.Label" id="label_calc_norm_data" named="True">
+                        <layout manager="pack">
+                          <property name="padx">5</property>
+                          <property name="pady">5</property>
+                          <property name="side">left</property>
+                        </layout>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>

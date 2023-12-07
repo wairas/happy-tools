@@ -530,6 +530,40 @@ class DataManager:
 
         return result
 
+    def _calc_norm_data_indicator(self, v):
+        """
+        Turns the boolean value into an indicator string.
+
+        :param v: the boolean value
+        :type v: bool
+        :return: the generated string
+        """
+        if v:
+            return "✔"  # u2714
+        else:
+            return "❌"  # u274c
+
+    def calc_norm_data_indicator(self, d):
+        """
+        Turns the dictionary returned by the calc_norm_data method into an indicator string.
+
+        :param d: the dictionary to turn into an indicator string
+        :type d: dict
+        :return: the generated string
+        :rtype: str
+        """
+        result = ""
+        if CALC_BLACKREF_APPLIED in d:
+            result += "B:" + self._calc_norm_data_indicator(d[CALC_BLACKREF_APPLIED]) + " "
+        if CALC_WHITEREF_APPLIED in d:
+            result += "W:" + self._calc_norm_data_indicator(d[CALC_WHITEREF_APPLIED]) + " "
+        if CALC_PREPROCESSORS_APPLIED in d:
+            result += "P:" + self._calc_norm_data_indicator(d[CALC_PREPROCESSORS_APPLIED]) + " "
+        if CALC_DIMENSIONS_DIFFER in d:
+            result += "D:" + self._calc_norm_data_indicator(not d[CALC_DIMENSIONS_DIFFER]) + " "
+        result = result.strip()
+        return result
+
     def _normalize_data(self, data):
         """
         Normalizes data.
