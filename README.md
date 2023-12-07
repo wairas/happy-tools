@@ -57,7 +57,8 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [-w WHITE_REFERENCE] [-r INT] [-g INT] [-b INT]
                          [--autodetect_channels] [--keep_aspectratio]
                          [--check_scan_dimensions] [--export_to_scan_dir]
-                         [--annotation_color HEXCOLOR] [--redis_host HOST]
+                         [--annotation_color HEXCOLOR]
+                         [--predefined_labels LIST] [--redis_host HOST]
                          [--redis_port PORT] [--redis_pw PASSWORD]
                          [--redis_in CHANNEL] [--redis_out CHANNEL]
                          [--redis_connect] [--marker_size INT]
@@ -67,7 +68,7 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [--white_ref_locator LOCATOR]
                          [--white_ref_method METHOD]
                          [--preprocessing PIPELINE]
-                         [--log_timestamp_format FORMAT]
+                         [--log_timestamp_format FORMAT] [--zoom PERCENT]
                          [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 ENVI Hyperspectral Image Viewer. Offers contour detection using SAM (Segment-
@@ -106,6 +107,9 @@ optional arguments:
   --annotation_color HEXCOLOR
                         the color to use for the annotations like contours
                         (hex color) (default: None)
+  --predefined_labels LIST
+                        the comma-separated list of labels to use (default:
+                        None)
   --redis_host HOST     The Redis host to connect to (IP or hostname)
                         (default: None)
   --redis_port PORT     The port the Redis server is listening on (default:
@@ -142,6 +146,8 @@ optional arguments:
                         the format string for the logging timestamp, see: http
                         s://docs.python.org/3/library/datetime.html#strftime-
                         and-strptime-format-codes (default: [%H:%M:%S.%f])
+  --zoom PERCENT        the initial zoom to use (%) or -1 for automatic fit
+                        (default: -1)
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
 ```

@@ -1,5 +1,7 @@
 import argparse
 import logging
+import os
+import shutil
 import traceback
 
 from wai.logging import add_logging_level, set_logging_level
@@ -53,7 +55,37 @@ def list_labels(opex_files, output_file):
         print("\n".join(labels))
 
 
-def update_labels(opex_files, mapping, dry_run, output_file):
+def create_backup(original_file):
+    """
+    Creates a backup of the specified file.
+
+    :param original_file: the file to back up
+    :type original_file: str
+    :return: whether it was successfully backed up
+    :rtype: bool
+    """
+    base_file = original_file + ".bak"
+    count = 0
+    while True:
+        if count == 0:
+            backup_file = base_file
+        else:
+            backup_file = base_file + "." + str(count)
+
+        if os.path.exists(backup_file):
+            count += 1
+            continue
+
+        try:
+            logger.info("Backup up file: %s -> %s" % (original_file, backup_file))
+            shutil.copy(original_file, backup_file)
+            return True
+        except:
+            logger.exception("Failed to backup file: %s -> %s" % (original_file, backup_file))
+            return False
+
+
+def update_labels(opex_files, mapping, dry_run, backup, output_file):
     """
     Updates the labels stored in the opex files using the specified label mapping (old -> new).
 
@@ -63,6 +95,8 @@ def update_labels(opex_files, mapping, dry_run, output_file):
     :type mapping: dict
     :param dry_run: whether to perform a dry-run, ie not save affected files
     :type dry_run: bool
+    :param backup: whether to create a backup of the original file before updating it
+    :type backup: bool
     :param output_file: the file to store the affected files in , uses stdout if None
     :type output_file: str
     """
@@ -82,6 +116,8 @@ def update_labels(opex_files, mapping, dry_run, output_file):
         if is_affected:
             affected_files.append(opex_file)
             if not dry_run and (preds is not None):
+                if backup:
+                    create_backup(opex_file)
                 preds.save_json_to_file(opex_file)
 
     if not dry_run and (output_file is not None):
@@ -111,6 +147,7 @@ def main():
     parser_update = subparsers.add_parser(ACTION_UPDATE_LABELS, help='Updates the labels using the specified label mapping')
     parser_update.add_argument('-m', '--label_mapping', type=str, help='Path to the label mapping file when updating labels; format: ' + LABEL_MAPPING_FORMAT, default=None, required=False)
     parser_update.add_argument('-n', '--dry_run', action="store_true", help='Whether to skip saving affected files', default=False, required=False)
+    parser_update.add_argument('-b', '--backup', action="store_true", help='Whether to create a backup of the original file', default=False, required=False)
     parser_update.add_argument('-o', '--output_file', type=str, help='Path to the output file for storing the affected files; outputs to stdout if omitted', default=None)
 
     parsed = parser.parse_args()
@@ -142,7 +179,7 @@ def main():
         if len(mapping) == 0:
             logger.warning("Label mapping is empty, skipping update.")
         else:
-            update_labels(opex_files, mapping, parsed.dry_run, parsed.output_file)
+            update_labels(opex_files, mapping, parsed.dry_run, parsed.backup, parsed.output_file)
     else:
         raise Exception("Unsupported action: %s" % parsed.action)
 

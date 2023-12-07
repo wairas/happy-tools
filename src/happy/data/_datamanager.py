@@ -12,6 +12,8 @@ from seppl import get_class_name
 from opex import BBox, ObjectPredictions
 
 
+CALC_BLACKDATA_INITIALIZED = "blackdata_initialized"
+CALC_WHITEDATA_INITIALIZED = "whitedata_initialized"
 CALC_BLACKREF_APPLIED = "blackref_applied"
 CALC_WHITEREF_APPLIED = "whiteref_applied"
 CALC_PREPROCESSORS_APPLIED = "preprocessors_applied"
@@ -388,13 +390,24 @@ class DataManager:
         """
         self.norm_data = None
 
+    def can_init_blackref_data(self):
+        """
+        Whether blackref data can be initialized
+
+        :return: True if it can be initialized
+        :rtype: bool
+        """
+        if self.blackref_data is not None:
+            return False
+        if self.blackref_locator is None:
+            return False
+        return True
+
     def init_blackref_data(self):
         """
         Initializes the black reference data, if necessary.
         """
-        if self.blackref_data is not None:
-            return
-        if self.blackref_locator is None:
+        if not self.can_init_blackref_data():
             return
         if isinstance(self.blackref_locator, AbstractFileBasedReferenceLocator):
             if self.scan_file is not None:
@@ -421,13 +434,24 @@ class DataManager:
                 else:
                     raise Exception("Unhandled output of black reference locator %s: %s" % (self.blackref_locator.name(), get_class_name(ref)))
 
+    def can_init_whiteref_data(self):
+        """
+        Whether whiteref data can be initialized
+
+        :return: True if it can be initialized
+        :rtype: bool
+        """
+        if self.whiteref_data is not None:
+            return False
+        if self.whiteref_locator is None:
+            return False
+        return True
+
     def init_whiteref_data(self):
         """
         Initializes the white reference data, if necessary.
         """
-        if self.whiteref_data is not None:
-            return
-        if self.whiteref_locator is None:
+        if not self.can_init_whiteref_data():
             return
         if isinstance(self.whiteref_locator, AbstractFileBasedReferenceLocator):
             if self.scan_file is not None:
@@ -474,17 +498,44 @@ class DataManager:
         :rtype: dict
         """
         result = dict()
+
         if self.norm_data is not None:
             return result
+
         if self.scan_data is not None:
             self.log("Calculating...")
+            success = True
+
+            # init blackref
             try:
-                # some initialization
-                self.init_blackref_data()
-                self.init_whiteref_data()
+                if success and self.can_init_blackref_data():
+                    result[CALC_BLACKDATA_INITIALIZED] = False
+                    self.log("Initializing black reference data: %s" % self.blackref_locator.name())
+                    self.init_blackref_data()
+                    result[CALC_BLACKDATA_INITIALIZED] = True
+            except:
+                success = False
+                self.log("...failed with exception:")
+                self.log(traceback.format_exc())
+
+            # init whiteref
+            try:
+                if success and self.can_init_whiteref_data():
+                    result[CALC_WHITEDATA_INITIALIZED] = False
+                    self.log("Initializing white reference data: %s" % self.whiteref_locator.name())
+                    self.init_whiteref_data()
+                    result[CALC_WHITEDATA_INITIALIZED] = True
+            except:
+                success = False
+                self.log("...failed with exception:")
+                self.log(traceback.format_exc())
+
+            if success:
                 self.norm_data = self.scan_data
-                # apply black reference
-                if self.blackref_method is not None:
+
+            # apply black reference
+            try:
+                if success and self.blackref_method is not None:
                     if (self.blackref_annotation is not None) and isinstance(self.blackref_method, AbstractAnnotationBasedBlackReferenceMethod):
                         self.log("Applying black reference method: %s" % self.blackref_method.name())
                         result[CALC_BLACKREF_APPLIED] = False
@@ -498,8 +549,14 @@ class DataManager:
                         self.blackref_method.reference = self.blackref_data
                         self.norm_data = self.blackref_method.apply(self.norm_data)
                         result[CALC_BLACKREF_APPLIED] = True
-                # apply white reference
-                if self.whiteref_method is not None:
+            except:
+                success = False
+                self.log("...failed with exception:")
+                self.log(traceback.format_exc())
+
+            # apply white reference
+            try:
+                if success and self.whiteref_method is not None:
                     if (self.whiteref_annotation is not None) and isinstance(self.whiteref_method, AbstractAnnotationBasedWhiteReferenceMethod):
                         self.log("Applying white reference method: %s" % self.whiteref_method.name())
                         result[CALC_WHITEREF_APPLIED] = False
@@ -513,21 +570,68 @@ class DataManager:
                         self.whiteref_method.reference = self.whiteref_data
                         self.norm_data = self.whiteref_method.apply(self.norm_data)
                         result[CALC_WHITEREF_APPLIED] = True
-                # apply preprocessing
-                if self.preprocessors is not None:
+            except:
+                success = False
+                self.log("...failed with exception:")
+                self.log(traceback.format_exc())
+
+            # apply preprocessing
+            try:
+                if success and self.preprocessors is not None:
                     self.log("Applying preprocessing: %s" % str(self.preprocessors))
                     result[CALC_PREPROCESSORS_APPLIED] = False
                     self.preprocessors.fit(self.norm_data)
                     self.norm_data, _ = self.preprocessors.apply(self.norm_data)
                     result[CALC_PREPROCESSORS_APPLIED] = True
-                self.log("...done!")
             except:
+                success = False
                 self.log("...failed with exception:")
                 self.log(traceback.format_exc())
+
+            if success:
+                self.log("...done!")
 
             if self.norm_data is not None:
                 result[CALC_DIMENSIONS_DIFFER] = (self.scan_data.shape != self.norm_data.shape)
 
+        return result
+
+    def _calc_norm_data_indicator(self, v):
+        """
+        Turns the boolean value into an indicator string.
+
+        :param v: the boolean value
+        :type v: bool
+        :return: the generated string
+        """
+        if v:
+            return "✔"  # u2714
+        else:
+            return "❌"  # u274c
+
+    def calc_norm_data_indicator(self, d):
+        """
+        Turns the dictionary returned by the calc_norm_data method into an indicator string.
+
+        :param d: the dictionary to turn into an indicator string
+        :type d: dict
+        :return: the generated string
+        :rtype: str
+        """
+        result = ""
+        if (CALC_BLACKDATA_INITIALIZED in d) or (CALC_WHITEDATA_INITIALIZED in d):
+            success = ((CALC_BLACKDATA_INITIALIZED in d) and (d[CALC_BLACKDATA_INITIALIZED])) \
+                      or ((CALC_WHITEDATA_INITIALIZED in d) and (d[CALC_WHITEDATA_INITIALIZED]))
+            result += "I:" + self._calc_norm_data_indicator(success) + " "
+        if CALC_BLACKREF_APPLIED in d:
+            result += "B:" + self._calc_norm_data_indicator(d[CALC_BLACKREF_APPLIED]) + " "
+        if CALC_WHITEREF_APPLIED in d:
+            result += "W:" + self._calc_norm_data_indicator(d[CALC_WHITEREF_APPLIED]) + " "
+        if CALC_PREPROCESSORS_APPLIED in d:
+            result += "P:" + self._calc_norm_data_indicator(d[CALC_PREPROCESSORS_APPLIED]) + " "
+        if CALC_DIMENSIONS_DIFFER in d:
+            result += "D:" + self._calc_norm_data_indicator(not d[CALC_DIMENSIONS_DIFFER]) + " "
+        result = result.strip()
         return result
 
     def _normalize_data(self, data):
