@@ -17,7 +17,7 @@ from happy.models.segmentation import create_false_color_image, create_predictio
 from happy.writers import EnviWriter
 
 
-PROG = "happy-scikit-regression-build"
+PROG = "happy-scikit-segmentation-build"
 
 logger = logging.getLogger(PROG)
 
@@ -66,7 +66,7 @@ def create_prediction_array(prediction):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Evaluate regression model on Happy Data using specified splits and pixel selector.',
+        description='Evaluate segmentation model on Happy Data using specified splits and pixel selector.',
         prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--happy_data_base_dir', type=str, help='Directory containing the Happy Data files', required=True)

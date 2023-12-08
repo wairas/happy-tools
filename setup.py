@@ -68,6 +68,7 @@ setup(
             "happy-process-data=happy.console.process_data.process:sys_main",
             "happy-plot-preproc=happy.console.plot_preproc.output:sys_main",
             "happy-scikit-regression-build=happy.console.builders.regression_build:sys_main",
+            "happy-scikit-segmentation-build=happy.console.builders.segmentation_build:sys_main",
             "happy-scikit-unsupervised-build=happy.console.builders.unsupervised_build:sys_main",
             "happy-splitter=happy.console.happy_splitter.split:sys_main",
         ],
