@@ -76,7 +76,7 @@ class ConfigurableObject:
 
     def to_json(self) -> str:
         """
-        Returns the its representation as json string.
+        Returns its representation as json string.
 
         :return: the generated json
         :rtype: str
@@ -181,3 +181,28 @@ class PluginWithLogging(Plugin, abc.ABC):
         self.logging_level = ns.logging_level
         self.logger_name = ns.logger_name
         self._logger = None
+
+
+class ObjectWithLogging(abc.ABC):
+
+    def __init__(self):
+        """
+        Initializes the object.
+        """
+        super().__init__()
+        self.logging_level = LOGGING_WARNING
+        self.logger_name = get_class_name(self)
+        self._logger = None
+
+    def logger(self) -> logging.Logger:
+        """
+        Returns the logger instance to use.
+
+        :return: the logger
+        :rtype: logging.Logger
+        """
+        if self._logger is None:
+            logger_name = self.logger_name
+            self._logger = logging.getLogger(logger_name)
+            set_logging_level(self._logger, self.logging_level)
+        return self._logger
