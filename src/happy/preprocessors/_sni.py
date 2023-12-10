@@ -68,8 +68,3 @@ class SpectralNoiseInterpolator(Preprocessor):
         noisy_pixel_indices = self.identify_noisy_pixels(gradient_data)
         interpolated_data = self.interpolate_noisy_pixels(data, noisy_pixel_indices, gradient_data)
         return interpolated_data, metadata
-
-    def to_string(self):
-        class_name = self.__class__.__name__
-        arguments = ", ".join(f"{key}={value}" for key, value in self.params.items())
-        return f"{class_name}({arguments})"
