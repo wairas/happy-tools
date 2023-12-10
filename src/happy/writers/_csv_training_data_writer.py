@@ -50,4 +50,4 @@ class CSVTrainingDataWriter(BaseWriter):
 
                 csvwriter.writerow(row)
 
-        print(f"CSV file '{filename}.csv' written to '{self.output_folder}'.")
+        self.logger().info(f"CSV file '{filename}.csv' written to '{self.output_folder}'.")

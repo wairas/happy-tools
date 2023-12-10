@@ -9,10 +9,10 @@ class EnviWriter(BaseWriter):
 
     def write_data(self, data, filename, datatype=None, wavelengths=None):
         filepath = os.path.join(self.output_folder, filename)
-        print("write "+filename)
-        print(data.shape)
+        self.logger().info("write "+filename)
+        self.logger().info(data.shape)
         if datatype is None:
             print("is none")
             datatype = data.dtype.name
-        print(datatype)
+        self.logger().info(datatype)
         envi.save_image(filepath, data, dtype=datatype, force=True, interleave='BSQ', metadata={'wavelength': wavelengths})
