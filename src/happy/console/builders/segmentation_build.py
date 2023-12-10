@@ -85,6 +85,7 @@ def main():
     set_logging_level(logger, args.logging_level)
 
     # Create the output folder if it doesn't exist
+    logger.info("Creating output dir: %s" % args.output_folder)
     os.makedirs(args.output_folder, exist_ok=True)
     
     regression_method = create_model(args.regression_method, args.regression_params)
@@ -103,11 +104,13 @@ def main():
         mapping[i] = i
     # model
     model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=preproc, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data = None, mapping=mapping)
+    logger.info("Fitting model...")
     model.fit(train_ids, force=True, keep_training_data=False)
     
     csv_writer = CSVTrainingDataWriter(args.output_folder)
     csv_writer.write_data(model.get_training_data(), "training_data")
 
+    logger.info("Predicting...")
     predictions, actuals = model.predict_images(test_ids, return_actuals=True)
     predictions = one_hot_list(predictions, num_labels)
     actuals = one_hot_list(actuals, num_labels)

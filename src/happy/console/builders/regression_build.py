@@ -1,9 +1,11 @@
 import argparse
+import logging
 import os
 import traceback
 
 import numpy as np
 
+from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
 from happy.evaluators import PredictionActualHandler, RegressionEvaluator
 from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
@@ -13,6 +15,11 @@ from happy.pixel_selectors import MultiSelector, PixelSelector
 from happy.preprocessors import Preprocessor, MultiPreprocessor
 from happy.splitters import HappySplitter
 from happy.writers import CSVTrainingDataWriter
+
+
+PROG = "happy-scikit-regression-build"
+
+logger = logging.getLogger(PROG)
 
 
 def default_preprocessors() -> str:
@@ -37,7 +44,7 @@ def main():
     init_app()
     parser = argparse.ArgumentParser(
         description='Evaluate regression model on Happy Data using specified splits and pixel selector.',
-        prog="happy-scikit-regression-build",
+        prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--happy_data_base_dir', type=str, help='Directory containing the Happy Data files', required=True)
     parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data. Either preprocessor command-line(s) or file with one preprocessor command-line per line.', required=False, default=default_preprocessors())
@@ -48,10 +55,13 @@ def main():
     parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
     parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions', required=True)
     parser.add_argument('-r', '--repeat_num', type=int, default=0, help='Repeat number (default: 0)')
+    add_logging_level(parser, short_opt="-V")
 
     args = parser.parse_args()
+    set_logging_level(logger, args.logging_level)
 
     # Create the output folder if it doesn't exist
+    logger.info("Creating output dir: %s" % args.output_folder)
     os.makedirs(args.output_folder, exist_ok=True)
     
     regression_method = create_model(args.regression_method, args.regression_params)
@@ -65,18 +75,20 @@ def main():
 
     # model
     model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=preproc, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data = None)
+    logger.info("Fitting model...")
     model.fit(train_ids, force=True, keep_training_data=False)
     
     csv_writer = CSVTrainingDataWriter(args.output_folder)
     csv_writer.write_data(model.get_training_data(), "training_data")
 
+    logger.info("Predicting...")
     predictions, actuals = model.predict_images(test_ids, return_actuals=True)
     
     evl = RegressionEvaluator(happy_splitter, model, args.target_value)
 
     predictions = PredictionActualHandler.to_list(predictions, remove_last_dim=True)
     actuals = PredictionActualHandler.to_list(actuals,remove_last_dim=True)
-    print(f"predictions.shape:{predictions[0].shape}  actuals.shape:{actuals[0].shape}")
+    logger.info(f"predictions.shape:{predictions[0].shape}  actuals.shape:{actuals[0].shape}")
     
     flat_actuals = np.concatenate(actuals).flatten()
     max_actual = np.nanmax(flat_actuals)
@@ -86,7 +98,7 @@ def main():
     for i, prediction in enumerate(predictions):
         evl.accumulate_stats(np.array(predictions[i]),actuals[i],0,0)
         if np.isnan(min_actual) or np.isnan(max_actual) or min_actual==max_actual:
-            print("NaN value detected. Cannot proceed with gradient calculation.")
+            logger.warning("NaN value detected. Cannot proceed with gradient calculation.")
             continue
         false_color_image = create_false_color_image(prediction, min_actual, max_actual)
         false_color_image.save(os.path.join(args.output_folder, f'false_color_{i}.png'))
