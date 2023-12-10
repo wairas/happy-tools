@@ -19,6 +19,6 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         The pattern for the output files; The following
                         placeholders are available for the output pattern:
-                        {REPEAT}, {BASEDIR}, {SAMPLEID} (default:
+                        {SAMPLEID}, {REPEAT}, {BASEDIR} (default:
                         {BASEDIR}/{SAMPLEID}.{REPEAT}.mat)
 ```

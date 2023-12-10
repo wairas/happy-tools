@@ -1,5 +1,4 @@
 # HAPPy plugins
-
 ## Black reference methods
 * [br-annotation-avg](br-annotation-avg.md)
 * [br-avg](br-avg.md)
@@ -47,7 +46,7 @@
 * [simple-ps](simple-ps.md)
 
 ## Region extractors
-* [full-re](full-re.md)
-* [grid-re](grid-re.md)
-* [object-from-id-re](object-from-id-re.md)
-* [object-re](object-re.md)
+* [re-full](re-full.md)
+* [re-grid](re-grid.md)
+* [re-object](re-object.md)
+* [re-object-from-id](re-object-from-id.md)

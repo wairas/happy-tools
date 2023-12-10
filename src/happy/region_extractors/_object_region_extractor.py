@@ -14,7 +14,7 @@ class ObjectRegionExtractor(RegionExtractor):
         self.base_criteria = base_criteria
 
     def name(self) -> str:
-        return "object-re"
+        return "re-object"
 
     def description(self) -> str:
         return "TODO"

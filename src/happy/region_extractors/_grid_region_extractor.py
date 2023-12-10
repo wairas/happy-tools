@@ -10,10 +10,10 @@ class GridRegionExtractor(RegionExtractor):
         self.truncate_regions = truncate_regions
 
     def name(self) -> str:
-        return "grid-re"
+        return "re-grid"
 
     def description(self) -> str:
-        return "TODO"
+        return "Splits the data into a grid of the specified region size."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()

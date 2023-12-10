@@ -1,9 +1,9 @@
-# object-from-id-re
+# re-object-from-id
 
 TODO
 
 ```
-usage: object-from-id-re [-h] [-t TARGET_NAME] [-r REGION_SIZE]
+usage: re-object-from-id [-h] [-t TARGET_NAME] [-r REGION_SIZE]
                          [-k OBJECT_KEY] [-o OBJ_VALUES]
                          [-c [BASE_CRITERIA [BASE_CRITERIA ...]]]
 

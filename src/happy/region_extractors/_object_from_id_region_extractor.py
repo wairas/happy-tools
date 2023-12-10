@@ -8,7 +8,7 @@ class ObjectFromIDRegionExtractor(ObjectRegionExtractor):
         self.objfunc = objfunc
 
     def name(self) -> str:
-        return "object-from-id-re"
+        return "re-object-from-id"
 
     def description(self) -> str:
         return "TODO"

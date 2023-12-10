@@ -1,9 +1,9 @@
-# object-re
+# re-object
 
 TODO
 
 ```
-usage: object-re [-h] [-t TARGET_NAME] [-r REGION_SIZE] [-k OBJECT_KEY]
+usage: re-object [-h] [-t TARGET_NAME] [-r REGION_SIZE] [-k OBJECT_KEY]
                  [-o OBJ_VALUES] [-c [BASE_CRITERIA [BASE_CRITERIA ...]]]
 
 TODO

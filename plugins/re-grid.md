@@ -1,11 +1,11 @@
-# grid-re
+# re-grid
 
-TODO
+Splits the data into a grid of the specified region size.
 
 ```
-usage: grid-re [-h] [-t TARGET_NAME] -r REGION_SIZE [-T]
+usage: re-grid [-h] [-t TARGET_NAME] -r REGION_SIZE [-T]
 
-TODO
+Splits the data into a grid of the specified region size.
 
 optional arguments:
   -h, --help            show this help message and exit

@@ -7,10 +7,10 @@ class FullRegionExtractor(RegionExtractor):
         super().__init__(region_size=region_size, target_name=target_name)
 
     def name(self) -> str:
-        return "full-re"
+        return "re-full"
 
     def description(self) -> str:
-        return "TODO"
+        return "Returns the input as-is without any cropping."
 
     def _extract_regions(self, happy_data):
         # Return the input happy_data object as one region without any cropping

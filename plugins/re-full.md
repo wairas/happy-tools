@@ -1,11 +1,11 @@
-# full-re
+# re-full
 
-TODO
+Returns the input as-is without any cropping.
 
 ```
-usage: full-re [-h] [-t TARGET_NAME]
+usage: re-full [-h] [-t TARGET_NAME]
 
-TODO
+Returns the input as-is without any cropping.
 
 optional arguments:
   -h, --help            show this help message and exit
