@@ -4,7 +4,7 @@ import json
 import numpy as np
 from ._happydata_reader import HappyDataReader
 from ._envi_reader import EnviReader
-from happy.data import HappyData
+from happy.data import HappyData, MASK_MAP
 import spectral.io.envi as envi
 
 from typing import List, Optional, Tuple, Dict
@@ -152,35 +152,40 @@ class HappyReader(HappyDataReader):
         self.logger().info(f"{sample_id}:{region_name}")
         base_path = os.path.join(self.base_dir, sample_id, region_name)
 
-        if os.path.exists(hyperspec_file_path):
-            envi_reader = EnviReader(base_path)
-            envi_reader.load_data(sample_id)
-            hyperspec_data = envi_reader.get_numpy()
-
-            # Load hyperspec metadata and mappings
-            hyperspec_metadata = self._load_json(hyperspec_file_path.replace(".hdr", "_global.json"))
-            metadata_dict = {}
-            for metadata_file_path in self._get_metadata_file_paths(base_path):
-                target_name = os.path.splitext(os.path.basename(metadata_file_path))[0]
-                if target_name == sample_id:
-                    continue
-                metadata = self._load_target_metadata(base_path, target_name)
-                json_mapping_path = metadata_file_path.replace(".hdr", ".json")
-                mapping = self._load_json(json_mapping_path)
-                metadata_dict[target_name] = {"data": metadata, "mapping": mapping}
-
-            # apply wavelength_override if present
-            if self.wavelength_override is not None:
-                wavelengths = self.wavelength_override
-            else:
-                wavelengths = envi_reader.get_wavelengths()
-
-            # Create HappyData object for this region
-            happy_data = HappyData(sample_id, region_name, hyperspec_data, hyperspec_metadata, metadata_dict, wavenumbers=wavelengths)
-
-            return happy_data
-        else:
+        if not os.path.exists(hyperspec_file_path):
             raise ValueError(f"Hyperspectral ENVI file not found for sample_id: {sample_id}")
+
+        envi_reader = EnviReader(base_path)
+        envi_reader.load_data(sample_id)
+        hyperspec_data = envi_reader.get_numpy()
+
+        # Load hyperspec metadata and mappings
+        hyperspec_metadata = self._load_json(hyperspec_file_path.replace(".hdr", "_global.json"))
+        metadata_dict = {}
+        for metadata_file_path in self._get_metadata_file_paths(base_path):
+            target_name = os.path.splitext(os.path.basename(metadata_file_path))[0]
+            if target_name == sample_id:
+                continue
+            metadata = self._load_target_metadata(base_path, target_name)
+            json_mapping_path = metadata_file_path.replace(".hdr", ".json")
+            mapping = self._load_json(json_mapping_path)
+            metadata_dict[target_name] = {"data": metadata, "mapping": mapping}
+
+        # mask.json
+        mask_map = self._load_json(os.path.join(self.base_dir, sample_id, region_name, "mask.json"))
+        if len(mask_map) > 0:
+            metadata_dict[MASK_MAP] = mask_map
+
+        # apply wavelength_override if present
+        if self.wavelength_override is not None:
+            wavelengths = self.wavelength_override
+        else:
+            wavelengths = envi_reader.get_wavelengths()
+
+        # Create HappyData object for this region
+        happy_data = HappyData(sample_id, region_name, hyperspec_data, hyperspec_metadata, metadata_dict, wavenumbers=wavelengths)
+
+        return happy_data
 
     def _load_target_metadata(self, base_dir: str, target: str) -> np.ndarray:
         filename = os.path.join(base_dir, f'{target}' + ".hdr")

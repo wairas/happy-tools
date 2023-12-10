@@ -3,6 +3,9 @@ import numpy as np
 import copy
 
 
+MASK_MAP = "mask-map"
+
+
 class HappyData:
     def __init__(self, sample_id, region_id, data, global_dict, metadata_dict, wavenumbers=None):
         self.sample_id = sample_id
