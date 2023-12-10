@@ -41,7 +41,7 @@ class ImagingModel(HappyModel, abc.ABC):
                         added_wavelengths = True
                     if self.data_shape is None:
                         self.data_shape = region.get_numpy_yx().shape
-                        print(f"*********************************data shape: {self.data_shape}")
+                        self.logger().info(f"*********************************data shape: {self.data_shape}")
                     # Extract the target variable from the metadata (assuming the target is stored in the metadata)
                     target_value = self.get_y(happy_data)
                                 

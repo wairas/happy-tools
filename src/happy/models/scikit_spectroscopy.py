@@ -25,8 +25,8 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
         
     def one_hot_encode(self, data):
         if isinstance(data, list):
-            print(len(data))
-            print(data[0].shape)
+            self.logger().info(len(data))
+            self.logger().info(data[0].shape)
             data = [self._one_hot_encode_array(arr) for arr in data]
         else:
             data = self._one_hot_encode_array(data)
@@ -39,12 +39,12 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
         else:
             expanded_array = array
             
-        print("Expanded Array Shape:", expanded_array.shape)
+        self.logger().info("Expanded Array Shape:", expanded_array.shape)
         
         # Create an array of zeros with the desired shape for one-hot encoding
         encoded_data = np.zeros((*expanded_array.shape, self.num_classes), dtype=int)
         
-        print("Encoded Data Shape (before reshape):", encoded_data.shape)
+        self.logger().info("Encoded Data Shape (before reshape):", encoded_data.shape)
         
         # Reshape the encoded_data array to have the same shape as expanded_array for indexing
         encoded_data = encoded_data.reshape(-1, self.num_classes)
@@ -52,12 +52,12 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
         try:
             for i in range(encoded_data.shape[0]):
                 encoded_data[i, expanded_array.reshape(-1)[i]] = 1
-        except Exception as e:
-            print("Error:", e)
+        except Exception:
+            self.logger().exception("Error:")
         
         # Reshape the encoded_data array back to its original shape
         encoded_data = encoded_data.reshape(*expanded_array.shape, self.num_classes)
-        print(encoded_data.shape)
+        self.logger().info(encoded_data.shape)
         return encoded_data
 
     def fit(self, sample_ids, force=False, keep_training_data=False):
@@ -67,7 +67,7 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
         # Assuming the model is already initialized in self.model
 
         self.model.fit(self.training_data["X_train"], self.training_data["y_train"])
-        print("in fit")
+        self.logger().info("in fit")
 
     def predict(self, sample_ids, prediction_pixel_selector=None, prediction_data=None):
         

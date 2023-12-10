@@ -9,8 +9,7 @@ class SpectroscopyModel(HappyModel, abc.ABC):
     def __init__(self, data_folder, target, happy_preprocessor=None, additional_meta_data=None, pixel_selector=None):
         super().__init__(data_folder, target, happy_preprocessor, additional_meta_data)
         self.pixel_selector = pixel_selector
-        print("ps")
-        print(pixel_selector)
+        self.logger().info("ps: %s" % str(pixel_selector))
 
     def _generate_full_prediction_dataset(self, sample_ids, return_actuals=False):
         dataset = {"X_pred": [], "y_pred": [],"sample_id": [], "x":[], "y":[]}

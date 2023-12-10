@@ -1,8 +1,12 @@
+import abc
 import pickle
 
+from happy.base.core import ObjectWithLogging
 
-class HappyModel:
+
+class HappyModel(ObjectWithLogging, abc.ABC):
     def __init__(self, data_folder, target, happy_preprocessor=None, additional_meta_data=None):
+        super().__init__()
         self.data_folder = data_folder
         self.happy_preprocessor = happy_preprocessor
         self.target = target
