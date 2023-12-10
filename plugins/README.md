@@ -40,10 +40,10 @@
 * [png-writer](png-writer.md)
 
 ## Pixel selectors
-* [column-wise-ps](column-wise-ps.md)
-* [grid-wise-ps](grid-wise-ps.md)
-* [multi-ps](multi-ps.md)
-* [simple-ps](simple-ps.md)
+* [ps-column-wise](ps-column-wise.md)
+* [ps-grid-wise](ps-grid-wise.md)
+* [ps-multi](ps-multi.md)
+* [ps-simple](ps-simple.md)
 
 ## Region extractors
 * [re-full](re-full.md)

@@ -10,7 +10,7 @@ class AveragedGridSelector(BasePixelSelector):
         self.grid_size = grid_size
 
     def name(self) -> str:
-        return "grid-wise-ps"
+        return "ps-grid-wise"
 
     def description(self) -> str:
         return "TODO"

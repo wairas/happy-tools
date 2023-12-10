@@ -1,13 +1,13 @@
 import abc
 import os
 
-from happy.base.core import ConfigurableObject
+from happy.base.core import ConfigurableObject, PluginWithLogging
 from happy.base.registry import REGISTRY
-from seppl import Plugin, split_args, split_cmdline, args_to_objects
+from seppl import split_args, split_cmdline, args_to_objects
 from typing import List, Optional
 
 
-class PixelSelector(ConfigurableObject, Plugin, abc.ABC):
+class PixelSelector(ConfigurableObject, PluginWithLogging, abc.ABC):
 
     def get_n(self):
         raise NotImplementedError()

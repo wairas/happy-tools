@@ -3,11 +3,11 @@ from ._base_pixel_selector import BasePixelSelector
 
 class SimpleSelector(BasePixelSelector):
 
-    def __init__(self, n=0,  criteria=None, include_background=False):
-        super().__init__(n, criteria=criteria,include_background=include_background)
+    def __init__(self, n=0, criteria=None, include_background=False):
+        super().__init__(n, criteria=criteria, include_background=include_background)
 
     def name(self) -> str:
-        return "simple-ps"
+        return "ps-simple"
 
     def description(self) -> str:
         return "TODO"

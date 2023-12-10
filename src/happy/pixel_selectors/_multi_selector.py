@@ -6,12 +6,13 @@ from happy.base.core import ConfigurableObject
 class MultiSelector(PixelSelector):
 
     def __init__(self, selectors=None):
+        super().__init__()
         self.selectors = selectors
         self.n = 0
         self._calc_n()
 
     def name(self) -> str:
-        return "multi-ps"
+        return "ps-multi"
 
     def description(self) -> str:
         return "Combines multiple pixel-selectors."

@@ -30,7 +30,7 @@ def default_preprocessors() -> str:
 
 def default_pixel_selectors() -> str:
     args = [
-        "simple-ps -n 32767",
+        "ps-simple -n 32767",
     ]
     return " ".join(args)
 

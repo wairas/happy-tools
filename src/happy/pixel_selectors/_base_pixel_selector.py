@@ -9,6 +9,7 @@ from ._pixel_selector import PixelSelector
 class BasePixelSelector(PixelSelector, abc.ABC):
 
     def __init__(self, n=0, criteria=None, include_background=False):
+        super().__init__()
         self.n = n
         self.criteria = criteria
         self.include_background = include_background

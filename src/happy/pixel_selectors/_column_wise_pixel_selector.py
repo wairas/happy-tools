@@ -11,7 +11,7 @@ class ColumnWisePixelSelector(BasePixelSelector):
         self.c = c
 
     def name(self) -> str:
-        return "column-wise-ps"
+        return "ps-column-wise"
 
     def description(self) -> str:
         return "TODO"
