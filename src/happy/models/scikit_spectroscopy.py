@@ -19,6 +19,8 @@ class ScikitSpectroscopyModel(SpectroscopyModel):
             unique_values = set(values)
             # Count the number of unique values
             self.num_classes = len(unique_values)
+            self.logger().info("unique class values: %s" % str(unique_values))
+            self.logger().info("# classes: %d" % self.num_classes)
 
     def get_training_data(self):
         return self.training_data
