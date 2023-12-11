@@ -6,6 +6,7 @@ import traceback
 import numpy as np
 
 from wai.logging import add_logging_level, set_logging_level
+from happy.base.app import init_app
 from happy.evaluators import ClassificationEvaluator
 from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
 from happy.models.sklearn import create_model, CLASSIFICATION_MODEL_MAP
@@ -40,12 +41,12 @@ def one_hot(arr, num_classes):
     height, width = arr.shape[0], arr.shape[1]
 
     # Turn raw_y into one-hot encoding
-    one_hot = np.eye(num_classes)[arr.reshape(-1)]
-    one_hot = one_hot.reshape((height, width, num_classes))
+    result = np.eye(num_classes)[arr.reshape(-1)]
+    result = result.reshape((height, width, num_classes))
 
     logger.info(f"raw_y-shape: {arr.shape}")
-    logger.info(f"one_hot-shape: {one_hot.shape}")
-    return one_hot
+    logger.info(f"one_hot-shape: {result.shape}")
+    return result
 
 
 def one_hot_list(list_of_arrays, num_classes):
@@ -65,6 +66,7 @@ def create_prediction_array(prediction):
 
 
 def main():
+    init_app()
     parser = argparse.ArgumentParser(
         description='Evaluate segmentation model on Happy Data using specified splits and pixel selector.',
         prog=PROG,
@@ -90,7 +92,7 @@ def main():
     
     regression_method = create_model(args.regression_method, args.regression_params)
     happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
-    train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
+    train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0, 0)
     
     train_pixel_selectors = MultiSelector(PixelSelector.parse_pixel_selectors(args.pixel_selectors))
 
@@ -103,7 +105,7 @@ def main():
     for i in range(args.num_classes):
         mapping[i] = i
     # model
-    model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=preproc, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data = None, mapping=mapping)
+    model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=preproc, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data=None, mapping=mapping)
     logger.info("Fitting model...")
     model.fit(train_ids, force=True, keep_training_data=False)
     
