@@ -10,7 +10,7 @@ class ClassificationEvaluator(BaseEvaluator):
         self.data = {}
         
     def accumulate_stats(self, predictions, actuals, repeat, fold):
-        print(f"added {repeat}:{fold}")
+        self.logger().info(f"added: repeat={repeat}, fold={fold}")
         if repeat not in self.data:
             self.data[repeat] = {}
         if fold not in self.data[repeat]:
