@@ -37,6 +37,9 @@ def default_pixel_selectors() -> str:
 
 
 def one_hot(arr, num_classes):
+    if np.max(arr) + 1 >= num_classes:
+        raise Exception("Mismatch between #classes and max+1: %d != %d (unique values: %s)" % (num_classes, np.max(arr)+1, str(np.unique(arr))))
+
     # Determine the dimensions of raw_y
     height, width = arr.shape[0], arr.shape[1]
 
