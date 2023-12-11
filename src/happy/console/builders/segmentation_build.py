@@ -16,6 +16,7 @@ from happy.splitters import HappySplitter
 from happy.writers import CSVTrainingDataWriter
 from happy.models.segmentation import create_false_color_image, create_prediction_image
 from happy.writers import EnviWriter
+from happy.data import determine_label_indices, check_labels
 
 
 PROG = "happy-scikit-segmentation-build"
@@ -77,9 +78,8 @@ def main():
     parser.add_argument('-d', '--happy_data_base_dir', type=str, help='Directory containing the Happy Data files', required=True)
     parser.add_argument('-P', '--preprocessors', type=str, help='The preprocessors to apply to the data', required=False, default=default_preprocessors())
     parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use.', required=False, default=default_pixel_selectors())
-    parser.add_argument('-m', '--regression_method', type=str, default="svm", help='Regression method name (e.g., ' + ",".join(CLASSIFICATION_MODEL_MAP.keys()) + ' or full class name)')
-    parser.add_argument('-n', '--num_classes', type=int, default=4, help='The number of classes, used for generating the mapping')
-    parser.add_argument('-p', '--regression_params', type=str, default="{}", help='JSON string containing regression parameters')
+    parser.add_argument('-m', '--segmentation_method', type=str, default="svm", help='Regression method name (e.g., ' + ",".join(CLASSIFICATION_MODEL_MAP.keys()) + ' or full class name)')
+    parser.add_argument('-p', '--segmentation_params', type=str, default="{}", help='JSON string containing regression parameters')
     parser.add_argument('-t', '--target_value', type=str, help='Target value column name', required=True)
     parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
     parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions', required=True)
@@ -92,21 +92,35 @@ def main():
     # Create the output folder if it doesn't exist
     logger.info("Creating output dir: %s" % args.output_folder)
     os.makedirs(args.output_folder, exist_ok=True)
-    
-    regression_method = create_model(args.regression_method, args.regression_params)
+
+    # creating regression method
+    logger.info("Creating segmentation method: %s, options: %s" % (args.segmentation_method, str(args.segmentation_params)))
+    regression_method = create_model(args.segmentation_method, args.segmentation_params)
+
+    # split
+    logger.info("Loading splits: %s" % args.happy_splitter_file)
     happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0, 0)
-    
+
+    # pixel selector
+    logger.info("Creating pixel selector")
     train_pixel_selectors = MultiSelector(PixelSelector.parse_pixel_selectors(args.pixel_selectors))
 
     # preprocessing
+    logger.info("Creating pre-processing")
     preproc = MultiPreprocessor(preprocessor_list=Preprocessor.parse_preprocessors(args.preprocessors))
 
+    # determine #classes from labels files
+    logger.info("Determining mapping")
+    labels_ok = check_labels(args.happy_data_base_dir)
+    logger.info("labels OK: %s" % str(labels_ok))
+    indices = determine_label_indices(args.happy_data_base_dir)
+    logger.info("label indices: %s" % str(indices))
     mapping = {}
-    num_labels = args.num_classes
-    # there is an optional mapping file in happy data now, but TODO here.
-    for i in range(args.num_classes):
+    num_labels = len(indices)
+    for i in range(num_labels):
         mapping[i] = i
+
     # model
     model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=preproc, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data=None, mapping=mapping)
     logger.info("Fitting model...")

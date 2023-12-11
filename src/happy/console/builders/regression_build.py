@@ -63,14 +63,22 @@ def main():
     # Create the output folder if it doesn't exist
     logger.info("Creating output dir: %s" % args.output_folder)
     os.makedirs(args.output_folder, exist_ok=True)
-    
+
+    # method
+    logger.info("Creating regression method: %s, options: %s" % (args.regression_method, str(args.regression_params)))
     regression_method = create_model(args.regression_method, args.regression_params)
+
+    # splits
+    logger.info("Loading splits: %s" % args.happy_splitter_file)
     happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
-    
+
+    # pixel selector
+    logger.info("Creating pixel selector")
     train_pixel_selectors = MultiSelector(PixelSelector.parse_pixel_selectors(args.pixel_selectors))
 
     # preprocessing
+    logger.info("Creating pre-processing")
     preproc = MultiPreprocessor(preprocessor_list=Preprocessor.parse_preprocessors(args.preprocessors))
 
     # model

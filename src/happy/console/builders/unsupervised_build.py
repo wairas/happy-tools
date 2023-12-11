@@ -56,15 +56,22 @@ def main():
     # Create the output folder if it doesn't exist
     logger.info("Creating output dir: %s" % args.output_folder)
     os.makedirs(args.output_folder, exist_ok=True)
-    
+
+    # splits
+    logger.info("Loading splits: %s" % args.happy_splitter_file)
     happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
     train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
 
+    # pixel selector
+    logger.info("Creating pixel selector")
     predict_pixel_selector = MultiSelector(PixelSelector.parse_pixel_selectors(args.pixel_selectors))
 
     # preprocessing
+    logger.info("Creating pre-processing")
     preproc = MultiPreprocessor(preprocessor_list=Preprocessor.parse_preprocessors(args.preprocessors))
+
     # cluster algorithm
+    logger.info("Creating clusterer method: %s, options: %s" % (args.clusterer_method, str(args.clusterer_params)))
     cluster_model = create_model(args.clusterer_method, args.clusterer_params)
     # Instantiate the UnsupervisedPixelClusterer
     clusterer = UnsupervisedPixelClusterer(args.data_folder, 'target_variable_name', clusterer=cluster_model, pixel_selector=predict_pixel_selector, happy_preprocessor=preproc)
