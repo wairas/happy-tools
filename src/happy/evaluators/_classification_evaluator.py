@@ -10,7 +10,7 @@ class ClassificationEvaluator(BaseEvaluator):
         self.data = {}
         
     def accumulate_stats(self, predictions, actuals, repeat, fold):
-        self.logger().info(f"added {repeat}:{fold}")
+        print(f"added {repeat}:{fold}")
         if repeat not in self.data:
             self.data[repeat] = {}
         if fold not in self.data[repeat]:
@@ -23,7 +23,7 @@ class ClassificationEvaluator(BaseEvaluator):
         all_metrics = {'accuracy': [], 'precision': [], 'recall': [], 'f1': []}
         
         for repeat, fold_data in self.data.items():
-            self.logger().info(f"repeat: {repeat}")
+            print(f"repeat: {repeat}")
             combined_fold_predictions = []
             combined_fold_actuals = []
             
@@ -52,13 +52,13 @@ class ClassificationEvaluator(BaseEvaluator):
             
             confusion = confusion_matrix(combined_actuals.flatten(), combined_predictions.flatten())
             
-            self.logger().info(f"Metrics for Repeat: {repeat}, Combined Folds:")
-            self.logger().info(f"Accuracy: {accuracy}")
-            self.logger().info(f"Precision: {precision}")
-            self.logger().info(f"Recall: {recall}")
-            self.logger().info(f"F1 Score: {f1}")
-            self.logger().info("Confusion Matrix:\n%s" % str(confusion))
-            self.logger().info("=" * 50)
+            print(f"Metrics for Repeat: {repeat}, Combined Folds:")
+            print(f"Accuracy: {accuracy}")
+            print(f"Precision: {precision}")
+            print(f"Recall: {recall}")
+            print(f"F1 Score: {f1}")
+            print("Confusion Matrix:\n%s" % str(confusion))
+            print("=" * 50)
         
         # Calculate and print averages and standard deviations across repeats
         avg_accuracy = np.mean(all_metrics['accuracy'])
@@ -70,11 +70,11 @@ class ClassificationEvaluator(BaseEvaluator):
         avg_f1 = np.mean(all_metrics['f1'])
         std_f1 = np.std(all_metrics['f1'])
         
-        self.logger().info(f"Average Accuracy across Repeats: {avg_accuracy}")
-        self.logger().info(f"Standard Deviation Accuracy across Repeats: {std_accuracy}")
-        self.logger().info(f"Average Precision across Repeats: {avg_precision}")
-        self.logger().info(f"Standard Deviation Precision across Repeats: {std_precision}")
-        self.logger().info(f"Average Recall across Repeats: {avg_recall}")
-        self.logger().info(f"Standard Deviation Recall across Repeats: {std_recall}")
-        self.logger().info(f"Average F1 Score across Repeats: {avg_f1}")
-        self.logger().info(f"Standard Deviation F1 Score across Repeats: {std_f1}")
+        print(f"Average Accuracy across Repeats: {avg_accuracy}")
+        print(f"Standard Deviation Accuracy across Repeats: {std_accuracy}")
+        print(f"Average Precision across Repeats: {avg_precision}")
+        print(f"Standard Deviation Precision across Repeats: {std_precision}")
+        print(f"Average Recall across Repeats: {avg_recall}")
+        print(f"Standard Deviation Recall across Repeats: {std_recall}")
+        print(f"Average F1 Score across Repeats: {avg_f1}")
+        print(f"Standard Deviation F1 Score across Repeats: {std_f1}")
