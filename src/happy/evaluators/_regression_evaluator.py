@@ -4,25 +4,13 @@ from happy.evaluators import BaseEvaluator
 
 
 class RegressionEvaluator(BaseEvaluator):
+
     def __init__(self, happy_splitter, model, target):
         super().__init__(happy_splitter, model, target)
         self.data = {}
-        
-    """
-    def accumulate_stats(self, predictions, actuals, repeat, fold):
-        print(f"added {repeat}:{fold}")
-        if repeat not in self.data:
-            self.data[repeat] = {}
-        if fold not in self.data[repeat]:
-            self.data[repeat][fold] = {'predictions': [], 'actuals': []}
-        
-        self.data[repeat][fold]['predictions'].append(predictions)
-        self.data[repeat][fold]['actuals'].append(actuals)
-        # print(self.data)
-    """
 
     def accumulate_stats(self, predictions, actuals, repeat, fold, ignore_value=-1):
-        print(f"added {repeat}:{fold}")
+        self.logger().info(f"added {repeat}:{fold}")
         if repeat not in self.data:
             self.data[repeat] = {}
         if fold not in self.data[repeat]:
@@ -40,7 +28,7 @@ class RegressionEvaluator(BaseEvaluator):
         all_metrics = {'mean_squared_error': [], 'mean_absolute_error': [], 'bias': [], 'rmse': [], 'r2': []}
         
         for repeat, fold_data in self.data.items():
-            print(f"repeat: {repeat}")
+            self.logger().info(f"repeat: {repeat}")
             combined_fold_predictions = []
             combined_fold_actuals = []
             
@@ -66,13 +54,13 @@ class RegressionEvaluator(BaseEvaluator):
             all_metrics['rmse'].append(rmse)
             all_metrics['r2'].append(r2)
             
-            print(f"Metrics for Repeat: {repeat}, Combined Folds:")
-            print("Mean Squared Error:", mse)
-            print("Mean Absolute Error:", mae)
-            print("Bias:", bias)
-            print("Root Mean Squared Error:", rmse)
-            print("R-squared:", r2)
-            print("=" * 50)
+            self.logger().info(f"Metrics for Repeat: {repeat}, Combined Folds:")
+            self.logger().info(f"Mean Squared Error: {mse}")
+            self.logger().info(f"Mean Absolute Error: {mae}")
+            self.logger().info(f"Bias: {bias}")
+            self.logger().info(f"Root Mean Squared Error: {rmse}")
+            self.logger().info(f"R-squared: {r2}")
+            self.logger().info("=" * 50)
         
         # Calculate and print averages and standard deviations across repeats
         avg_mse = np.mean(all_metrics['mean_squared_error'])
@@ -86,13 +74,13 @@ class RegressionEvaluator(BaseEvaluator):
         avg_r2 = np.mean(all_metrics['r2'])
         std_r2 = np.std(all_metrics['r2'])
         
-        print("Average Mean Squared Error across Repeats:", avg_mse)
-        print("Standard Deviation Mean Squared Error across Repeats:", std_mse)
-        print("Average Mean Absolute Error across Repeats:", avg_mae)
-        print("Standard Deviation Mean Absolute Error across Repeats:", std_mae)
-        print("Average Bias across Repeats:", avg_bias)
-        print("Standard Deviation Bias across Repeats:", std_bias)
-        print("Average Root Mean Squared Error across Repeats:", avg_rmse)
-        print("Standard Deviation Root Mean Squared Error across Repeats:", std_rmse)
-        print("Average R-squared across Repeats:", avg_r2)
-        print("Standard Deviation R-squared across Repeats:", std_r2)
+        self.logger().info(f"Average Mean Squared Error across Repeats: {avg_mse}")
+        self.logger().info(f"Standard Deviation Mean Squared Error across Repeats: {std_mse}")
+        self.logger().info(f"Average Mean Absolute Error across Repeats: {avg_mae}")
+        self.logger().info(f"Standard Deviation Mean Absolute Error across Repeats: {std_mae}")
+        self.logger().info(f"Average Bias across Repeats: {avg_bias}")
+        self.logger().info(f"Standard Deviation Bias across Repeats: {std_bias}")
+        self.logger().info(f"Average Root Mean Squared Error across Repeats: {avg_rmse}")
+        self.logger().info(f"Standard Deviation Root Mean Squared Error across Repeats: {std_rmse}")
+        self.logger().info(f"Average R-squared across Repeats: {avg_r2}")
+        self.logger().info(f"Standard Deviation R-squared across Repeats: {std_r2}")

@@ -1,5 +1,10 @@
-class BaseEvaluator:
+from happy.base.core import ObjectWithLogging
+
+
+class BaseEvaluator(ObjectWithLogging):
+
     def __init__(self, happy_splitter, model, target):
+        super().__init__()
         self.happy_splitter = happy_splitter
         self.model = model
         self.target = target
@@ -18,10 +23,6 @@ class BaseEvaluator:
                 
                 self.accumulate_stats(predictions, actuals, repeat_idx, fold_idx )
 
-            #repeat_metrics = self.calculate_repeat_metrics(fold_metrics)
-            #self.all_repeat_metrics.append(repeat_metrics)
-            #self.all_fold_metrics.append(fold_metrics)
-            
         self.calculate_and_show_metrics()
 
     def calculate_and_show_metrics(self):
@@ -43,16 +44,3 @@ class BaseEvaluator:
     def display_results(self, repeat_metrics):
         # Implement this method to display evaluation results
         pass
-
-        """
-# Usage example
-splitter = HappySplitter(happy_base_folder)
-splitter.load_splits_from_json('split_data.json')  # Load your split data
-model = HappyModel(data_folder, target)
-evaluator = BaseEvaluator(splitter, model, target)
-evaluator.evaluate()
-
-# Access metrics later
-all_fold_metrics = evaluator.all_fold_metrics
-all_repeat_metrics = evaluator.all_repeat_metrics
-"""
