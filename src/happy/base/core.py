@@ -3,14 +3,21 @@ import argparse
 import importlib.util
 import json
 import logging
+import os
 import sys
 
 from typing import Dict
+
+import wai.logging
 from seppl import get_class_name, get_class, Plugin
-from wai.logging import add_logging_level, add_logger_name, set_logging_level, LOGGING_WARNING
+from wai.logging import add_logging_level, add_logger_name, set_logging_level, str_to_logging_level, LOGGING_WARNING
 
 
 ENV_HAPPY_LOGLEVEL = "HAPPY_LOGLEVEL"
+""" the minimum log level to output. """
+
+ENV_HAPPY_LOGLEVEL_DEFAULT = "HAPPY_LOGLEVEL_DEFAULT"
+""" the default log level used by objects supporting logging. """
 
 
 def get_func(funcname: str):
@@ -131,6 +138,26 @@ class ConfigurableObject:
                 return cls.create_from_dict(d, c=c)
 
 
+def get_default_loglevel(default_level: str = wai.logging.LOGGING_WARNING):
+    """
+    Returns the default log level to use by objects supporting logging.
+    Can be overridden by ENV_HAPPY_LOGLEVEL_DEFAULT.
+
+    :param default_level: the default level
+    :type default_level: str
+    :return: the default level
+    :rtype: str
+    """
+    if os.getenv(ENV_HAPPY_LOGLEVEL_DEFAULT) is not None:
+        try:
+            str_to_logging_level(os.getenv(ENV_HAPPY_LOGLEVEL_DEFAULT))
+            return os.getenv(ENV_HAPPY_LOGLEVEL_DEFAULT)
+        except:
+            return wai.logging.LOGGING_WARNING
+    else:
+        return default_level
+
+
 class PluginWithLogging(Plugin, abc.ABC):
 
     def __init__(self):
@@ -138,7 +165,7 @@ class PluginWithLogging(Plugin, abc.ABC):
         Initializes the plugin.
         """
         super().__init__()
-        self.logging_level = LOGGING_WARNING
+        self.logging_level = get_default_loglevel()
         self.logger_name = self.name()
         self._logger = None
 
@@ -190,7 +217,7 @@ class ObjectWithLogging(abc.ABC):
         Initializes the object.
         """
         super().__init__()
-        self.logging_level = LOGGING_WARNING
+        self.logging_level = get_default_loglevel()
         self.logger_name = get_class_name(self)
         self._logger = None
 
