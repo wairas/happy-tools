@@ -12,7 +12,7 @@ class EnviWriter(BaseWriter):
         self.logger().info("write "+filename)
         self.logger().info(data.shape)
         if datatype is None:
-            print("is none")
+            self.logger().info("data type is none")
             datatype = data.dtype.name
         self.logger().info(datatype)
         envi.save_image(filepath, data, dtype=datatype, force=True, interleave='BSQ', metadata={'wavelength': wavelengths})
