@@ -37,7 +37,7 @@ def default_pixel_selectors() -> str:
 
 
 def one_hot(arr, num_classes):
-    if np.max(arr) + 1 >= num_classes:
+    if np.max(arr) + 1 > num_classes:
         raise Exception("Mismatch between #classes and max+1: %d != %d (unique values: %s)" % (num_classes, np.max(arr)+1, str(np.unique(arr))))
 
     # Determine the dimensions of raw_y
@@ -117,8 +117,8 @@ def main():
 
     logger.info("Predicting...")
     predictions, actuals = model.predict_images(test_ids, return_actuals=True)
-    predictions = one_hot_list(predictions, num_labels)
     actuals = one_hot_list(actuals, num_labels)
+    predictions = one_hot_list(predictions, num_labels)
     logger.info(predictions.shape)
     logger.info(actuals.shape)
     evl = ClassificationEvaluator(happy_splitter, model, args.target_value)
