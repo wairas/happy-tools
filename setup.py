@@ -41,6 +41,7 @@ setup(
         "matplotlib",
         "seppl>=0.0.11",
         "wai.logging",
+        "tabulate",
     ],
     package_dir={
         '': 'src'
