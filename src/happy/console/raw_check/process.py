@@ -1,5 +1,6 @@
 import argparse
 import csv
+import io
 import json
 import logging
 import os
@@ -144,7 +145,7 @@ def check_dir(path):
     return result
 
 
-def output_results(results, output=None, output_format=OUTPUT_FORMAT_TEXT):
+def output_results(results, output=None, output_format=OUTPUT_FORMAT_TEXT, return_results=False, use_stdout=True):
     """
     Outputs the results of the check. If no output file is given, stdout is used.
 
@@ -154,7 +155,15 @@ def output_results(results, output=None, output_format=OUTPUT_FORMAT_TEXT):
     :type output: str
     :param output_format: the type of format to generate
     :type output_format: str
+    :param return_results: whether to return the results
+    :type return_results: bool
+    :param use_stdout: whether to output on stdout if no output file given
+    :param use_stdout: bool
+    :return: the results, None if return_results is False
+    :rtype: str
     """
+    result = None
+
     if output_format not in OUTPUT_FORMATS:
         raise Exception("Invalid output format: %s" % output_format)
 
@@ -174,11 +183,14 @@ def output_results(results, output=None, output_format=OUTPUT_FORMAT_TEXT):
     if output_format == OUTPUT_FORMAT_TEXT:
         table = tabulate(rows, headers='firstrow', tablefmt='fancy_grid')
         if output is None:
-            print(table)
+            if use_stdout:
+                print(table)
         else:
             with open(output, "w") as fp:
                 fp.write(table)
                 fp.write("\n")
+        if return_results:
+            result = table
 
     elif output_format == OUTPUT_FORMAT_TEXT_COMPACT:
         lines = list()
@@ -194,31 +206,49 @@ def output_results(results, output=None, output_format=OUTPUT_FORMAT_TEXT):
             lines.append("")
         full = "\n".join(lines)
         if output is None:
-            print(full)
+            if use_stdout:
+                print(full)
         else:
             with open(output, "w") as fp:
                 fp.write(full)
+        if return_results:
+            result = full
 
     elif output_format == OUTPUT_FORMAT_CSV:
+        writer = None
+        fp = None
         if output is None:
-            writer = csv.writer(sys.stdout)
-            fp = None
+            if use_stdout:
+                writer = csv.writer(sys.stdout)
+                fp = None
         else:
             fp = open(output, "w")
             writer = csv.writer(fp, quoting=csv.QUOTE_MINIMAL)
-        writer.writerows(rows)
+        if writer is not None:
+            writer.writerows(rows)
         if fp is not None:
             fp.close()
+        if return_results:
+            buf = io.StringIO()
+            buf.write("\ufeff")
+            writer = csv.writer(buf, quoting=csv.QUOTE_MINIMAL)
+            writer.writerows(rows)
+            result = buf.getvalue()
 
     elif output_format == OUTPUT_FORMAT_JSON:
         if output is None:
-            print(json.dumps(results, indent=2))
+            if use_stdout:
+                print(json.dumps(results, indent=2))
         else:
             with open(output, "w") as fp:
                 json.dump(results, fp, indent=2)
+        if return_results:
+            result = json.dumps(results, indent=2)
 
     else:
         raise Exception("Unsupported output format: %s" % output_format)
+
+    return result
 
 
 def main():
