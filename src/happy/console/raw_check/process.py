@@ -218,6 +218,7 @@ def main():
     # check "capture" dirs
     capture_dirs = []
     locate_capture_dirs(parsed.input, capture_dirs, recursive=parsed.recursive)
+    capture_dirs = sorted(capture_dirs)
     results = []
     for capture_dir in capture_dirs:
         results.append(check_dir(capture_dir))
