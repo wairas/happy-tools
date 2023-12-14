@@ -714,7 +714,7 @@ class ViewerApp:
             else:
                 text = "Please enter the label"
             if len(self.state_predefined_labels.get()) > 0:
-                items = list(self.state_predefined_labels.get().split(","))
+                items = [x.strip() for x in self.state_predefined_labels.get().split(",")]
                 if "" not in items:
                     items.insert(0, "")
                 label = "" if (len(labels) != 1) else list(labels)[0]
@@ -981,6 +981,18 @@ class ViewerApp:
 
         if filename is not None:
             preds = ObjectPredictions.load_json_from_file(filename)
+            if len(self.state_predefined_labels.get()) > 0:
+                pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
+                cur_labels = [x.label for x in preds.objects]
+                missing_labels = set()
+                for cur_label in cur_labels:
+                    if cur_label not in pre_labels:
+                        missing_labels.add(cur_label)
+                if len(missing_labels) > 0:
+                    missing_labels = sorted(list(missing_labels))
+                    messagebox.showwarning(
+                        "Warning",
+                        "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
             self.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
             self.update_image()
 
