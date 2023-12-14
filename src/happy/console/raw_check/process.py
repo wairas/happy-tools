@@ -32,10 +32,12 @@ RESULT_FIELDS = [
 
 
 OUTPUT_FORMAT_TEXT = "text"
+OUTPUT_FORMAT_TEXT_COMPACT = "text-compact"
 OUTPUT_FORMAT_CSV = "csv"
 OUTPUT_FORMAT_JSON = "json"
 OUTPUT_FORMATS = [
     OUTPUT_FORMAT_TEXT,
+    OUTPUT_FORMAT_TEXT_COMPACT,
     OUTPUT_FORMAT_CSV,
     OUTPUT_FORMAT_JSON,
 ]
@@ -177,6 +179,25 @@ def output_results(results, output=None, output_format=OUTPUT_FORMAT_TEXT):
             with open(output, "w") as fp:
                 fp.write(table)
                 fp.write("\n")
+
+    elif output_format == OUTPUT_FORMAT_TEXT_COMPACT:
+        lines = list()
+        for result in results:
+            lines.append(result[RESULT_FIELD_DIR])
+            for field in RESULT_FIELDS:
+                if field != RESULT_FIELD_DIR:
+                    if field == RESULT_FIELD_LABELS:
+                        value = "|".join(result[field])
+                    else:
+                        value = str(result[field])
+                    lines.append("   " + field + ": " + value)
+            lines.append("")
+        full = "\n".join(lines)
+        if output is None:
+            print(full)
+        else:
+            with open(output, "w") as fp:
+                fp.write(full)
 
     elif output_format == OUTPUT_FORMAT_CSV:
         if output is None:

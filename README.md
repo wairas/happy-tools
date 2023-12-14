@@ -420,7 +420,7 @@ optional arguments:
 
 ```
 usage: happy-raw-check [-h] -i INPUT [INPUT ...] [-r] [-o OUTPUT]
-                       [-f {text,csv,json}]
+                       [-f {text,text-compact,csv,json}]
                        [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Performs sanity checks on raw capture folders.
@@ -435,7 +435,7 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         The file to store the results in; uses stdout if
                         omitted (default: None)
-  -f {text,csv,json}, --output_format {text,csv,json}
+  -f {text,text-compact,csv,json}, --output_format {text,text-compact,csv,json}
                         The format to use for the output (default: text)
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
