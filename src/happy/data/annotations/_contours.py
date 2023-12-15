@@ -92,6 +92,26 @@ class Contour:
         else:
             return BBoxAbsolute(left=int(min_xy[0]), top=int(min_xy[1]), right=int(max_xy[0]), bottom=int(max_xy[1]))
 
+    def has_same_points(self, other):
+        """
+        Compares its own coordinates with the ones from the other contour.
+
+        :param other: the other contour to compare with
+        :type other: Contour
+        :return: True if the same points
+        """
+        result = len(self.points) == len(other.points)
+
+        if result:
+            for i in range(len(self.points)):
+                self_x, self_y = self.points[i]
+                other_x, other_y = other.points[i]
+                if (self_x != other_x) or (self_y != other_y):
+                    result = False
+                    break
+
+        return result
+
 
 class ContoursManager:
     """
@@ -288,10 +308,18 @@ class ContoursManager:
         :param contours: the list of contours to remove
         :type contours: list
         """
-        for contour in contours:
-            for contours in self.contours:
-                if contour in contours:
-                    contours.remove(contour)
+        # determine contour objects to remove based on coordinates
+        remove_contours = []
+        for other_contour in contours:
+            for self_contours in self.contours:
+                for self_contour in self_contours:
+                    if self_contour.has_same_points(other_contour):
+                        remove_contours.append(self_contour)
+        # remove contours
+        for remove_contour in remove_contours:
+            for self_contours in self.contours:
+                if remove_contour in self_contours:
+                    self_contours.remove(remove_contour)
 
     def has_metadata(self):
         """
