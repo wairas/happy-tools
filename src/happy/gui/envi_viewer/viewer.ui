@@ -292,6 +292,12 @@
                         <property name="label" translatable="yes">400%</property>
                       </object>
                     </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_zoom_custom" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_zoom_custom</property>
+                        <property name="label" translatable="yes">Custom...</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>

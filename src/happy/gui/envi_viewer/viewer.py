@@ -1420,6 +1420,17 @@ class ViewerApp:
         self.session.zoom = -1
         self.update_image()
 
+    def on_zoom_custom(self, event=None):
+        curr_zoom = self.session.zoom
+        if curr_zoom <= 0:
+            curr_zoom = -1
+        new_zoom = ttkSimpleDialog.askinteger("Zoom", "Please enter new zoom (in %; -1 for best fit):", initialvalue=curr_zoom)
+        if new_zoom is not None:
+            if new_zoom <= 0:
+                new_zoom = -1
+            self.session.zoom = new_zoom
+            self.update_image()
+
     def on_button_sam_connect_click(self, event=None):
         if self.sam.is_connected():
             self.log("Disconnecting SAM...")
