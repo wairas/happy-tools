@@ -151,15 +151,23 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_tools_edit_annotations" named="True">
+                    <property name="accelerator">Alt+E</property>
+                    <property name="command" type="command" cbtype="simple">on_tools_edit_annotations_click</property>
+                    <property name="label" translatable="yes">Edit annotations...</property>
+                    <property name="underline">0</property>
+                  </object>
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_tools_clear_markers" named="True">
-                    <property name="accelerator">Cltr+Shift+M</property>
+                    <property name="accelerator">Ctrl+Shift+M</property>
                     <property name="command" type="command" cbtype="simple">on_tools_clear_markers_click</property>
                     <property name="label" translatable="yes">Clear markers</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_tools_remove_last_annotations" named="True">
-                    <property name="accelerator">Cltr+Shift+L</property>
+                    <property name="accelerator">Ctrl+Shift+L</property>
                     <property name="command" type="command" cbtype="simple">on_tools_remove_last_annotations_click</property>
                     <property name="label" translatable="yes">Remove last annotation</property>
                   </object>

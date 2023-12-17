@@ -397,3 +397,55 @@ class ContoursManager:
                     result.append(contour)
 
         return result
+
+    def to_list(self):
+        """
+        Returns all contours as flat list.
+
+        :return: the list of contours
+        :rtype: list
+        """
+        result = []
+        for contours in self.contours:
+            for contour in contours:
+                result.append(contour)
+        return result
+
+    def to_list_absolute(self, width, height):
+        """
+        Returns all contours as flat list with absolute coordinates.
+
+        :param width: the width to use
+        :type width: int
+        :param height: the height to use
+        :type height: int
+        :return: the absolute contours
+        :return: the list of contours
+        :rtype: list
+        """
+        result = []
+        for contours in self.contours:
+            for contour in contours:
+                result.append(contour.to_absolute(width, height))
+        return result
+
+    def update_label(self, contour, new_label):
+        """
+        Updates the label for the specified contour.
+
+        :param contour: the contour to update
+        :type contour: Contour
+        :param new_label: the new label
+        :type: str
+        :return: whether the update was successful
+        :rtype: bool
+        """
+        result = False
+
+        for c in self.to_list():
+            if c.has_same_points(contour):
+                contour.label = new_label
+                result = True
+                break
+
+        return result

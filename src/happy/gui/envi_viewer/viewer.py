@@ -30,6 +30,7 @@ from happy.data.annotations import MarkersManager
 from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
 from happy.gui.dialog import asklist
+from happy.gui.envi_viewer.annotations import AnnotationsDialog
 from opex import ObjectPredictions
 
 PROG = "happy-envi-viewer"
@@ -142,6 +143,7 @@ class ViewerApp:
         self.mainwindow.bind("<Control-e>", self.on_file_exportimage_click)
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
         self.mainwindow.bind("<Control-A>", self.on_tools_clear_annotations_click)
+        self.mainwindow.bind("<Alt-e>", self.on_tools_edit_annotations_click)
         self.mainwindow.bind("<Control-M>", self.on_tools_clear_markers_click)
         self.mainwindow.bind("<Control-L>", self.on_tools_remove_last_annotations_click)
         self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
@@ -698,6 +700,21 @@ class ViewerApp:
         self.log("Marker point added: %s" % str(point))
         self.update_image()
 
+    def get_predefined_labels(self):
+        """
+        Returns the list of predefined labels (if any).
+
+        :return: the list of labels or None if not defined
+        :rtype: list
+        """
+        if len(self.state_predefined_labels.get()) > 0:
+            result = [x.strip() for x in self.state_predefined_labels.get().split(",")]
+            if "" not in result:
+                result.insert(0, "")
+            return result
+        else:
+            return None
+
     def set_label(self, event):
         """
         Prompts the user to enter a label for the contours that contain the event's position.
@@ -713,10 +730,8 @@ class ViewerApp:
                 text = "Please enter the label to apply to %d contours:" % len(contours)
             else:
                 text = "Please enter the label"
-            if len(self.state_predefined_labels.get()) > 0:
-                items = [x.strip() for x in self.state_predefined_labels.get().split(",")]
-                if "" not in items:
-                    items.insert(0, "")
+            items = self.get_predefined_labels()
+            if items is not None:
                 label = "" if (len(labels) != 1) else list(labels)[0]
                 if label not in items:
                     label = ""
@@ -1175,6 +1190,41 @@ class ViewerApp:
             self.log("Annotations/marker points cleared")
         else:
             self.log("No annotations/marker points to clear")
+
+    def on_annotations_updated(self, changed, deleted):
+        """
+        Gets called when "edit annotations" dialog gets accepted.
+
+        :param changed: the list of changed Contour objects
+        :type changed: list
+        :param deleted: the list of deleted Contour objects
+        :type deleted: list
+        """
+        updated = False
+        if len(deleted) > 0:
+            self.log("Removing %d annotations")
+            self.contours.remove(deleted)
+            updated = True
+        if len(changed) > 0:
+            self.log("Updating labels for %d annotations" % len(changed))
+            for c in changed:
+                self.contours.update_label(c, c.label)
+            updated = True
+        if updated:
+            self.update_image()
+
+    def on_tools_edit_annotations_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+        if len(self.contours.contours) == 0:
+            messagebox.showerror("Error", "Please add annotations first!")
+            return
+
+        dialog = AnnotationsDialog(self.mainwindow, self.contours,
+                                   self.data.scan_data.shape[1], self.data.scan_data.shape[0],
+                                   predefined_labels=self.get_predefined_labels())
+        dialog.show(self.on_annotations_updated)
 
     def on_tools_clear_markers_click(self, event=None):
         if self.markers.has_points():
