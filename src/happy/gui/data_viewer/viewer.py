@@ -430,22 +430,12 @@ class ViewerApp:
 
         return rgb_image
 
-    def update_plot(self):
-        if self.updating:
-            return
-        if self.stored_happy_data is None:
-            return
+    def _update_plot(self):
+        self.updating = True
 
         # Calculate canvas dimensions (only once)
         canvas_width = self.canvas.winfo_width() - 10  # remove padding
         canvas_height = self.canvas.winfo_height() - 10  # remove padding
-        if (canvas_width <= 0) or (canvas_height <= 0):
-            self.mainwindow.after(
-                1000,
-                lambda: self.update_plot())
-            return
-
-        self.updating = True
 
         if self.rgb_image is None:
             self.rgb_image = self.convert_to_rgb(self.stored_happy_data)
@@ -498,6 +488,31 @@ class ViewerApp:
         self.canvas.config(width=new_width, height=new_height)
 
         self.updating = False
+
+    def update_plot(self):
+        if self.updating:
+            return
+        if self.stored_happy_data is None:
+            return
+
+        # Calculate canvas dimensions (only once)
+        canvas_width = self.canvas.winfo_width() - 10  # remove padding
+        canvas_height = self.canvas.winfo_height() - 10  # remove padding
+        if (canvas_width <= 0) or (canvas_height <= 0):
+            self.mainwindow.after(
+                1000,
+                lambda: self.update_plot())
+            return
+
+        def finish():
+            self.stop_busy()
+
+        def work():
+            self._update_plot()
+
+        t = Thread(target=work)
+        t.start()
+        monitor_thread(self.mainwindow, t, finish_method=finish)
 
     def map_metadata_to_rgb(self, metadata_values):
         """
