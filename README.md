@@ -287,7 +287,9 @@ usage: happy-opex2happy [-h] -i DIR [DIR ...] [-r] [-o DIR] -f
                         [--white_ref_locator LOCATOR]
                         [--white_ref_method METHOD] [--pattern_mask PATTERN]
                         [--pattern_labels PATTERN] [--pattern_png PATTERN]
-                        [--pattern_annotations PATTERN] [-I] [-n] [-v]
+                        [--pattern_annotations PATTERN] [-I] [-n]
+                        [--resume_from DIR]
+                        [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Turns annotations (PNG and OPEX JSON) into Happy ENVI format.
 
@@ -349,8 +351,11 @@ optional arguments:
                         dir (default: False)
   -n, --dry_run         whether to omit generating any data or creating
                         directories (default: False)
-  -v, --verbose         whether to be more verbose with the output (default:
-                        False)
+  --resume_from DIR     The directory to restart the processing with (all
+                        determined dirs preceding this one get skipped)
+                        (default: None)
+  -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        The logging level to use. (default: WARN)
 ```
 
 ### OPEX labels

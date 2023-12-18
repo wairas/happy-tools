@@ -244,7 +244,8 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
              black_ref_locator=None, black_ref_method=None, white_ref_locator=None, white_ref_method=None,
              pattern_mask="mask.hdr", pattern_labels="mask.json",
              pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_annotations=FILENAME_PH_SAMPLEID + ".json",
-             no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False):
+             no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False,
+             resume_from=None):
     """
     Generates fake RGB images from the HSI images found in the specified directories.
 
@@ -282,6 +283,8 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     :type include_input: bool
     :param dry_run: whether to omit saving the PNG images
     :type dry_run: bool
+    :param resume_from: the directory to resume the processing from (determined dirs preceding this one will get skipped), ignored if None
+    :type resume_from: str
     """
 
     if output_format not in OUTPUT_FORMATS:
@@ -322,6 +325,22 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     locate_opex(input_dirs, ann_paths, recursive=recursive, require_png=True, logger=logger)
     ann_paths = sorted(ann_paths)
 
+    # process only subset?
+    if resume_from is not None:
+        _ann_paths = []
+        found = False
+        for ann_path in ann_paths:
+            ann_dir = os.path.dirname(ann_path)
+            if ann_dir.startswith(resume_from):
+                found = True
+            if found:
+                _ann_paths.append(ann_path)
+        if len(_ann_paths) == 0:
+            raise Exception("Resuming from dir '%s' resulted in an empty set of annotations to process!" % resume_from)
+        else:
+            logger.info("Resume from dir '%s' changed number of annotations to process from %d to %d." % (resume_from, len(ann_paths), len(_ann_paths)))
+        ann_paths = _ann_paths
+
     for ann_path in ann_paths:
         img_path = os.path.splitext(ann_path)[0] + ".png"
         convert(ann_path, img_path, output_dir, datamanager, output_format=output_format,
@@ -361,6 +380,7 @@ def main(args=None):
     parser.add_argument("--pattern_annotations", metavar="PATTERN", help="the pattern to use for saving the OPEX JSON annotation file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=FILENAME_PH_SAMPLEID + ".json", required=False)
     parser.add_argument("-I", "--include_input", action="store_true", help="whether to copy the PNG/JSON file across to the output dir", required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
+    parser.add_argument("--resume_from", metavar="DIR", type=str, help="The directory to restart the processing with (all determined dirs preceding this one get skipped)", required=False, default=None)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
@@ -371,7 +391,7 @@ def main(args=None):
              pattern_mask=parsed.pattern_mask, pattern_labels=parsed.pattern_labels,
              pattern_png=parsed.pattern_png, pattern_annotations=parsed.pattern_annotations,
              no_implicit_background=parsed.no_implicit_background, unlabelled=parsed.unlabelled,
-             include_input=parsed.include_input, dry_run=parsed.dry_run)
+             include_input=parsed.include_input, dry_run=parsed.dry_run, resume_from=parsed.resume_from)
 
 
 def sys_main() -> int:
