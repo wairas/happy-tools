@@ -189,6 +189,21 @@ class ViewerApp:
             if hasattr(self, "text_log") and (self.text_log is not None):
                 self.text_log.insert(tk.END, "\n" + datetime.now().strftime(LOG_TIMESTAMP_FORMAT) + " " + msg)
 
+    def start_busy(self):
+        """
+        Displays the hourglass cursor.
+        https://www.tcl.tk/man/tcl8.4/TkCmd/cursors.html
+        """
+        self.mainwindow.config(cursor="watch")
+        self.mainwindow.update()
+
+    def stop_busy(self):
+        """
+        Displays the normal cursor.
+        """
+        self.mainwindow.config(cursor="")
+        self.mainwindow.update()
+
     def open_envi_file(self, title, initial_dir):
         """
         Allows the user to select an ENVI file.
@@ -293,7 +308,9 @@ class ViewerApp:
 
         self.log("Loading scan: %s" % filename)
         self.session.last_scan_file = filename
+        self.start_busy()
         warning = self.data.set_scan(filename)
+        self.stop_busy()
         if warning is not None:
             messagebox.showerror("Warning", warning)
 
@@ -335,7 +352,9 @@ class ViewerApp:
         :type do_update: bool
         """
         self.log("Loading black reference: %s" % filename)
+        self.start_busy()
         error = self.data.set_blackref(filename)
+        self.stop_busy()
         if error is not None:
             messagebox.showerror("Error", error)
             return
@@ -352,7 +371,9 @@ class ViewerApp:
         :type do_update: bool
         """
         self.log("Loading white reference: %s" % filename)
+        self.start_busy()
         error = self.data.set_whiteref(filename)
+        self.stop_busy()
         if error is not None:
             messagebox.showerror("Error", error)
             return
@@ -605,8 +626,10 @@ class ViewerApp:
         """
         if self.ignore_updates:
             return
+        self.start_busy()
         self.update_image()
         self.update_info()
+        self.stop_busy()
 
     def set_keep_aspectratio(self, value):
         """
