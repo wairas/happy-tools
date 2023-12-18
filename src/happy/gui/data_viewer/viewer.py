@@ -369,6 +369,7 @@ class ViewerApp:
         if not os.path.exists(full) or not os.path.isdir(full):
             return
 
+        self.start_busy()
         self.updating = True
         self.stored_happy_data = self.reader.load_data(self.session.current_sample + ":" + self.session.current_repeat)
         # Extract and store the metadata keys
@@ -395,6 +396,7 @@ class ViewerApp:
         # Continue with loading and displaying HappyData...
         self.updating = False  # Allow updates after loading
         self.update_plot()
+        self.stop_busy()
 
     def update_metadata_combobox(self, metadata_keys):
         """
