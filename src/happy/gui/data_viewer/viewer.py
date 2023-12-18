@@ -272,7 +272,7 @@ class ViewerApp:
 
         t = Thread(target=work)
         t.start()
-        monitor_thread(self.mainwindow, t, finish_method=finish())
+        monitor_thread(self.mainwindow, t, finish_method=finish)
 
     def _load_sample(self, sample):
         """
@@ -326,7 +326,7 @@ class ViewerApp:
 
         t = Thread(target=work)
         t.start()
-        monitor_thread(self.mainwindow, t, finish_method=finish())
+        monitor_thread(self.mainwindow, t, finish_method=finish)
 
     def _load_repeat(self, repeat):
         """
@@ -357,7 +357,7 @@ class ViewerApp:
 
         t = Thread(target=work)
         t.start()
-        monitor_thread(self.mainwindow, t, finish_method=finish())
+        monitor_thread(self.mainwindow, t, finish_method=finish)
 
     def load_happy_data(self):
         """
