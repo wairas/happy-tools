@@ -147,6 +147,7 @@
                   <object class="tk.Menuitem.Command" id="command_edit_undo" named="True">
                     <property name="command" type="command" cbtype="simple">on_edit_undo_click</property>
                     <property name="label" translatable="yes">Undo</property>
+                    <property name="accelerator">Ctrl+Z</property>
                     <property name="underline">0</property>
                   </object>
                 </child>

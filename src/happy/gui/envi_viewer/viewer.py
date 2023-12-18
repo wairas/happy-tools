@@ -145,6 +145,7 @@ class ViewerApp:
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
         self.mainwindow.bind("<Control-A>", self.on_edit_clear_annotations_click)
         self.mainwindow.bind("<Alt-e>", self.on_edit_edit_annotations_click)
+        self.mainwindow.bind("<Control-z>", self.on_edit_undo_click)
         self.mainwindow.bind("<Control-M>", self.on_edit_clear_markers_click)
         self.mainwindow.bind("<Control-L>", self.on_edit_remove_last_annotations_click)
         self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
