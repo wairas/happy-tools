@@ -139,42 +139,93 @@
               </object>
             </child>
             <child>
-              <object class="tk.Menuitem.Submenu" id="submenu1">
-                <property name="label" translatable="yes">Tools</property>
+              <object class="tk.Menuitem.Submenu" id="submenu8">
+                <property name="label" translatable="yes">Edit</property>
                 <property name="tearoff">false</property>
                 <property name="underline">0</property>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_tools_clear_annotations" named="True">
+                  <object class="tk.Menuitem.Command" id="command_edit_undo" named="True">
+                    <property name="command" type="command" cbtype="simple">on_edit_undo_click</property>
+                    <property name="label" translatable="yes">Undo</property>
+                    <property name="underline">0</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator13" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_edit_clear_annotations" named="True">
                     <property name="accelerator">Ctrl+Shift+A</property>
-                    <property name="command" type="command" cbtype="simple">on_tools_clear_annotations_click</property>
+                    <property name="command" type="command" cbtype="simple">on_edit_clear_annotations_click</property>
                     <property name="label" translatable="yes">Clear annotations</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_tools_edit_annotations" named="True">
+                  <object class="tk.Menuitem.Command" id="command_edit_edit_annotations" named="True">
                     <property name="accelerator">Alt+E</property>
-                    <property name="command" type="command" cbtype="simple">on_tools_edit_annotations_click</property>
+                    <property name="command" type="command" cbtype="simple">on_edit_edit_annotations_click</property>
                     <property name="label" translatable="yes">Edit annotations...</property>
                     <property name="underline">0</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_tools_clear_markers" named="True">
-                    <property name="accelerator">Ctrl+Shift+M</property>
-                    <property name="command" type="command" cbtype="simple">on_tools_clear_markers_click</property>
-                    <property name="label" translatable="yes">Clear markers</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_tools_remove_last_annotations" named="True">
+                  <object class="tk.Menuitem.Command" id="command_edit_remove_last_annotations" named="True">
                     <property name="accelerator">Ctrl+Shift+L</property>
-                    <property name="command" type="command" cbtype="simple">on_tools_remove_last_annotations_click</property>
+                    <property name="command" type="command" cbtype="simple">on_edit_remove_last_annotations_click</property>
                     <property name="label" translatable="yes">Remove last annotation</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Separator" id="separator8" />
                 </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_edit_clear_markers" named="True">
+                    <property name="accelerator">Ctrl+Shift+M</property>
+                    <property name="command" type="command" cbtype="simple">on_edit_clear_markers_click</property>
+                    <property name="label" translatable="yes">Clear markers</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator12" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Submenu" id="submenu2">
+                    <property name="label" translatable="yes">Meta-data</property>
+                    <property name="tearoff">false</property>
+                    <property name="underline">0</property>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_edit_metadata_clear" named="True">
+                        <property name="command" type="command" cbtype="simple">on_edit_metadata_clear_click</property>
+                        <property name="label" translatable="yes">Clear</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_edit_metadata_set" named="True">
+                        <property name="command" type="command" cbtype="simple">on_edit_metadata_set_click</property>
+                        <property name="label" translatable="yes">Set...</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_edit_metadata_remove" named="True">
+                        <property name="command" type="command" cbtype="simple">on_edit_metadata_remove_click</property>
+                        <property name="label" translatable="yes">Remove...</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_edit_metadata_view" named="True">
+                        <property name="command" type="command" cbtype="simple">on_edit_metadata_view_click</property>
+                        <property name="label" translatable="yes">View...</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="tk.Menuitem.Submenu" id="submenu1">
+                <property name="label" translatable="yes">Tools</property>
+                <property name="tearoff">false</property>
+                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_tools_sam" named="True">
                     <property name="accelerator">Ctrl+S</property>
@@ -201,37 +252,6 @@
                     <property name="accelerator">Ctrl+Shift+W</property>
                     <property name="command" type="command" cbtype="simple">on_tools_view_spectra_processed_click</property>
                     <property name="label" translatable="yes">View spectra (processed)...</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="tk.Menuitem.Submenu" id="submenu2">
-                <property name="label" translatable="yes">Meta-data</property>
-                <property name="tearoff">false</property>
-                <property name="underline">0</property>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_metadata_clear" named="True">
-                    <property name="command" type="command" cbtype="simple">on_metadata_clear_click</property>
-                    <property name="label" translatable="yes">Clear</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_metadata_set" named="True">
-                    <property name="command" type="command" cbtype="simple">on_metadata_set_click</property>
-                    <property name="label" translatable="yes">Set...</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_metadata_remove" named="True">
-                    <property name="command" type="command" cbtype="simple">on_metadata_remove_click</property>
-                    <property name="label" translatable="yes">Remove...</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_metadata_view" named="True">
-                    <property name="command" type="command" cbtype="simple">on_metadata_view_click</property>
-                    <property name="label" translatable="yes">View...</property>
                   </object>
                 </child>
               </object>

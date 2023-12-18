@@ -31,6 +31,7 @@ from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
 from happy.gui.dialog import asklist
 from happy.gui.envi_viewer.annotations import AnnotationsDialog
+from happy.gui import UndoManager, UndoPoint
 from opex import ObjectPredictions
 
 PROG = "happy-envi-viewer"
@@ -142,10 +143,10 @@ class ViewerApp:
         self.mainwindow.bind("<Control-R>", self.on_file_open_whiteref)   # upper case R implies Shift key!
         self.mainwindow.bind("<Control-e>", self.on_file_exportimage_click)
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
-        self.mainwindow.bind("<Control-A>", self.on_tools_clear_annotations_click)
-        self.mainwindow.bind("<Alt-e>", self.on_tools_edit_annotations_click)
-        self.mainwindow.bind("<Control-M>", self.on_tools_clear_markers_click)
-        self.mainwindow.bind("<Control-L>", self.on_tools_remove_last_annotations_click)
+        self.mainwindow.bind("<Control-A>", self.on_edit_clear_annotations_click)
+        self.mainwindow.bind("<Alt-e>", self.on_edit_edit_annotations_click)
+        self.mainwindow.bind("<Control-M>", self.on_edit_clear_markers_click)
+        self.mainwindow.bind("<Control-L>", self.on_edit_remove_last_annotations_click)
         self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
         self.mainwindow.bind("<Control-p>", self.on_tools_polygon_click)
         self.mainwindow.bind("<Control-w>", self.on_tools_view_spectra_click)
@@ -170,6 +171,7 @@ class ViewerApp:
         self.spectra_plot_raw = None
         self.spectra_plot_processed = None
         self.ignore_updates = False
+        self.undo_manager = UndoManager(log_method=self.log)
 
     def run(self):
         self.mainwindow.mainloop()
@@ -693,6 +695,7 @@ class ViewerApp:
 
         :param event: the event that triggered the adding
         """
+        self.undo_manager.add_undo("Adding marker", self.get_undo_state())
         x = self.image_canvas.canvasx(event.x) / self.photo_scan.width()
         y = self.image_canvas.canvasy(event.y) / self.photo_scan.height()
         point = (x, y)
@@ -851,6 +854,28 @@ class ViewerApp:
         self.apply_white_ref(do_update=False)
         self.apply_preprocessing(do_update=False)
 
+    def get_undo_state(self):
+        """
+        Returns the state of the annotations as dictionary.
+
+        :return: the dictionary
+        :rtype: dict
+        """
+        return {
+            "markers": self.markers.to_json(),
+            "contours": self.contours.to_json(),
+        }
+
+    def restore_undo_state(self, d):
+        """
+        Restores the state of the annotations from the dictionary.
+
+        :param d: the state dictionary
+        :type d: dict
+        """
+        self.markers.from_json(d["markers"])
+        self.contours.from_json(d["contours"])
+
     def apply_black_ref(self, do_update=False):
         # locator
         cmdline = self.state_black_ref_locator.get()
@@ -943,6 +968,7 @@ class ViewerApp:
         if filename is not None:
             self.session.last_scan_dir = os.path.dirname(filename)
             self.load_scan(filename, do_update=True)
+            self.undo_manager.clear()
 
     def on_file_clear_blackref(self, event=None):
         if self.data.has_blackref():
@@ -1008,6 +1034,7 @@ class ViewerApp:
                     messagebox.showwarning(
                         "Warning",
                         "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
+            self.undo_manager.add_undo("Importing annotations", self.get_undo_state())
             self.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
             self.update_image()
 
@@ -1182,7 +1209,17 @@ class ViewerApp:
         if new_channel is not None:
             self.blue_scale.set(new_channel)
 
-    def on_tools_clear_annotations_click(self, event=None):
+    def on_edit_undo_click(self, event=None):
+        if self.undo_manager.can_undo():
+            state = self.undo_manager.undo()
+            self.log("Undoing: %s" % state.comment)
+            self.restore_undo_state(state.data)
+            self.update_image()
+        else:
+            self.log("Nothing to undo!")
+
+    def on_edit_clear_annotations_click(self, event=None):
+        self.undo_manager.add_undo("Clearing annotations", self.get_undo_state())
         if self.contours.has_contours() or self.markers.has_points():
             self.contours.clear()
             self.markers.clear()
@@ -1200,20 +1237,20 @@ class ViewerApp:
         :param deleted: the list of deleted Contour objects
         :type deleted: list
         """
-        updated = False
+        if (len(deleted) == 0) and (len(changed) == 0):
+            return
+
+        self.undo_manager.add_undo("Editing annotations", self.get_undo_state())
         if len(deleted) > 0:
-            self.log("Removing %d annotations")
+            self.log("Removing %d annotations" % len(deleted))
             self.contours.remove(deleted)
-            updated = True
         if len(changed) > 0:
             self.log("Updating labels for %d annotations" % len(changed))
             for c in changed:
                 self.contours.update_label(c, c.label)
-            updated = True
-        if updated:
-            self.update_image()
+        self.update_image()
 
-    def on_tools_edit_annotations_click(self, event=None):
+    def on_edit_edit_annotations_click(self, event=None):
         if not self.data.has_scan():
             messagebox.showerror("Error", "Please load a scan file first!")
             return
@@ -1226,7 +1263,8 @@ class ViewerApp:
                                    predefined_labels=self.get_predefined_labels())
         dialog.show(self.on_annotations_updated)
 
-    def on_tools_clear_markers_click(self, event=None):
+    def on_edit_clear_markers_click(self, event=None):
+        self.undo_manager.add_undo("Clearing markers", self.get_undo_state())
         if self.markers.has_points():
             self.markers.clear()
             self.update_image()
@@ -1234,12 +1272,76 @@ class ViewerApp:
         else:
             self.log("No marker points to clear")
 
-    def on_tools_remove_last_annotations_click(self, event=None):
+    def on_edit_remove_last_annotations_click(self, event=None):
+        self.undo_manager.add_undo("Removing last annotations", self.get_undo_state())
         if self.contours.remove_last():
             self.update_image()
             self.log("Last annotation removed")
         else:
             self.log("No annotations to remove")
+
+    def on_edit_metadata_clear_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showinfo("Info", "No data present!")
+            return
+
+        self.undo_manager.add_undo("Clearing meta-data", self.get_undo_state())
+        self.contours.clear_metadata()
+        self.log("Meta-data cleared")
+
+    def on_edit_metadata_set_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showinfo("Info", "No data present!")
+            return
+
+        k = ttkSimpleDialog.askstring(
+            title="Meta-data",
+            prompt="Please enter the name of the meta-data value to set:",
+            parent=self.mainwindow)
+        if (k is None) or (k == ""):
+            return
+        v = ttkSimpleDialog.askstring(
+            title="Meta-data",
+            prompt="Please enter the value to set under '%s':" % k,
+            parent=self.mainwindow)
+        if (v is None) or (v == ""):
+            return
+        self.undo_manager.add_undo("Editing meta-data", self.get_undo_state())
+        self.contours.set_metadata(k, v)
+        self.log("Meta-data set: %s=%s" % (k, v))
+        self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
+
+    def on_edit_metadata_remove_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showinfo("Info", "No data present!")
+            return
+
+        k = ttkSimpleDialog.askstring(
+            title="Meta-data",
+            prompt="Please enter the name of the meta-data value to remove:",
+            parent=self.mainwindow)
+        if (k is None) or (k == ""):
+            return
+        self.undo_manager.add_undo("Removing meta-data", self.get_undo_state())
+        msg = self.contours.remove_metadata(k)
+        if msg is not None:
+            messagebox.showwarning("Meta-data", msg)
+        else:
+            self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
+
+    def on_edit_metadata_view_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showinfo("Info", "No data present!")
+            return
+
+        if self.contours.has_metadata():
+            messagebox.showinfo("Meta-data", "Currently no meta-data stored.")
+            return
+        s = ""
+        for k in self.contours.metadata:
+            s += "%s:\n  %s\n" % (k, self.contours.metadata[k])
+        self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
+        messagebox.showinfo("Meta-data", "Current meta-data:\n\n%s" % s)
 
     def on_sam_predictions(self, contours, meta):
         """
@@ -1250,6 +1352,7 @@ class ViewerApp:
         :param meta: meta-data of the predictions
         :type meta: dict
         """
+        self.undo_manager.add_undo("Adding SAM annotations", self.get_undo_state())
         # add contours
         self.contours.add([Contour(points=x, meta=copy.copy(meta)) for x in contours])
         # update contours/image
@@ -1306,6 +1409,7 @@ class ViewerApp:
             messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
             return
 
+        self.undo_manager.add_undo("Adding polygon", self.get_undo_state())
         self.contours.add([Contour(points=self.markers.points[:])])
         self.markers.clear()
         self.log("Polygon added")
@@ -1346,66 +1450,6 @@ class ViewerApp:
         plt.title("Spectra")
         plt.legend()
         plt.show()
-
-    def on_metadata_clear_click(self, event=None):
-        if not self.data.has_scan():
-            messagebox.showinfo("Info", "No data present!")
-            return
-
-        self.contours.clear_metadata()
-        self.log("Meta-data cleared")
-
-    def on_metadata_set_click(self, event=None):
-        if not self.data.has_scan():
-            messagebox.showinfo("Info", "No data present!")
-            return
-
-        k = ttkSimpleDialog.askstring(
-            title="Meta-data",
-            prompt="Please enter the name of the meta-data value to set:",
-            parent=self.mainwindow)
-        if (k is None) or (k == ""):
-            return
-        v = ttkSimpleDialog.askstring(
-            title="Meta-data",
-            prompt="Please enter the value to set under '%s':" % k,
-            parent=self.mainwindow)
-        if (v is None) or (v == ""):
-            return
-        self.contours.set_metadata(k, v)
-        self.log("Meta-data set: %s=%s" % (k, v))
-        self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
-
-    def on_metadata_remove_click(self, event=None):
-        if not self.data.has_scan():
-            messagebox.showinfo("Info", "No data present!")
-            return
-
-        k = ttkSimpleDialog.askstring(
-            title="Meta-data",
-            prompt="Please enter the name of the meta-data value to remove:",
-            parent=self.mainwindow)
-        if (k is None) or (k == ""):
-            return
-        msg = self.contours.remove_metadata(k)
-        if msg is not None:
-            messagebox.showwarning("Meta-data", msg)
-        else:
-            self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
-
-    def on_metadata_view_click(self, event=None):
-        if not self.data.has_scan():
-            messagebox.showinfo("Info", "No data present!")
-            return
-
-        if self.contours.has_metadata():
-            messagebox.showinfo("Meta-data", "Currently no meta-data stored.")
-            return
-        s = ""
-        for k in self.contours.metadata:
-            s += "%s:\n  %s\n" % (k, self.contours.metadata[k])
-        self.log("Meta-data:\n%s" % json.dumps(self.contours.metadata))
-        messagebox.showinfo("Meta-data", "Current meta-data:\n\n%s" % s)
 
     def on_zoom_click(self, event=None):
         if (event is not None) and (event.startswith("command_zoom_")):

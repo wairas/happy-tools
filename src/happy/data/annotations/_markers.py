@@ -1,3 +1,4 @@
+import json
 from PIL import Image, ImageDraw
 
 
@@ -102,3 +103,36 @@ class MarkersManager:
                 result[label] = spec
 
         return result
+
+    def to_json(self):
+        """
+        Returns the current state as JSON string.
+
+        :return: the markers as JSON string
+        :rtype: str
+        """
+        return json.dumps(self.points)
+
+    def from_json(self, s):
+        """
+        Restores its state from the JSON string.
+
+        :param s: the JSON string to restore the state from
+        :type s: str
+        :return: whether successfully restored
+        :rtype: bool
+        """
+        points = json.loads(s)
+        if not isinstance(points, list):
+            return False
+        for point in points:
+            if not (isinstance(point, list) or isinstance(point, tuple)):
+                return False
+            if len(point) != 2:
+                return False
+
+        self.clear()
+        for point in points:
+            self.points.append(tuple(point))
+
+        return True

@@ -112,6 +112,37 @@ class Contour:
 
         return result
 
+    def to_dict(self):
+        """
+        Returns itself as dictionary.
+
+        :return: the dictionary
+        :rtype: dict
+        """
+        return {
+            "label": self.label,
+            "meta": self.meta,
+            "points": self.points,
+            "normalized": self.normalized,
+        }
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        Instantiates a Contour from the dictionary.
+
+        :param d: the dictionary to instantiate the contour from
+        :type d: dict
+        :return: the Contour object
+        :rtype: Contour
+        """
+        return Contour(
+            label=d["label"],
+            meta=None if not "meta" in d else d["meta"],
+            points=d["points"],
+            normalized=d["normalized"],
+        )
+
 
 class ContoursManager:
     """
@@ -449,3 +480,53 @@ class ContoursManager:
                 break
 
         return result
+
+    def to_dict(self):
+        """
+        Returns itself as a dictionary.
+
+        :return: the dictionary
+        :rtype: dict
+        """
+        result = dict()
+        result["metadata"] = self.metadata
+        result["contours"] = list()
+        for contours in self.contours:
+            l = list()
+            for c in contours:
+                l.append(c.to_dict())
+            result["contours"].append(l)
+        return result
+
+    def to_json(self):
+        """
+        Returns itself as a JSON string.
+
+        :return: the JSON string
+        :rtype: str
+        """
+        return json.dumps(self.to_dict())
+
+    def from_json(self, s):
+        """
+        Restores its state from the JSON string.
+
+        :param s: the string to restore from
+        :type s: str
+        :return: if successfully restored
+        :rtype: bool
+        """
+        d = json.loads(s)
+        if not isinstance(d, dict):
+            return False
+        if "metadata" not in d:
+            return False
+        if "contours" not in d:
+            return False
+        self.clear()
+        self.metadata = d["metadata"]
+        for contours in d["contours"]:
+            l = list()
+            for c in contours:
+                l.append(Contour.from_dict(c))
+            self.contours.append(l)
