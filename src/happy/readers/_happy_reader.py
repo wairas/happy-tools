@@ -120,6 +120,7 @@ class HappyReader(HappyDataReader):
             sample_path = os.path.join(self.base_dir, sample_id)
             if os.path.isdir(sample_path):
                 sample_ids.append(sample_id)
+        sample_ids = sorted(sample_ids)
         return sample_ids
         
     def _split_sample_id(self, sample_id: str) -> Tuple[str, Optional[str]]:
@@ -219,4 +220,5 @@ class HappyReader(HappyDataReader):
             region_dirs = [name for name in os.listdir(sample_dir) if os.path.isdir(os.path.join(sample_dir, name))]
         else:
             region_dirs = []
+        region_dirs = sorted(region_dirs)
         return region_dirs
