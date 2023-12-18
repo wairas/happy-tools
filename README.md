@@ -358,15 +358,16 @@ optional arguments:
 ```
 usage: happy-opex-labels [-h] -i INPUT [-r]
                          [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                         {list-labels,update-labels} ...
+                         {list-labels,update-labels,delete-labels} ...
 
 Performs actions on OPEX JSON files that it locates.
 
 positional arguments:
-  {list-labels,update-labels}
+  {list-labels,update-labels,delete-labels}
                         sub-command help
     list-labels         Lists the labels in the located files
     update-labels       Updates the labels using the specified label mapping
+    delete-labels       Deletes the specified labels
 
 optional arguments:
   -h, --help            show this help message and exit

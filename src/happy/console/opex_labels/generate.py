@@ -18,9 +18,11 @@ LABEL_MAPPING_FORMAT = "old_label<TAB>new_label"
 
 ACTION_LIST_LABELS = "list-labels"
 ACTION_UPDATE_LABELS = "update-labels"
+ACTION_DELETE_LABELS = "delete-labels"
 ACTIONS = [
     ACTION_LIST_LABELS,
     ACTION_UPDATE_LABELS,
+    ACTION_DELETE_LABELS,
 ]
 
 
@@ -128,6 +130,53 @@ def update_labels(opex_files, mapping, dry_run, backup, output_file):
         print("\n".join(affected_files))
 
 
+def delete_labels(opex_files, labels, dry_run, backup, output_file):
+    """
+    Removes the specified labels from the opex files.
+
+    :param opex_files: the OPEX files to update
+    :type opex_files: list
+    :param labels: the labels to remove
+    :type labels: list
+    :param dry_run: whether to perform a dry-run, ie not save affected files
+    :type dry_run: bool
+    :param backup: whether to create a backup of the original file before updating it
+    :type backup: bool
+    :param output_file: the file to store the affected files in, uses stdout if None
+    :type output_file: str
+    """
+    affected_files = []
+    labels = set(labels)
+    for opex_file in opex_files:
+        is_affected = False
+        preds = None
+        try:
+            logger.info("Processing: %s" % opex_file)
+            preds = ObjectPredictions.load_json_from_file(opex_file)
+            to_remove = []
+            for obj in preds.objects:
+                if obj.label in labels:
+                    is_affected = True
+                    to_remove.append(obj)
+            for obj in to_remove:
+                preds.objects.remove(obj)
+        except:
+            logger.exception("Failed to load: %s" % opex_file)
+        if is_affected:
+            affected_files.append(opex_file)
+            if not dry_run and (preds is not None):
+                if backup:
+                    create_backup(opex_file)
+                preds.save_json_to_file(opex_file)
+
+    if not dry_run and (output_file is not None):
+        logger.info("Saving affected files to: %s" % output_file)
+        with open(output_file, "w") as fp:
+            fp.write("\n".join(affected_files))
+    else:
+        print("\n".join(affected_files))
+
+
 def main():
     init_app()
     parser = argparse.ArgumentParser(
@@ -146,6 +195,13 @@ def main():
     # action: update-labels
     parser_update = subparsers.add_parser(ACTION_UPDATE_LABELS, help='Updates the labels using the specified label mapping')
     parser_update.add_argument('-m', '--label_mapping', type=str, help='Path to the label mapping file when updating labels; format: ' + LABEL_MAPPING_FORMAT, default=None, required=False)
+    parser_update.add_argument('-n', '--dry_run', action="store_true", help='Whether to skip saving affected files', default=False, required=False)
+    parser_update.add_argument('-b', '--backup', action="store_true", help='Whether to create a backup of the original file', default=False, required=False)
+    parser_update.add_argument('-o', '--output_file', type=str, help='Path to the output file for storing the affected files; outputs to stdout if omitted', default=None)
+
+    # action: delete-labels
+    parser_update = subparsers.add_parser(ACTION_DELETE_LABELS, help='Deletes the specified labels')
+    parser_update.add_argument('-l', '--label', type=str, help='The label(s) to remove', nargs="+", required=True)
     parser_update.add_argument('-n', '--dry_run', action="store_true", help='Whether to skip saving affected files', default=False, required=False)
     parser_update.add_argument('-b', '--backup', action="store_true", help='Whether to create a backup of the original file', default=False, required=False)
     parser_update.add_argument('-o', '--output_file', type=str, help='Path to the output file for storing the affected files; outputs to stdout if omitted', default=None)
@@ -180,6 +236,8 @@ def main():
             logger.warning("Label mapping is empty, skipping update.")
         else:
             update_labels(opex_files, mapping, parsed.dry_run, parsed.backup, parsed.output_file)
+    elif parsed.command == ACTION_DELETE_LABELS:
+        delete_labels(opex_files, parsed.label, parsed.dry_run, parsed.backup, parsed.output_file)
     else:
         raise Exception("Unsupported action: %s" % parsed.action)
 
