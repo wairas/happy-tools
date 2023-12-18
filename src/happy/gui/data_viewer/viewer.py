@@ -6,7 +6,6 @@ import pathlib
 import tkinter as tk
 import tkinter.ttk as ttk
 import traceback
-from threading import Thread
 from tkinter import filedialog as fd
 from tkinter import messagebox
 
@@ -19,7 +18,6 @@ from matplotlib.colors import Normalize
 from ttkSimpleDialog import ttkSimpleDialog
 
 from wai.logging import add_logging_level, set_logging_level
-from happy.gui import monitor_thread
 from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
@@ -173,7 +171,7 @@ class ViewerApp:
             return
         if not os.path.exists(path) or not os.path.isdir(path):
             return
-        self._load_dir(path)
+        self.load_dir(path)
 
         # sample
         if (sample is None) or (len(sample) == 0):
@@ -190,7 +188,7 @@ class ViewerApp:
         if not found:
             self.updating = False
             return
-        self._load_sample(sample)
+        self.load_sample(sample)
         self.updating = False
 
         # repeat
@@ -206,7 +204,7 @@ class ViewerApp:
                 break
         if not found:
             return
-        self._load_repeat(repeat)
+        self.load_repeat(repeat)
 
         # metadata key
         if (metadata_key is None) or (len(metadata_key) == 0):
@@ -228,9 +226,9 @@ class ViewerApp:
                 self.combobox_metadata.current(i)
                 break
 
-    def _load_dir(self, path):
+    def load_dir(self, path):
         """
-        Opens the specified directory - non-threaded.
+        Opens the specified directory (threaded).
 
         :param path: the directory to load
         :type path: str
@@ -255,28 +253,9 @@ class ViewerApp:
                 self.listbox_samples.selection_set(0)
                 self.on_listbox_samples_select()
 
-    def load_dir(self, path):
+    def load_sample(self, sample):
         """
-        Opens the specified directory (threaded).
-
-        :param path: the directory to load
-        :type path: str
-        """
-        self.start_busy()
-
-        def finish():
-            self.stop_busy()
-
-        def work():
-            self._load_dir(path)
-
-        t = Thread(target=work)
-        t.start()
-        monitor_thread(self.mainwindow, t, finish_method=finish)
-
-    def _load_sample(self, sample):
-        """
-        Loads the specified sample from the current directory (non-threaded).
+        Loads the specified sample from the current directory (threaded).
 
         :param sample: the sample to load
         :type sample: str
@@ -309,28 +288,9 @@ class ViewerApp:
                 self.listbox_repeats.selection_set(0)
                 self.on_listbox_repeats_select()
 
-    def load_sample(self, sample):
+    def load_repeat(self, repeat):
         """
-        Loads the specified sample from the current directory (threaded).
-
-        :param sample: the sample to load
-        :type sample: str
-        """
-        self.start_busy()
-
-        def finish():
-            self.stop_busy()
-
-        def work():
-            self._load_sample(sample)
-
-        t = Thread(target=work)
-        t.start()
-        monitor_thread(self.mainwindow, t, finish_method=finish)
-
-    def _load_repeat(self, repeat):
-        """
-        Loads the specified repeat from the current dir and sample (non-threaded).
+        Loads the specified repeat from the current dir and sample (threaded).
 
         :param repeat: the repeat to load
         :type repeat: str
@@ -339,25 +299,6 @@ class ViewerApp:
         self.session.current_repeat = repeat
         self.clear_plot()
         self.load_happy_data()
-
-    def load_repeat(self, repeat):
-        """
-        Loads the specified repeat from the current dir and sample (threaded).
-
-        :param repeat: the repeat to load
-        :type repeat: str
-        """
-        self.start_busy()
-
-        def finish():
-            self.stop_busy()
-
-        def work():
-            self._load_repeat(repeat)
-
-        t = Thread(target=work)
-        t.start()
-        monitor_thread(self.mainwindow, t, finish_method=finish)
 
     def load_happy_data(self):
         """
@@ -432,12 +373,22 @@ class ViewerApp:
 
         return rgb_image
 
-    def _update_plot(self):
-        self.updating = True
+    def update_plot(self):
+        if self.updating:
+            return
+        if self.stored_happy_data is None:
+            return
 
         # Calculate canvas dimensions (only once)
         canvas_width = self.canvas.winfo_width() - 10  # remove padding
         canvas_height = self.canvas.winfo_height() - 10  # remove padding
+        if (canvas_width <= 0) or (canvas_height <= 0):
+            self.mainwindow.after(
+                1000,
+                lambda: self.update_plot())
+            return
+
+        self.updating = True
 
         if self.rgb_image is None:
             self.rgb_image = self.convert_to_rgb(self.stored_happy_data)
@@ -490,31 +441,6 @@ class ViewerApp:
         self.canvas.config(width=new_width, height=new_height)
 
         self.updating = False
-
-    def update_plot(self):
-        if self.updating:
-            return
-        if self.stored_happy_data is None:
-            return
-
-        # Calculate canvas dimensions (only once)
-        canvas_width = self.canvas.winfo_width() - 10  # remove padding
-        canvas_height = self.canvas.winfo_height() - 10  # remove padding
-        if (canvas_width <= 0) or (canvas_height <= 0):
-            self.mainwindow.after(
-                1000,
-                lambda: self.update_plot())
-            return
-
-        def finish():
-            self.stop_busy()
-
-        def work():
-            self._update_plot()
-
-        t = Thread(target=work)
-        t.start()
-        monitor_thread(self.mainwindow, t, finish_method=finish)
 
     def map_metadata_to_rgb(self, metadata_values):
         """
