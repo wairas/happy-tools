@@ -6,6 +6,7 @@ import pathlib
 import tkinter as tk
 import tkinter.ttk as ttk
 import traceback
+from threading import Thread
 from tkinter import filedialog as fd
 from tkinter import messagebox
 
@@ -18,6 +19,7 @@ from matplotlib.colors import Normalize
 from ttkSimpleDialog import ttkSimpleDialog
 
 from wai.logging import add_logging_level, set_logging_level
+from happy.gui import monitor_thread
 from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
@@ -136,6 +138,21 @@ class ViewerApp:
         self.combined_image = None
         self.canvas.delete("all")
 
+    def start_busy(self):
+        """
+        Displays the hourglass cursor.
+        https://www.tcl.tk/man/tcl8.4/TkCmd/cursors.html
+        """
+        self.mainwindow.config(cursor="watch")
+        self.mainwindow.update()
+
+    def stop_busy(self):
+        """
+        Displays the normal cursor.
+        """
+        self.mainwindow.config(cursor="")
+        self.mainwindow.update()
+
     def load(self, path, sample, repeat, metadata_key):
         """
         Loads the data using the base dir, sample and repeat.
@@ -156,7 +173,7 @@ class ViewerApp:
             return
         if not os.path.exists(path) or not os.path.isdir(path):
             return
-        self.load_dir(path)
+        self._load_dir(path)
 
         # sample
         if (sample is None) or (len(sample) == 0):
@@ -173,7 +190,7 @@ class ViewerApp:
         if not found:
             self.updating = False
             return
-        self.load_sample(sample)
+        self._load_sample(sample)
         self.updating = False
 
         # repeat
@@ -189,7 +206,7 @@ class ViewerApp:
                 break
         if not found:
             return
-        self.load_repeat(repeat)
+        self._load_repeat(repeat)
 
         # metadata key
         if (metadata_key is None) or (len(metadata_key) == 0):
@@ -211,9 +228,9 @@ class ViewerApp:
                 self.combobox_metadata.current(i)
                 break
 
-    def load_dir(self, path):
+    def _load_dir(self, path):
         """
-        Opens the specified directory.
+        Opens the specified directory - non-threaded.
 
         :param path: the directory to load
         :type path: str
@@ -222,6 +239,7 @@ class ViewerApp:
         self.label_dir.configure(text=path)
         self.session.current_dir = path
         self.reader = HappyReader(path)
+
         samples = []
         for f in os.listdir(path):
             if f.startswith("."):
@@ -237,15 +255,35 @@ class ViewerApp:
                 self.listbox_samples.selection_set(0)
                 self.on_listbox_samples_select()
 
-    def load_sample(self, sample):
+    def load_dir(self, path):
         """
-        Loads the specified sample from the current directory.
+        Opens the specified directory (threaded).
+
+        :param path: the directory to load
+        :type path: str
+        """
+        self.start_busy()
+
+        def finish():
+            self.stop_busy()
+
+        def work():
+            self._load_dir(path)
+
+        t = Thread(target=work)
+        t.start()
+        monitor_thread(self.mainwindow, t, finish_method=finish())
+
+    def _load_sample(self, sample):
+        """
+        Loads the specified sample from the current directory (non-threaded).
 
         :param sample: the sample to load
         :type sample: str
         """
         self.log("sample: %s" % sample)
         self.session.current_sample = sample
+
         path = os.path.join(self.session.current_dir, sample)
         repeats = []
         all_numeric = True
@@ -271,9 +309,28 @@ class ViewerApp:
                 self.listbox_repeats.selection_set(0)
                 self.on_listbox_repeats_select()
 
-    def load_repeat(self, repeat):
+    def load_sample(self, sample):
         """
-        Loads the specified repeat from the current dir and sample.
+        Loads the specified sample from the current directory (threaded).
+
+        :param sample: the sample to load
+        :type sample: str
+        """
+        self.start_busy()
+
+        def finish():
+            self.stop_busy()
+
+        def work():
+            self._load_sample(sample)
+
+        t = Thread(target=work)
+        t.start()
+        monitor_thread(self.mainwindow, t, finish_method=finish())
+
+    def _load_repeat(self, repeat):
+        """
+        Loads the specified repeat from the current dir and sample (non-threaded).
 
         :param repeat: the repeat to load
         :type repeat: str
@@ -282,6 +339,25 @@ class ViewerApp:
         self.session.current_repeat = repeat
         self.clear_plot()
         self.load_happy_data()
+
+    def load_repeat(self, repeat):
+        """
+        Loads the specified repeat from the current dir and sample (threaded).
+
+        :param repeat: the repeat to load
+        :type repeat: str
+        """
+        self.start_busy()
+
+        def finish():
+            self.stop_busy()
+
+        def work():
+            self._load_repeat(repeat)
+
+        t = Thread(target=work)
+        t.start()
+        monitor_thread(self.mainwindow, t, finish_method=finish())
 
     def load_happy_data(self):
         """
