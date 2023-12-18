@@ -134,7 +134,7 @@ def main():
         description='Performs actions on OPEX JSON files that it locates.',
         prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--input', type=str, help='The dir(s) with the OPEX JSON files', required=True, nargs="+")
+    parser.add_argument('-i', '--input', type=str, help='The dir with the OPEX JSON files', required=True)
     parser.add_argument('-r', '--recursive', action="store_true", help='Whether to search the directory recursively', default=False, required=False)
     add_logging_level(parser, short_opt="-V")
     subparsers = parser.add_subparsers(help='sub-command help', dest="command")
