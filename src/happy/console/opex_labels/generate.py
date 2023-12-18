@@ -222,7 +222,7 @@ def main():
         mapping = dict()
         with open(parsed.label_mapping, "r") as fp:
             for line in fp.readlines():
-                line = line.strip()
+                line = line.replace("\n", "").replace("\r", "")
                 if "\t" in line:
                     parts = line.split("\t")
                     if len(parts) == 2:
