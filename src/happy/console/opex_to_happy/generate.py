@@ -320,6 +320,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
 
     ann_paths = []
     locate_opex(input_dirs, ann_paths, recursive=recursive, require_png=True, logger=logger)
+    ann_paths = sorted(ann_paths)
 
     for ann_path in ann_paths:
         img_path = os.path.splitext(ann_path)[0] + ".png"

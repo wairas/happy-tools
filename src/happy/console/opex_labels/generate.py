@@ -212,6 +212,7 @@ def main():
     # locate files
     opex_files = []
     locate_opex(parsed.input, opex_files, recursive=parsed.recursive, require_png=False, logger=logger)
+    opex_files = sorted(opex_files)
 
     # perform action
     if parsed.command == ACTION_LIST_LABELS:
