@@ -18,6 +18,9 @@
 * [rl-from-annotation](rl-from-annotation.md)
 * [rl-manual](rl-manual.md)
 
+## Normalizations
+* [norm-simple](norm-simple.md)
+
 ## HAPPY data readers
 * [happy-reader](happy-reader.md)
 

@@ -7,6 +7,7 @@ from happy.data.annotations import ContoursManager, Contour
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
+from happy.data.normalization import AbstractNormalization, SimpleNormalization
 from happy.preprocessors import MultiPreprocessor
 from seppl import get_class_name
 from opex import BBox, ObjectPredictions
@@ -56,6 +57,7 @@ class DataManager:
         self.wavelengths = None
         self.contours = contours if (contours is not None) else ContoursManager()
         self.preprocessors = None
+        self.normalization = SimpleNormalization()
         self.log_method = log_method
 
     def log(self, msg):
@@ -634,22 +636,15 @@ class DataManager:
         result = result.strip()
         return result
 
-    def _normalize_data(self, data):
+    def set_normalization(self, normalization):
         """
-        Normalizes data.
+        Sets the normalization scheme to use.
+        Caller needs to call update_image(r, g, b) to re-calculate the fake RGB image.
 
-        :param data: the data to normalize
-        :return: the normalized data
+        :param normalization: the normalization scheme, None turns off normalization
+        :type normalization: AbstractNormalization
         """
-        min_value = np.min(data)
-        max_value = np.max(data)
-        data_range = max_value - min_value
-
-        if data_range == 0:  # Handle division by zero
-            data = np.zeros_like(data)
-        else:
-            data = (data - min_value) / data_range
-        return data
+        self.normalization = normalization
 
     def update_image(self, r, g, b):
         """
@@ -678,9 +673,16 @@ class DataManager:
             green_band = self.norm_data[:, :, g]
             blue_band = self.norm_data[:, :, b]
 
-            norm_red = self._normalize_data(red_band)
-            norm_green = self._normalize_data(green_band)
-            norm_blue = self._normalize_data(blue_band)
+            norm_red = red_band
+            norm_green = green_band
+            norm_blue = blue_band
+            if self.normalization is not None:
+                try:
+                    norm_red = self.normalization.normalize(red_band)
+                    norm_green = self.normalization.normalize(green_band)
+                    norm_blue = self.normalization.normalize(blue_band)
+                except:
+                    self.log("Failed to normalize image using r=%d, g=%d, b=%d:\n%s" % (r, g, b, traceback.format_exc()))
 
             rgb_image = np.dstack((norm_red, norm_green, norm_blue))
             self.display_image = (rgb_image * 255).astype(np.uint8)

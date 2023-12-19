@@ -78,6 +78,7 @@ def output_help(modules: List[str] = None, help_format: str = HELP_FORMAT_TEXT, 
         _add_plugins_to_index("Black reference methods", registry.blackref_methods(), help_format, plugin_lines)
         _add_plugins_to_index("White reference methods", registry.whiteref_methods(), help_format, plugin_lines)
         _add_plugins_to_index("Reference locators", registry.ref_locators(), help_format, plugin_lines)
+        _add_plugins_to_index("Normalizations", registry.normalizations(), help_format, plugin_lines)
         _add_plugins_to_index("HAPPY data readers", registry.happydata_readers(), help_format, plugin_lines)
         _add_plugins_to_index("HAPPY data preprocessors", registry.preprocessors(), help_format, plugin_lines)
         _add_plugins_to_index("HAPPY data writers", registry.happydata_writers(), help_format, plugin_lines)

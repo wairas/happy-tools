@@ -85,6 +85,9 @@ setup(
         "happy.ref_locator": [
             "happy_ref_locator=happy.data:happy.data.ref_locator.AbstractReferenceLocator",
         ],
+        "happy.normalization": [
+            "happy_normalization=happy.data:happy.data.normalization.AbstractNormalization",
+        ],
         "happy.preprocessors": [
             "happy_preprocessors=happy.preprocessors:happy.preprocessors.Preprocessor",
         ],

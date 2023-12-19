@@ -8,6 +8,7 @@ HAPPY_DEFAULT_MODULES = ",".join(
         "happy.data.black_ref",
         "happy.data.white_ref",
         "happy.data.ref_locator",
+        "happy.data.normalization",
         "happy.readers",
         "happy.preprocessors",
         "happy.writers",
@@ -25,6 +26,7 @@ HAPPY_ENV_MODULES_EXCL = "HAPPY_MODULES_EXCL"
 ENTRYPOINT_BLACKREF_METHODS = "happy.blackref_methods"
 ENTRYPOINT_WHITEREF_METHODS = "happy.whiteref_methods"
 ENTRYPOINT_REF_LOCATOR = "happy.ref_locator"
+ENTRYPOINT_NORMALIZATION = "happy.normalization"
 ENTRYPOINT_HAPPYDATA_READERS = "happy.happydata_readers"
 ENTRYPOINT_PREPROCESSORS = "happy.preprocessors"
 ENTRYPOINT_HAPPYDATA_WRITERS = "happy.happydata_writers"
@@ -34,6 +36,7 @@ ENTRYPOINTS = [
     ENTRYPOINT_BLACKREF_METHODS,
     ENTRYPOINT_WHITEREF_METHODS,
     ENTRYPOINT_REF_LOCATOR,
+    ENTRYPOINT_NORMALIZATION,
     ENTRYPOINT_HAPPYDATA_READERS,
     ENTRYPOINT_PREPROCESSORS,
     ENTRYPOINT_HAPPYDATA_WRITERS,
@@ -86,7 +89,7 @@ class HappyRegistry(Registry):
         """
         Returns all the black reference methods.
 
-        :return: the dictionary of readers (name / plugin)
+        :return: the dictionary of black reference methods (name / plugin)
         :rtype: dict
         """
         # class via string to avoid circular imports
@@ -96,7 +99,7 @@ class HappyRegistry(Registry):
         """
         Returns all the white reference methods.
 
-        :return: the dictionary of readers (name / plugin)
+        :return: the dictionary of white reference methods (name / plugin)
         :rtype: dict
         """
         # class via string to avoid circular imports
@@ -106,11 +109,21 @@ class HappyRegistry(Registry):
         """
         Returns all the reference locators.
 
-        :return: the dictionary of readers (name / plugin)
+        :return: the dictionary of ref locators (name / plugin)
         :rtype: dict
         """
         # class via string to avoid circular imports
         return self.plugins(ENTRYPOINT_REF_LOCATOR, get_class("happy.data.ref_locator._core.AbstractReferenceLocator"))
+
+    def normalizations(self) -> Dict[str, Plugin]:
+        """
+        Returns all the normalization schemes.
+
+        :return: the dictionary of normalization schemes (name / plugin)
+        :rtype: dict
+        """
+        # class via string to avoid circular imports
+        return self.plugins(ENTRYPOINT_NORMALIZATION, get_class("happy.data.normalization._core.AbstractNormalization"))
 
     def happydata_readers(self) -> Dict[str, Plugin]:
         """
