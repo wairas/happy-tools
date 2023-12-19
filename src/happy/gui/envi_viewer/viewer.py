@@ -146,6 +146,7 @@ class ViewerApp:
         self.mainwindow.bind("<Control-A>", self.on_edit_clear_annotations_click)
         self.mainwindow.bind("<Alt-e>", self.on_edit_edit_annotations_click)
         self.mainwindow.bind("<Control-z>", self.on_edit_undo_click)
+        self.mainwindow.bind("<Control-y>", self.on_edit_redo_click)
         self.mainwindow.bind("<Control-M>", self.on_edit_clear_markers_click)
         self.mainwindow.bind("<Control-L>", self.on_edit_remove_last_annotations_click)
         self.mainwindow.bind("<Control-s>", self.on_tools_sam_click)
@@ -1236,11 +1237,22 @@ class ViewerApp:
     def on_edit_undo_click(self, event=None):
         if self.undo_manager.can_undo():
             state = self.undo_manager.undo()
+            self.undo_manager.add_redo(state.comment, self.get_undo_state())
             self.log("Undoing: %s" % state.comment)
             self.restore_undo_state(state.data)
             self.update_image()
         else:
             self.log("Nothing to undo!")
+
+    def on_edit_redo_click(self, event=None):
+        if self.undo_manager.can_redo():
+            state = self.undo_manager.redo()
+            self.undo_manager.add_undo(state.comment, self.get_undo_state())
+            self.log("Redoing: %s" % state.comment)
+            self.restore_undo_state(state.data)
+            self.update_image()
+        else:
+            self.log("Nothing to redo!")
 
     def on_edit_clear_annotations_click(self, event=None):
         self.undo_manager.add_undo("Clearing annotations", self.get_undo_state())

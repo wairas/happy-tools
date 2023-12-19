@@ -152,6 +152,14 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_edit_redo" named="True">
+                    <property name="command" type="command" cbtype="simple">on_edit_redo_click</property>
+                    <property name="label" translatable="yes">Redo</property>
+                    <property name="accelerator">Ctrl+Y</property>
+                    <property name="underline">0</property>
+                  </object>
+                </child>
+                <child>
                   <object class="tk.Menuitem.Separator" id="separator13" />
                 </child>
                 <child>
