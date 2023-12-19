@@ -1,2 +1,2 @@
-from ._core import AbstractNormalization
+from ._core import AbstractNormalization, AbstractAnnotationBasedNormalization, AbstractOPEXAnnotationBasedNormalization
 from ._simple import SimpleNormalization

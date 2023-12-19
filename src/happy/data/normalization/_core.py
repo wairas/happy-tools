@@ -3,7 +3,8 @@ import abc
 from typing import Optional
 from happy.base.registry import REGISTRY
 from happy.base.core import PluginWithLogging
-from seppl import split_args, split_cmdline, args_to_objects
+from seppl import split_args, split_cmdline, args_to_objects, get_class_name
+from opex import ObjectPredictions
 
 
 class AbstractNormalization(PluginWithLogging, abc.ABC):
@@ -73,3 +74,70 @@ class AbstractNormalization(PluginWithLogging, abc.ABC):
             return plugins[0]
         else:
             raise Exception("Expected one normalization plugin, but got %d from command-line: %s" % (len(plugins), cmdline))
+
+
+class AbstractAnnotationBasedNormalization(AbstractNormalization, abc.ABC):
+    """
+    Ancestor for normalization schemes that use OPEX annotations to normalize the data.
+    """
+
+    def __init__(self):
+        """
+        Initializes the locator.
+        """
+        super().__init__()
+        self._annotations = None
+
+    @property
+    def annotations(self):
+        """
+        Returns the annotations.
+
+        :return: the annotations
+        """
+        return self._annotations
+
+    @annotations.setter
+    def annotations(self, ann):
+        """
+        Sets the annotations to use.
+
+        :param ann: the annotations
+        """
+        self._annotations = ann
+
+    def _pre_check(self) -> Optional[str]:
+        """
+        Hook method that gets called before attempting to normalize the data.
+
+        :return: the result of the check, None if successful otherwise error message
+        :rtype: str
+        """
+        result = super()._pre_check()
+
+        if result is None:
+            if self.annotations is None:
+                result = "No annotations set!"
+
+        return result
+
+
+class AbstractOPEXAnnotationBasedNormalization(AbstractAnnotationBasedNormalization, abc.ABC):
+    """
+    Ancestor for normalization schemes that use OPEX annotations to normalize the data.
+    """
+
+    def _pre_check(self) -> Optional[str]:
+        """
+        Hook method that gets called before attempting to locate the reference data.
+
+        :return: the result of the check, None if successful otherwise error message
+        :rtype: str
+        """
+        result = super()._pre_check()
+
+        if result is None:
+            if not isinstance(self.annotations, ObjectPredictions):
+                result = "Annotations are not derived from %s but: %s" % (get_class_name(ObjectPredictions), get_class_name(self.annotations))
+
+        return result

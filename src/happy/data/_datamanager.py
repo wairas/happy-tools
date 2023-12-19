@@ -7,7 +7,7 @@ from happy.data.annotations import ContoursManager, Contour
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
-from happy.data.normalization import AbstractNormalization, SimpleNormalization
+from happy.data.normalization import AbstractNormalization, SimpleNormalization, AbstractOPEXAnnotationBasedNormalization
 from happy.preprocessors import MultiPreprocessor
 from seppl import get_class_name
 from opex import BBox, ObjectPredictions
@@ -677,6 +677,8 @@ class DataManager:
             norm_green = green_band
             norm_blue = blue_band
             if self.normalization is not None:
+                if isinstance(self.normalization, AbstractOPEXAnnotationBasedNormalization):
+                    self.normalization.annotations = self.contours.to_opex(self.norm_data.shape[1], self.norm_data.shape[0])
                 try:
                     norm_red = self.normalization.normalize(red_band)
                     norm_green = self.normalization.normalize(green_band)
