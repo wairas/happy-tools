@@ -5,7 +5,7 @@ Generates PNG images from the data.
 ```
 usage: png-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                   [-A LOGGER_NAME] -b BASE_DIR [-R INT] [-G INT] [-B INT]
-                  [-W INT] [-H INT] [-o OUTPUT]
+                  [-W INT] [-H INT] [-N PLUGIN] [-o OUTPUT]
 
 Generates PNG images from the data.
 
@@ -30,6 +30,9 @@ optional arguments:
                         default (default: 0)
   -H INT, --height INT  The custom height to use for the image; <=0 for the
                         default (default: 0)
+  -N PLUGIN, --normalization PLUGIN
+                        The normalization plugin and its options to use
+                        (default: norm-simple)
   -o OUTPUT, --output OUTPUT
                         The pattern for the output files; The following
                         placeholders are available for the output pattern:

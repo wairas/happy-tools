@@ -1,6 +1,7 @@
 import argparse
 import os
 from happy.data import HappyData, DataManager
+from happy.data.normalization import AbstractNormalization, SimpleNormalization
 from ._happydata_writer import HappyDataWriter, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, output_pattern_help
 
 
@@ -17,6 +18,7 @@ class PNGWriter(HappyDataWriter):
         self._red_channel = 0
         self._green_channel = 0
         self._blue_channel = 0
+        self._normalization = None
 
     def name(self) -> str:
         return "png-writer"
@@ -31,6 +33,7 @@ class PNGWriter(HappyDataWriter):
         parser.add_argument("-B", "--blue_channel", metavar="INT", help="The wave length to use for the blue channel", default=0, type=int, required=False)
         parser.add_argument("-W", "--width", metavar="INT", help="The custom width to use for the image; <=0 for the default", default=0, type=int, required=False)
         parser.add_argument("-H", "--height", metavar="INT", help="The custom height to use for the image; <=0 for the default", default=0, type=int, required=False)
+        parser.add_argument("-N", "--normalization", metavar="PLUGIN", help="The normalization plugin and its options to use", default=SimpleNormalization().name(), type=str, required=False)
         parser.add_argument("-o", "--output", type=str, help="The pattern for the output files; " + output_pattern_help(), default=DEFAULT_OUTPUT, required=False)
         return parser
 
@@ -42,6 +45,7 @@ class PNGWriter(HappyDataWriter):
         self._width = ns.width
         self._height = ns.height
         self._output = ns.output
+        self._normalization = AbstractNormalization.parse_normalization(ns.normalization)
 
     def _write_item(self, happy_data, datatype_mapping=None):
         def log(msg):
@@ -54,6 +58,7 @@ class PNGWriter(HappyDataWriter):
         self.logger().info("Writing: %s" % filepath)
         datamanager = DataManager(log_method=log)
         datamanager.scan_data = happy_data.data
+        datamanager.set_normalization(self._normalization)
         datamanager.reset_norm_data()
         datamanager.output_image(self._red_channel, self._green_channel, self._blue_channel, filepath, width=self._width, height=self._height)
 
