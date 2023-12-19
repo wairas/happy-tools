@@ -10,6 +10,7 @@ from opex import ObjectPredictions
 class AbstractNormalization(PluginWithLogging, abc.ABC):
     """
     Ancestor for schemes that normalize the data for fake RGB images.
+    Normalization applies to a single band.
     """
 
     def _pre_check(self) -> Optional[str]:
