@@ -2,7 +2,6 @@ import argparse
 import os
 from happy.data import HappyData, DataManager
 from ._happydata_writer import HappyDataWriter, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, output_pattern_help
-from PIL import Image
 
 
 DEFAULT_OUTPUT = PH_BASEDIR + "/" + PH_SAMPLEID + "." + PH_REPEAT + ".png"
