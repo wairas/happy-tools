@@ -21,6 +21,7 @@
 ## Normalizations
 * [norm-fixed](norm-fixed.md)
 * [norm-none](norm-none.md)
+* [norm-object-annotations](norm-object-annotations.md)
 * [norm-region](norm-region.md)
 * [norm-simple](norm-simple.md)
 
