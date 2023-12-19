@@ -224,6 +224,6 @@ class AbstractOPEXAnnotationBasedReferenceLocator(AbstractAnnotationBasedReferen
 
         if result is None:
             if not isinstance(self.annotations, ObjectPredictions):
-                result = "Annotations are derived from %s but: %s" % (get_class_name(ObjectPredictions), get_class_name(self.annotations))
+                result = "Annotations are not derived from %s but: %s" % (get_class_name(ObjectPredictions), get_class_name(self.annotations))
 
         return result
