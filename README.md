@@ -69,6 +69,7 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [--white_ref_method METHOD]
                          [--preprocessing PIPELINE]
                          [--log_timestamp_format FORMAT] [--zoom PERCENT]
+                         [--normalization PLUGIN]
                          [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 ENVI Hyperspectral Image Viewer. Offers contour detection using SAM (Segment-
@@ -148,6 +149,9 @@ optional arguments:
                         and-strptime-format-codes (default: [%H:%M:%S.%f])
   --zoom PERCENT        the initial zoom to use (%) or -1 for automatic fit
                         (default: -1)
+  --normalization PLUGIN
+                        the normalization plugin and its options to use
+                        (default: norm-simple)
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
 ```

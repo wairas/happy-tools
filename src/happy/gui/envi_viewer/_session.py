@@ -34,6 +34,7 @@ PROPERTIES = [
     "export_overlay_annotations",
     "export_keep_aspectratio",
     "zoom",
+    "normalization",
 ]
 
 
@@ -81,6 +82,7 @@ class SessionManager(AbstractSessionManager):
         self.export_overlay_annotations = False
         self.export_keep_aspectratio = True
         self.zoom = -1
+        self.normalization = ""
 
     def get_default_config_name(self):
         """

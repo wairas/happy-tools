@@ -21,6 +21,7 @@ from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod
+from happy.data.normalization import AbstractNormalization, SimpleNormalization
 from happy.data import LABEL_WHITEREF, LABEL_BLACKREF
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.preprocessors import Preprocessor
@@ -31,7 +32,7 @@ from happy.gui.envi_viewer import SamManager
 from happy.gui.envi_viewer import SessionManager, PROPERTIES
 from happy.gui.dialog import asklist
 from happy.gui.envi_viewer.annotations import AnnotationsDialog
-from happy.gui import UndoManager, UndoPoint
+from happy.gui import UndoManager
 from opex import ObjectPredictions
 
 PROG = "happy-envi-viewer"
@@ -86,6 +87,7 @@ class ViewerApp:
         self.state_black_ref_method = None
         self.state_white_ref_locator = None
         self.state_white_ref_method = None
+        self.state_normalization = None
         builder.import_variables(self)
 
         # reference components
@@ -119,6 +121,7 @@ class ViewerApp:
         self.entry_white_ref_locator = builder.get_object("entry_white_ref_locator", master)
         self.entry_white_ref_method = builder.get_object("entry_white_ref_method", master)
         self.text_preprocessing = builder.get_object("text_preprocessing", master)
+        self.entry_normalization = builder.get_object("entry_normalization", master)
         # log
         self.text_log = builder.get_object("text_log", master)
         # statusbar
@@ -837,6 +840,7 @@ class ViewerApp:
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
         self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
         # zoom
+        self.session.normalization = self.state_normalization.get()
 
     def session_to_state(self):
         """
@@ -873,6 +877,7 @@ class ViewerApp:
         self.state_export_overlay_annotations.set(1 if self.session.export_overlay_annotations else 0)
         self.state_export_keep_aspectratio.set(1 if self.session.export_keep_aspectratio else 0)
         # zoom
+        self.state_normalization.set(self.session.normalization)
 
         # activate
         self.apply_black_ref(do_update=False)
@@ -964,6 +969,23 @@ class ViewerApp:
         else:
             self.data.set_preprocessors([])
             self.log("Removing preprocessing")
+        if do_update:
+            self.update_image()
+        return True
+
+    def apply_normalization(self, do_update=False):
+        cmdline = self.entry_normalization.get()
+        if len(cmdline.strip()) > 0:
+            try:
+                norm = AbstractNormalization.parse_normalization(cmdline)
+                self.data.set_normalization(norm)
+                self.log("Setting normalization: %s" % cmdline)
+            except:
+                messagebox.showerror("Error", "Failed to parse normalization: %s" % cmdline)
+                return False
+        else:
+            self.data.set_normalization(None)
+            self.log("Removing normalization")
         if do_update:
             self.update_image()
         return True
@@ -1440,6 +1462,9 @@ class ViewerApp:
     def on_button_preprocessing_apply(self, event=None):
         self.apply_preprocessing(do_update=True)
 
+    def on_button_normalization_apply(self, event=None):
+        self.apply_normalization(do_update=True)
+
     def on_tools_polygon_click(self, event=None):
         if not self.markers.has_polygon():
             messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
@@ -1569,6 +1594,7 @@ def main(args=None):
     parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
     parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
     parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%%) or -1 for automatic fit", default=-1, type=int, required=False)
+    parser.add_argument("--normalization", metavar="PLUGIN", help="the normalization plugin and its options to use", default=SimpleNormalization().name(), type=str, required=False)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
