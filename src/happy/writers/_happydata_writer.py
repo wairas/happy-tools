@@ -7,11 +7,11 @@ from happy.data import HappyData
 PH_BASEDIR = "{BASEDIR}"
 PH_SAMPLEID = "{SAMPLEID}"
 PH_REPEAT = "{REPEAT}"
-PLACEHOLDERS_OUTPUT = {
+PLACEHOLDERS_OUTPUT = [
     PH_BASEDIR,
     PH_SAMPLEID,
     PH_REPEAT,
-}
+]
 
 
 def output_pattern_help():
