@@ -19,6 +19,8 @@
 * [rl-manual](rl-manual.md)
 
 ## Normalizations
+* [norm-fixed](norm-fixed.md)
+* [norm-none](norm-none.md)
 * [norm-simple](norm-simple.md)
 
 ## HAPPY data readers
