@@ -27,7 +27,6 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_clear_blackref" named="True">
-                    <property name="accelerator">Ctrl+N</property>
                     <property name="command" type="command" cbtype="simple">on_file_clear_blackref</property>
                     <property name="label" translatable="yes">Clear black reference</property>
                     <property name="underline">1</property>
@@ -35,7 +34,6 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_blackref" named="True">
-                    <property name="accelerator">Ctrl+R</property>
                     <property name="command" type="command" cbtype="simple">on_file_open_blackref</property>
                     <property name="label" translatable="yes">Open black reference...</property>
                     <property name="underline">5</property>
@@ -46,7 +44,6 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_clear_whiteref" named="True">
-                    <property name="accelerator">Ctrl+Shift+N</property>
                     <property name="command" type="command" cbtype="simple">on_file_clear_whiteref</property>
                     <property name="label" translatable="yes">Clear white reference</property>
                     <property name="underline">1</property>
@@ -54,7 +51,6 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_whiteref" named="True">
-                    <property name="accelerator">Ctrl+Shift+R</property>
                     <property name="command" type="command" cbtype="simple">on_file_open_whiteref</property>
                     <property name="label" translatable="yes">Open white reference...</property>
                     <property name="underline">5</property>
@@ -75,7 +71,7 @@
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_exportimage" named="True">
-                    <property name="accelerator">Ctrl+E</property>
+                    <property name="accelerator">Alt+E</property>
                     <property name="command" type="command" cbtype="simple">on_file_exportimage_click</property>
                     <property name="label" translatable="yes">Export image...</property>
                     <property name="underline">7</property>
@@ -163,39 +159,43 @@
                   <object class="tk.Menuitem.Separator" id="separator13" />
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_edit_clear_annotations" named="True">
-                    <property name="accelerator">Ctrl+Shift+A</property>
-                    <property name="command" type="command" cbtype="simple">on_edit_clear_annotations_click</property>
-                    <property name="label" translatable="yes">Clear annotations</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_edit_edit_annotations" named="True">
-                    <property name="accelerator">Alt+E</property>
-                    <property name="command" type="command" cbtype="simple">on_edit_edit_annotations_click</property>
-                    <property name="label" translatable="yes">Edit annotations...</property>
-                    <property name="underline">0</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_edit_remove_last_annotations" named="True">
-                    <property name="accelerator">Ctrl+Shift+L</property>
-                    <property name="command" type="command" cbtype="simple">on_edit_remove_last_annotations_click</property>
-                    <property name="label" translatable="yes">Remove last annotation</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Separator" id="separator8" />
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_edit_clear_markers" named="True">
-                    <property name="accelerator">Ctrl+Shift+M</property>
-                    <property name="command" type="command" cbtype="simple">on_edit_clear_markers_click</property>
-                    <property name="label" translatable="yes">Clear markers</property>
+                  <object class="tk.Menuitem.Submenu" id="submenu9">
+                    <property name="label" translatable="yes">Annotation mode</property>
+                    <property name="tearoff">false</property>
+                    <child>
+                      <object class="tk.Menuitem.Radiobutton" id="radiobutton_edit_annotation_mode_polygons" named="True">
+                        <property name="command" type="command" cbtype="simple">on_edit_annotation_mode_click</property>
+                        <property name="label" translatable="yes">Polygons</property>
+                        <property name="value">0</property>
+                        <property name="variable">int:state_edit_annotation_mode</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Radiobutton" id="radiobutton_edit_annotation_mode_pixels" named="True">
+                        <property name="command" type="command" cbtype="simple">on_edit_annotation_mode_click</property>
+                        <property name="label" translatable="yes">Pixels</property>
+                        <property name="value">1</property>
+                        <property name="variable">int:state_edit_annotation_mode</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Separator" id="separator12" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Submenu" id="submenu52">
+                    <property name="label" translatable="yes">Markers</property>
+                    <property name="tearoff">false</property>
+                    <property name="underline">0</property>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_edit_clear_markers" named="True">
+                        <property name="accelerator">Alt+N</property>
+                        <property name="command" type="command" cbtype="simple">on_edit_markers_clear_click</property>
+                        <property name="label" translatable="yes">Clear</property>
+                      </object>
+                    </child>
+                  </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Submenu" id="submenu2">
@@ -231,36 +231,104 @@
               </object>
             </child>
             <child>
-              <object class="tk.Menuitem.Submenu" id="submenu1">
-                <property name="label" translatable="yes">Tools</property>
+              <object class="tk.Menuitem.Submenu" id="submenu21">
+                <property name="label" translatable="yes">Polygons</property>
                 <property name="tearoff">false</property>
                 <property name="underline">0</property>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_tools_sam" named="True">
-                    <property name="accelerator">Ctrl+S</property>
-                    <property name="command" type="command" cbtype="simple">on_tools_sam_click</property>
-                    <property name="label" translatable="yes">SAM</property>
+                  <object class="tk.Menuitem.Command" id="command_polygons_clear" named="True">
+                    <property name="accelerator">Ctrl+N</property>
+                    <property name="command" type="command" cbtype="simple">on_polygons_clear_click</property>
+                    <property name="label" translatable="yes">Clear</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_tools_polygon" named="True">
+                  <object class="tk.Menuitem.Command" id="command_polygons_modify" named="True">
+                    <property name="accelerator">Ctrl+E</property>
+                    <property name="command" type="command" cbtype="simple">on_polygons_modify_click</property>
+                    <property name="label" translatable="yes">Modify...</property>
+                    <property name="underline">0</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator8" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_polygons_add_polygon" named="True">
                     <property name="accelerator">Ctrl+P</property>
-                    <property name="command" type="command" cbtype="simple">on_tools_polygon_click</property>
-                    <property name="label" translatable="yes">Polygon</property>
+                    <property name="command" type="command" cbtype="simple">on_polygons_add_polygon_click</property>
+                    <property name="label" translatable="yes">Add polygon</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_tools_view_spectra" named="True">
-                    <property name="accelerator">Ctrl+W</property>
-                    <property name="command" type="command" cbtype="simple">on_tools_view_spectra_click</property>
-                    <property name="label" translatable="yes">View spectra (raw)...</property>
+                  <object class="tk.Menuitem.Command" id="command_polygons_run_sam" named="True">
+                    <property name="accelerator">Ctrl+S</property>
+                    <property name="command" type="command" cbtype="simple">on_polygons_run_sam_click</property>
+                    <property name="label" translatable="yes">Run SAM</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="tk.Menuitem.Submenu" id="submenu20">
+                <property name="label" translatable="yes">Pixels</property>
+                <property name="tearoff">false</property>
+                <property name="underline">0</property>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command1" named="True">
+                    <property name="accelerator">Ctrl+Shift+N</property>
+                    <property name="command" type="command" cbtype="simple">on_pixels_clear_click</property>
+                    <property name="label" translatable="yes">Clear</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_tools_view_spectra_processed" named="True">
-                    <property name="accelerator">Ctrl+Shift+W</property>
-                    <property name="command" type="command" cbtype="simple">on_tools_view_spectra_processed_click</property>
-                    <property name="label" translatable="yes">View spectra (processed)...</property>
+                  <object class="tk.Menuitem.Submenu" id="submenu1">
+                    <property name="label" translatable="yes">Brush shape</property>
+                    <property name="tearoff">false</property>
+                    <child>
+                      <object class="tk.Menuitem.Radiobutton" id="radiobutton1" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_pixels_brush_shape_click</property>
+                        <property name="label" translatable="yes">Round</property>
+                        <property name="value">0</property>
+                        <property name="variable">int:state_pixels_brush_shape</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Radiobutton" id="radiobutton2" named="True">
+                        <property name="command" type="command" cbtype="simple">on_pixels_brush_shape_click</property>
+                        <property name="label" translatable="yes">Square</property>
+                        <property name="value">1</property>
+                        <property name="variable">int:state_pixels_brush_shape</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command2" named="True">
+                    <property name="accelerator">Ctrl+Shift+B</property>
+                    <property name="command" type="command" cbtype="simple">on_pixels_brush_size_click</property>
+                    <property name="label" translatable="yes">Brush size...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command3" named="True">
+                    <property name="accelerator">Ctrl+Shift+A</property>
+                    <property name="command" type="command" cbtype="simple">on_pixels_change_alpha_click</property>
+                    <property name="label" translatable="yes">Change alpha...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command4" named="True">
+                    <property name="accelerator">Ctrl+Shift+L</property>
+                    <property name="command" type="command" cbtype="simple">on_pixels_select_label_click</property>
+                    <property name="label" translatable="yes">Select label...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command74" named="True">
+                    <property name="accelerator">Ctrl+Shift+K</property>
+                    <property name="command" type="command" cbtype="simple">on_pixels_label_key</property>
+                    <property name="label" translatable="yes">Label key...</property>
                   </object>
                 </child>
               </object>
@@ -270,60 +338,77 @@
                 <property name="label" translatable="yes">View</property>
                 <property name="tearoff">false</property>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_view_view_spectra" named="True">
+                    <property name="accelerator">Ctrl+W</property>
+                    <property name="command" type="command" cbtype="simple">on_view_view_spectra_click</property>
+                    <property name="label" translatable="yes">View spectra (raw)...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_view_view_spectra_processed" named="True">
+                    <property name="accelerator">Ctrl+Shift+W</property>
+                    <property name="command" type="command" cbtype="simple">on_view_view_spectra_processed_click</property>
+                    <property name="label" translatable="yes">View spectra (processed)...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator38" />
+                </child>
+                <child>
                   <object class="tk.Menuitem.Submenu" id="submenu7">
                     <property name="label" translatable="yes">Zoom</property>
                     <property name="tearoff">false</property>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_fit" named="True">
-                        <property name="command" type="command" cbtype="simple">on_zoom_fit</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_fit" named="True">
+                        <property name="command" type="command" cbtype="simple">on_view_zoom_fit</property>
                         <property name="label" translatable="yes">Best fit</property>
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_25" named="True">
-                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_25" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
                         <property name="label" translatable="yes">25%</property>
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_50" named="True">
-                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_50" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
                         <property name="label" translatable="yes">50%</property>
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_75" named="True">
-                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_75" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
                         <property name="label" translatable="yes">75%</property>
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_100" named="True">
-                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_100" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
                         <property name="label" translatable="yes">100%</property>
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_150" named="True">
-                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_150" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
                         <property name="label" translatable="yes">150%</property>
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_200" named="True">
-                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_200" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
                         <property name="label" translatable="yes">200%</property>
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_400" named="True">
-                        <property name="command" type="command" cbtype="with_wid">on_zoom_click</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_400" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
                         <property name="label" translatable="yes">400%</property>
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_zoom_custom" named="True">
-                        <property name="command" type="command" cbtype="with_wid">on_zoom_custom</property>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_custom" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_custom</property>
                         <property name="label" translatable="yes">Custom...</property>
                       </object>
                     </child>

@@ -1,7 +1,5 @@
 import copy
 import json
-import sys
-import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from operator import itemgetter
@@ -10,6 +8,8 @@ from PIL import Image, ImageDraw
 from opex import BBox, Polygon, ObjectPrediction, ObjectPredictions
 from shapely.geometry import Point as SPoint
 from shapely.geometry.polygon import Polygon as SPolygon
+
+from ._metadata import MetaDataManager
 
 
 @dataclass
@@ -149,12 +149,19 @@ class ContoursManager:
     For managing all the contours.
     """
 
-    def __init__(self):
+    def __init__(self, metadata=None):
         """
         Initializes the manager.
+
+        :param metadata: the meta-data manager to use
+        :type metadata: MetaDataManager
         """
         self.contours = list()
-        self.metadata = dict()
+        self.internal_metadata = False
+        if metadata is None:
+            self.internal_metadata = True
+            metadata = MetaDataManager()
+        self.metadata = metadata
 
     def to_absolute(self, width, height):
         """
@@ -212,7 +219,7 @@ class ContoursManager:
         :return: the generated OPEX data structure, None if no contours available
         :rtype: ObjectPredictions
         """
-        if not self.has_contours() and not self.has_metadata():
+        if not self.has_contours() and (len(self.metadata) == 0):
             return None
         start_time = datetime.now()
         objs = []
@@ -236,7 +243,7 @@ class ContoursManager:
                 objs.append(pred)
         result = ObjectPredictions(id=str(start_time), timestamp=str(start_time), objects=objs)
         if len(self.metadata) > 0:
-            result.meta = copy.copy(self.metadata)
+            result.meta = self.metadata.to_dict()
         return result
 
     def from_opex(self, predictions, width, height):
@@ -283,7 +290,7 @@ class ContoursManager:
         :return: True if anything was cleared
         :rtype: bool
         """
-        self.clear_metadata()
+        self.metadata.clear()
         if len(self.contours) > 0:
             self.contours = []
             return True
@@ -351,46 +358,6 @@ class ContoursManager:
             for self_contours in self.contours:
                 if remove_contour in self_contours:
                     self_contours.remove(remove_contour)
-
-    def has_metadata(self):
-        """
-        Checks whether any meta-data is present.
-
-        :return: True if meta-data present
-        :rtype: bool
-        """
-        return len(self.metadata) > 0
-
-    def clear_metadata(self):
-        """
-        Clears the metadata.
-        """
-        self.metadata = dict()
-
-    def set_metadata(self, k, v):
-        """
-        Sets the specified meta-data value.
-
-        :param k: the key
-        :type k: str
-        :param v: the associated value
-        :type v: str
-        """
-        self.metadata[k] = v
-
-    def remove_metadata(self, k):
-        """
-        Removes the specified key from the meta-data.
-
-        :param k: the key to remove
-        :type k: str
-        :return: None if successfully removed, otherwise error message
-        :rtype: str
-        """
-        if k in self.metadata:
-            self.metadata.pop(k)
-        else:
-            return "No meta-data value stored under '%s'!" % k
 
     def has_label(self, label):
         """
@@ -489,7 +456,8 @@ class ContoursManager:
         :rtype: dict
         """
         result = dict()
-        result["metadata"] = self.metadata
+        if self.internal_metadata:
+            result["metadata"] = self.metadata
         result["contours"] = list()
         for contours in self.contours:
             l = list()
@@ -519,12 +487,13 @@ class ContoursManager:
         d = json.loads(s)
         if not isinstance(d, dict):
             return False
-        if "metadata" not in d:
-            return False
         if "contours" not in d:
             return False
         self.clear()
-        self.metadata = d["metadata"]
+        self.internal_metadata = False
+        if "metadata" in d:
+            self.internal_metadata = True
+            self.metadata.update(d["metadata"])
         for contours in d["contours"]:
             l = list()
             for c in contours:

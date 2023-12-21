@@ -1,4 +1,6 @@
 from happy.gui.session import AbstractSessionManager
+from happy.data.annotations import BRUSH_SHAPE_ROUND
+from ._annotations import ANNOTATION_MODE_POLYGONS
 
 
 PROPERTIES = [
@@ -35,6 +37,10 @@ PROPERTIES = [
     "export_keep_aspectratio",
     "zoom",
     "normalization",
+    "annotation_mode",
+    "brush_shape",
+    "brush_size",
+    "alpha",
 ]
 
 
@@ -83,6 +89,10 @@ class SessionManager(AbstractSessionManager):
         self.export_keep_aspectratio = True
         self.zoom = -1
         self.normalization = ""
+        self.annotation_mode = ANNOTATION_MODE_POLYGONS
+        self.brush_shape = BRUSH_SHAPE_ROUND
+        self.brush_size = 7
+        self.alpha = 128
 
     def get_default_config_name(self):
         """
