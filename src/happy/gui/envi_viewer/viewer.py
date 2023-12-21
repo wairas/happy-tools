@@ -247,7 +247,6 @@ class ViewerApp:
             messagebox.showerror("Error", msg)
         return result
 
-
     def open_envi_file(self, title, initial_dir):
         """
         Allows the user to select an ENVI file.
@@ -1161,9 +1160,6 @@ class ViewerApp:
         """
         Allows the user to import existing annotations.
         """
-        if not self.available(ANNOTATION_MODE_POLYGONS, action="Importing annotations"):
-            return
-
         if not self.data.has_scan():
             messagebox.showerror("Error", "Please load a scan file first!")
             return
@@ -1171,6 +1167,7 @@ class ViewerApp:
         if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
             filename = self.open_opex_file('Open OPEX JSON annotations', self.session.last_scan_dir)
             if filename is not None:
+                self.log("Loading OPEX JSON annotations: %s" % filename)
                 preds = ObjectPredictions.load_json_from_file(filename)
                 if len(self.state_predefined_labels.get()) > 0:
                     pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
@@ -1190,8 +1187,10 @@ class ViewerApp:
         elif self.annotation_mode == ANNOTATION_MODE_PIXELS:
             filename = self.open_envi_file("Open ENVI mask", self.session.last_scan_dir)
             if filename is not None:
-                # TODO
-                pass
+                self.log("Loading ENVI mask: %s" % filename)
+                self.undo_manager.add_undo("Importing annotations", self.get_undo_state())
+                self.pixels.load_envi(filename)
+                self.update_image()
         else:
             messagebox.showerror("Import", "Cannot import annotations in annotation mode '%s'!" % self.annotation_mode)
 

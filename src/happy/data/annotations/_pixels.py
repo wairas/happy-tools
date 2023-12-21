@@ -338,6 +338,29 @@ class PixelManager:
             self.log("Failed to save ENVI to: %s\n%s" % (path, traceback.format_exc()))
             return False
 
+    def load_envi(self, path):
+        """
+        Loads the annotations from the specified ENVI file.
+        
+        :param path: the ENVI file to load
+        :type path: str
+        """
+        img = envi.open(path)
+        data = img.load()
+        palette = [0, 0, 0] + [item for sublist in self.palette for item in sublist]
+        self._image_indexed = Image.fromarray(data.squeeze().astype(np.uint8), mode="L")
+        self._image_indexed.putpalette(palette)
+        self._draw_indexed = ImageDraw.Draw(self._image_indexed)
+        rgba = self._image_indexed.copy().convert(mode="RGB")
+        rgba.putalpha(self.alpha)
+        data = np.array(rgba)  # "data" is a height x width x 4 numpy array
+        red, green, blue, alpha = data.T  # Temporarily unpack the bands for readability
+        # set black back to full transparency
+        black_areas = (red == 0) & (blue == 0) & (green == 0)
+        data[black_areas.T] = (0, 0, 0, 0)
+        self._image_rgba = Image.fromarray(data)
+        self._draw_rgba = ImageDraw.Draw(self._image_rgba)
+
     def to_dict(self):
         """
         Returns its state as a dictionary.
