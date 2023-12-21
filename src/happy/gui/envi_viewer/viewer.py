@@ -163,6 +163,7 @@ class ViewerApp:
         self.mainwindow.bind("<Control-B>", self.on_pixels_brush_size_click)
         self.mainwindow.bind("<Control-A>", self.on_pixels_change_alpha_click)
         self.mainwindow.bind("<Control-L>", self.on_pixels_select_label_click)
+        self.mainwindow.bind("<Control-K>", self.on_pixels_label_key)
         # view
         self.mainwindow.bind("<Control-w>", self.on_view_view_spectra_click)
         self.mainwindow.bind("<Control-W>", self.on_view_view_spectra_processed_click)
