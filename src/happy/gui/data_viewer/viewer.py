@@ -49,7 +49,7 @@ class ViewerApp:
         # widgets
         self.label_dir = builder.get_object("label_dir", master)
         self.listbox_samples = builder.get_object("listbox_samples", master)
-        self.listbox_repeats = builder.get_object("listbox_repeats", master)
+        self.listbox_regions = builder.get_object("listbox_regions", master)
         self.combobox_metadata = builder.get_object("combobox_type", master)
         self.scale_opacity = builder.get_object("scale_opacity", master)
         self.scale_r = builder.get_object("scale_r", master)
@@ -68,7 +68,7 @@ class ViewerApp:
 
         # listbox events
         self.listbox_samples.bind('<<ListboxSelect>>', self.on_listbox_samples_select)
-        self.listbox_repeats.bind('<<ListboxSelect>>', self.on_listbox_repeats_select)
+        self.listbox_regions.bind('<<ListboxSelect>>', self.on_listbox_regions_select)
 
         # combobox events
         self.combobox_metadata.bind('<<ComboboxSelected>>', self.on_metadata_select)
@@ -85,7 +85,7 @@ class ViewerApp:
         self.state_scale_g = None
         self.state_scale_b = None
         self.var_listbox_samples = None
-        self.var_listbox_repeats = None
+        self.var_listbox_regions = None
         builder.import_variables(self)
 
         # other variables
@@ -106,7 +106,7 @@ class ViewerApp:
         :type color: str
         """
         self.listbox_samples.config(selectbackground=color)
-        self.listbox_repeats.config(selectbackground=color)
+        self.listbox_regions.config(selectbackground=color)
 
     def set_listbox_selectforeground(self, color):
         """
@@ -116,7 +116,7 @@ class ViewerApp:
         :type color: str
         """
         self.listbox_samples.config(selectforeground=color)
-        self.listbox_repeats.config(selectforeground=color)
+        self.listbox_regions.config(selectforeground=color)
 
     def log(self, msg):
         """
@@ -151,16 +151,16 @@ class ViewerApp:
         self.mainwindow.config(cursor="")
         self.mainwindow.update()
 
-    def load(self, path, sample, repeat, metadata_key):
+    def load(self, path, sample, region, metadata_key):
         """
-        Loads the data using the base dir, sample and repeat.
+        Loads the data using the base dir, sample and region.
 
         :param path: the path to load from, can be None
         :type path: str
         :param sample: the sample to load, can be None
         :type sample: str
-        :param repeat: the repeat to load, can be None
-        :type repeat: str
+        :param region: the region to load, can be None
+        :type region: str
         :param metadata_key: the meta-data key to select, can be None
         :type metadata_key: str
         """
@@ -191,20 +191,20 @@ class ViewerApp:
         self.load_sample(sample)
         self.updating = False
 
-        # repeat
-        if (repeat is None) or (len(repeat) == 0):
+        # region
+        if (region is None) or (len(region) == 0):
             return
         found = False
-        for i in range(self.listbox_repeats.size()):
-            s = self.listbox_repeats.get(i)
-            if s == repeat:
-                self.listbox_repeats.selection_clear(0, 'end')
-                self.listbox_repeats.selection_set(i)
+        for i in range(self.listbox_regions.size()):
+            s = self.listbox_regions.get(i)
+            if s == region:
+                self.listbox_regions.selection_clear(0, 'end')
+                self.listbox_regions.selection_set(i)
                 found = True
                 break
         if not found:
             return
-        self.load_repeat(repeat)
+        self.load_region(region)
 
         # metadata key
         if (metadata_key is None) or (len(metadata_key) == 0):
@@ -264,55 +264,55 @@ class ViewerApp:
         self.session.current_sample = sample
 
         path = os.path.join(self.session.current_dir, sample)
-        repeats = []
+        regions = []
         all_numeric = True
         for f in os.listdir(path):
             if f.startswith("."):
                 continue
             full = os.path.join(path, f)
             if os.path.isdir(full):
-                repeats.append(f)
+                regions.append(f)
                 if not f.isnumeric():
                     all_numeric = False
         # all numeric?
         if all_numeric:
-            repeats = [int(x) for x in repeats]
-            repeats.sort(reverse=True)
-            repeats = [str(x) for x in repeats]
+            regions = [int(x) for x in regions]
+            regions.sort(reverse=True)
+            regions = [str(x) for x in regions]
         else:
-            repeats.sort(reverse=True)
-        self.var_listbox_repeats.set(repeats)
+            regions.sort(reverse=True)
+        self.var_listbox_regions.set(regions)
         if not self.updating:
             self.clear_plot()
-            if len(repeats) > 0:
-                self.listbox_repeats.selection_set(0)
-                self.on_listbox_repeats_select()
+            if len(regions) > 0:
+                self.listbox_regions.selection_set(0)
+                self.on_listbox_regions_select()
 
-    def load_repeat(self, repeat):
+    def load_region(self, region):
         """
-        Loads the specified repeat from the current dir and sample (threaded).
+        Loads the specified region from the current dir and sample (threaded).
 
-        :param repeat: the repeat to load
-        :type repeat: str
+        :param region: the region to load
+        :type region: str
         """
-        self.log("repeat: %s" % repeat)
-        self.session.current_repeat = repeat
+        self.log("region: %s" % region)
+        self.session.current_region = region
         self.clear_plot()
         self.load_happy_data()
 
     def load_happy_data(self):
         """
-        Loads the current dir/sample/repeat and displays the image.
+        Loads the current dir/sample/region and displays the image.
         """
-        if (self.session.current_dir is None) or (self.session.current_sample is None) or (self.session.current_repeat is None):
+        if (self.session.current_dir is None) or (self.session.current_sample is None) or (self.session.current_region is None):
             return
-        full = os.path.join(self.session.current_dir, self.session.current_sample, self.session.current_repeat)
+        full = os.path.join(self.session.current_dir, self.session.current_sample, self.session.current_region)
         if not os.path.exists(full) or not os.path.isdir(full):
             return
 
         self.start_busy()
         self.updating = True
-        self.stored_happy_data = self.reader.load_data(self.session.current_sample + ":" + self.session.current_repeat)
+        self.stored_happy_data = self.reader.load_data(self.session.current_sample + ":" + self.session.current_region)
         # Extract and store the metadata keys
         if self.stored_happy_data is not None:
             metadata_keys = list(self.stored_happy_data[0].metadata_dict.keys())
@@ -489,10 +489,10 @@ class ViewerApp:
             sample = self.listbox_samples.get([self.listbox_samples.curselection()[0]])
             self.load_sample(sample)
 
-    def on_listbox_repeats_select(self, event=None):
-        if len(self.listbox_repeats.curselection()) == 1:
-            repeat = self.listbox_repeats.get([self.listbox_repeats.curselection()[0]])
-            self.load_repeat(repeat)
+    def on_listbox_regions_select(self, event=None):
+        if len(self.listbox_regions.curselection()) == 1:
+            region = self.listbox_regions.get([self.listbox_regions.curselection()[0]])
+            self.load_region(region)
 
     def on_metadata_select(self, event):
         self.combined_image = None
@@ -520,7 +520,7 @@ class ViewerApp:
             messagebox.showerror("Error", "No image to export!")
             return
 
-        fname = self.session.current_sample + "-" + self.session.current_repeat + ".png"
+        fname = self.session.current_sample + "-" + self.session.current_region + ".png"
         filetypes = (
             ('PNG files', '*.png'),
             ('All files', '*.*')
@@ -604,7 +604,7 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--base_folder", help="Base folder to display", default=None, required=False)
     parser.add_argument("--sample", help="The sample to load", default=None, required=False)
-    parser.add_argument("--repeat", help="The repeat to load", default=None, required=False)
+    parser.add_argument("--region", help="The region to load", default=None, required=False)
     parser.add_argument("-r", "--scale_r", metavar="INT", help="the wave length to use for the red channel", default=None, type=int, required=False)
     parser.add_argument("-g", "--scale_g", metavar="INT", help="the wave length to use for the green channel", default=None, type=int, required=False)
     parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel", default=None, type=int, required=False)
@@ -626,8 +626,8 @@ def main():
         app.session.current_dir = parsed.base_folder
     if parsed.sample is not None:
         app.session.current_sample = parsed.sample
-    if parsed.repeat is not None:
-        app.session.current_repeat = parsed.repeat
+    if parsed.region is not None:
+        app.session.current_region = parsed.region
     if parsed.scale_r is not None:
         app.session.scale_r = parsed.scale_r
     if parsed.scale_g is not None:
@@ -638,7 +638,7 @@ def main():
         app.session.opacity = parsed.opacity
     app.session_to_state()
     app.load(app.session.current_dir, app.session.current_sample,
-             app.session.current_repeat, app.session.selected_metadata_key)
+             app.session.current_region, app.session.selected_metadata_key)
 
     app.run()
 

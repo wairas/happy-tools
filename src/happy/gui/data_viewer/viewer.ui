@@ -188,7 +188,7 @@
                                   <object class="ttk.Labelframe" id="labelframe4">
                                     <property name="height">200</property>
                                     <property name="padding">5</property>
-                                    <property name="text" translatable="yes">Repeats</property>
+                                    <property name="text" translatable="yes">Regions</property>
                                     <property name="width">200</property>
                                     <layout manager="pack">
                                       <property name="anchor">s</property>
@@ -206,9 +206,9 @@
                                           <property name="side">top</property>
                                         </layout>
                                         <child>
-                                          <object class="tk.Listbox" id="listbox_repeats" named="True">
+                                          <object class="tk.Listbox" id="listbox_regions" named="True">
                                             <property name="exportselection">false</property>
-                                            <property name="listvariable">string:var_listbox_repeats</property>
+                                            <property name="listvariable">string:var_listbox_regions</property>
                                             <layout manager="pack">
                                               <property name="padx">5</property>
                                               <property name="pady">5</property>

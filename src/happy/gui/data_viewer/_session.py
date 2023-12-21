@@ -4,7 +4,7 @@ from happy.gui.session import AbstractSessionManager
 PROPERTIES = [
     "current_dir",
     "current_sample",
-    "current_repeat",
+    "current_region",
     "last_export_dir",
     "scale_r",
     "scale_g",
@@ -28,7 +28,7 @@ class SessionManager(AbstractSessionManager):
         super().__init__(log_method=log_method)
         self.current_dir = "."
         self.current_sample = None
-        self.current_repeat = None
+        self.current_region = None
         self.last_export_dir = "."
         self.scale_r = 0
         self.scale_g = 0
