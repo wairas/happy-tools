@@ -95,8 +95,9 @@ def main():
         preprocessors = MultiPreprocessor(preprocessor_list=objs)
 
     # execute pipeline
-    for sample_id in reader.get_sample_ids():
-        logger.info("Processing: %s" % sample_id)
+    sample_ids = reader.get_sample_ids()
+    for i, sample_id in enumerate(sample_ids, start=1):
+        logger.info("Processing %d/%d: %s" % (i, len(sample_ids), sample_id))
         data_list = reader.load_data(sample_id)
         for data in data_list:
             if preprocessors is not None:

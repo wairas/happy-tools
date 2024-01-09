@@ -341,7 +341,8 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
             logger.info("Resume from dir '%s' changed number of annotations to process from %d to %d." % (resume_from, len(ann_paths), len(_ann_paths)))
         ann_paths = _ann_paths
 
-    for ann_path in ann_paths:
+    for i, ann_path in enumerate(ann_paths, start=1):
+        logger.info("%d/%d..." % (i, len(ann_paths)))
         img_path = os.path.splitext(ann_path)[0] + ".png"
         convert(ann_path, img_path, output_dir, datamanager, output_format=output_format,
                 pattern_mask=pattern_mask, pattern_labels=pattern_labels,
