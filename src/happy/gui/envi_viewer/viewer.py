@@ -1830,9 +1830,9 @@ class ViewerApp:
         plt.show()
 
     def on_view_zoom_click(self, event=None):
-        if (event is not None) and (event.startswith("command_zoom_")):
+        if (event is not None) and (event.startswith("command_view_zoom_")):
             try:
-                zoom = int(event.replace("command_zoom_", ""))
+                zoom = int(event.replace("command_view_zoom_", ""))
                 self.session.zoom = zoom
                 self.update_image()
             except:
