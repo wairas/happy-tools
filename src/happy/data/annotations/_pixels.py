@@ -1,10 +1,12 @@
 import numpy as np
+import os
 import spectral.io.envi as envi
 import traceback
 
 from PIL import Image, ImageDraw
 from ._metadata import MetaDataManager
 from ._palette import tableau_colors
+from happy.base.config import get_config_dir
 
 
 BRUSH_SHAPE_ROUND = "round"
@@ -13,6 +15,28 @@ BRUSH_SHAPES = [
     BRUSH_SHAPE_ROUND,
     BRUSH_SHAPE_SQUARE,
 ]
+
+
+def generate_cursor(shape: str, size: int, path: str):
+    """
+    Generates an XBM image for a cursor.
+
+    :param shape: the cursor shape
+    :type shape: str
+    :param size: the size of the shape
+    :type size: int
+    :param path: where to store the image
+    :type: str
+    """
+    img = Image.new("1", (size+3, size+3))
+    draw = ImageDraw.Draw(img)
+    if shape == BRUSH_SHAPE_ROUND:
+        draw.ellipse((1, 1, size+1, size+1), width=1, outline=1)
+    elif shape == BRUSH_SHAPE_SQUARE:
+        draw.rectangle((1, 1, size+1, size+1), width=1, outline=1)
+    else:
+        raise Exception("Unhandled cursor shape: %s" % shape)
+    img.save(path, format="xbm", hotspot=(int(size/2)+3, int(size/2)+3))
 
 
 class PixelManager:
@@ -43,6 +67,7 @@ class PixelManager:
         self._label = 1
         self._palette = None
         self._alpha = None
+        self._cursor_path = None
         self.internal_metadata = False
         self.log_method = log_method
 
@@ -92,6 +117,30 @@ class PixelManager:
         self._image_rgba = Image.new(mode='RGBA', size=(width, height), color=None)
         self._draw_rgba = ImageDraw.Draw(self._image_rgba)
 
+    def _create_cursor(self):
+        """
+        Creates a cursor image, if necessary.
+        """
+        if self._brush_shape is None:
+            return
+        if self._brush_size is None:
+            return
+        path = os.path.join(get_config_dir(), "%s-%d.xbm" % (self._brush_shape, self._brush_size))
+        if not os.path.exists(path):
+           self.log("Saving cursor: %s" % path)
+           generate_cursor(self._brush_shape, self._brush_size, path)
+        self._cursor_path = path
+
+    @property
+    def cursor_path(self):
+        """
+        Returns the cursor path.
+
+        :return: the path, None if not yet set
+        :rtype: str
+        """
+        return self._cursor_path
+
     @property
     def brush_shape(self):
         """
@@ -113,6 +162,7 @@ class PixelManager:
         if brush_shape not in BRUSH_SHAPES:
             raise Exception("Unsupported brush shape: %s" % brush_shape)
         self._brush_shape = brush_shape
+        self._create_cursor()
 
     @property
     def brush_size(self):
@@ -135,6 +185,7 @@ class PixelManager:
         if brush_size < 1:
             raise Exception("Unsupported brush size: %d" % brush_size)
         self._brush_size = brush_size
+        self._create_cursor()
 
     @property
     def label(self):

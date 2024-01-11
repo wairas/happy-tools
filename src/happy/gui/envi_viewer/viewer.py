@@ -167,6 +167,11 @@ class ViewerApp:
         # view
         self.mainwindow.bind("<Control-w>", self.on_view_view_spectra_click)
         self.mainwindow.bind("<Control-W>", self.on_view_view_spectra_processed_click)
+        # shift key for changing mouse cursor
+        self.mainwindow.bind("<KeyPress-Shift_L>", self.on_image_shift_pressed)
+        self.mainwindow.bind("<KeyPress-Shift_R>", self.on_image_shift_pressed)
+        self.mainwindow.bind("<KeyRelease-Shift_L>", self.on_image_shift_released)
+        self.mainwindow.bind("<KeyRelease-Shift_R>", self.on_image_shift_released)
 
         # mouse events
         # https://tkinterexamples.com/events/mouse/
@@ -195,6 +200,7 @@ class ViewerApp:
         self.pixel_points = []
         self.drag_update_interval = 0.1
         self.drag_start = None
+        self.shift_pressed = False
 
     def run(self):
         self.mainwindow.mainloop()
@@ -1405,6 +1411,14 @@ class ViewerApp:
         self.drag_start = None
         self.draw_recorded_pixel_points(remove_modifiers(event.state), True)
 
+    def on_image_shift_pressed(self, event=None):
+        self.shift_pressed = True
+        self.pixels_update_cursor()
+
+    def on_image_shift_released(self, event=None):
+        self.shift_pressed = False
+        self.pixels_update_cursor()
+
     def on_label_r_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
             title="Red channel",
@@ -1665,11 +1679,20 @@ class ViewerApp:
         self.pixels.clear()
         self.update_image()
 
+    def pixels_update_cursor(self):
+        if not self.available(ANNOTATION_MODE_PIXELS, show_error=False):
+            return
+        if self.shift_pressed:
+            self.image_canvas["cursor"] = ("@" + self.pixels.cursor_path, 'black')
+        else:
+            self.image_canvas["cursor"] = ""
+
     def on_pixels_brush_shape_click(self, event=None):
         if not self.available(ANNOTATION_MODE_PIXELS, action="Selecting pixel label"):
             return
 
         self.pixels.brush_shape = BRUSH_SHAPES[self.state_pixels_brush_shape.get()]
+        self.pixels_update_cursor()
 
     def on_pixels_brush_size_click(self, event=None):
         if not self.available(ANNOTATION_MODE_PIXELS, action="Setting brush size"):
@@ -1685,6 +1708,7 @@ class ViewerApp:
             return
         self.pixels.brush_size = size
         self.log("New brush size: %d" % size)
+        self.pixels_update_cursor()
 
     def on_pixels_change_alpha_click(self, event=None):
         if not self.available(ANNOTATION_MODE_PIXELS, action="Changing alpha"):
