@@ -9,7 +9,6 @@ ANNOTATION_MODES = [
 ]
 
 
-
 def generate_color_key(palette, labels):
     """
     Generates a color key image and displays it.
