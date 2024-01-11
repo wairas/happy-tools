@@ -2,6 +2,8 @@ import abc
 import json
 import os
 
+from happy.base.config import get_config_dir
+
 
 class AbstractSessionManager(abc.ABC):
     """
@@ -45,12 +47,7 @@ class AbstractSessionManager(abc.ABC):
         :return: the default config file
         :rtype: str
         """
-        home_dir = os.path.expanduser("~")
-        config_dir = os.path.join(home_dir, ".config", "happy")
-        if not os.path.exists(config_dir):
-            self.log("Creating dir: %s" % config_dir)
-            os.makedirs(config_dir)
-        return os.path.join(config_dir, self.get_default_config_name())
+        return os.path.join(get_config_dir(), self.get_default_config_name())
 
     def get_properties(self):
         """
