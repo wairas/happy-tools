@@ -505,7 +505,7 @@ class DataManager:
             return result
 
         if self.scan_data is not None:
-            self.log("Calculating...")
+            self.log("Calculation: start")
             success = True
 
             # init blackref
@@ -517,7 +517,7 @@ class DataManager:
                     result[CALC_BLACKDATA_INITIALIZED] = True
             except:
                 success = False
-                self.log("...failed with exception:")
+                self.log("Calculation: failed with exception:")
                 self.log(traceback.format_exc())
 
             # init whiteref
@@ -529,7 +529,7 @@ class DataManager:
                     result[CALC_WHITEDATA_INITIALIZED] = True
             except:
                 success = False
-                self.log("...failed with exception:")
+                self.log("Calculation: failed with exception:")
                 self.log(traceback.format_exc())
 
             if success:
@@ -553,7 +553,7 @@ class DataManager:
                         result[CALC_BLACKREF_APPLIED] = True
             except:
                 success = False
-                self.log("...failed with exception:")
+                self.log("Calculation: failed with exception:")
                 self.log(traceback.format_exc())
 
             # apply white reference
@@ -574,7 +574,7 @@ class DataManager:
                         result[CALC_WHITEREF_APPLIED] = True
             except:
                 success = False
-                self.log("...failed with exception:")
+                self.log("Calculation: failed with exception:")
                 self.log(traceback.format_exc())
 
             # apply preprocessing
@@ -587,11 +587,11 @@ class DataManager:
                     result[CALC_PREPROCESSORS_APPLIED] = True
             except:
                 success = False
-                self.log("...failed with exception:")
+                self.log("Calculation: failed with exception:")
                 self.log(traceback.format_exc())
 
             if success:
-                self.log("...done!")
+                self.log("Calculation: done!")
 
             if self.norm_data is not None:
                 result[CALC_DIMENSIONS_DIFFER] = (self.scan_data.shape != self.norm_data.shape)
