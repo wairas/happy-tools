@@ -123,7 +123,10 @@ def check_dir(path):
                 result[RESULT_FIELD_ANNOTATIONS] = True
                 labels = set()
                 for obj in preds.objects:
-                    labels.add(obj.label)
+                    if " " in obj.label:
+                        labels.add("'%s'" % obj.label)
+                    else:
+                        labels.add(obj.label)
                 result[RESULT_FIELD_LABELS] = sorted(list(labels))
             except:
                 pass
