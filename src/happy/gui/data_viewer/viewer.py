@@ -637,8 +637,11 @@ def main():
     if parsed.opacity is not None:
         app.session.opacity = parsed.opacity
     app.session_to_state()
-    app.load(app.session.current_dir, app.session.current_sample,
-             app.session.current_region, app.session.selected_metadata_key)
+    try:
+        app.load(app.session.current_dir, app.session.current_sample,
+                 app.session.current_region, app.session.selected_metadata_key)
+    except:
+        pass
 
     app.run()
 

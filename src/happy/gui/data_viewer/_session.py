@@ -26,7 +26,7 @@ class SessionManager(AbstractSessionManager):
         :param log_method: the log method to use (only takes a single str arg, the message)
         """
         super().__init__(log_method=log_method)
-        self.current_dir = "."
+        self.current_dir = None
         self.current_sample = None
         self.current_region = None
         self.last_export_dir = "."
