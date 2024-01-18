@@ -347,7 +347,8 @@ class ViewerApp:
         :type metadata_keys: list
         """
         self.combobox_metadata['values'] = metadata_keys
-        self.combobox_metadata.set(metadata_keys[0])  # Set the default selection
+        if len(metadata_keys) > 0:
+            self.combobox_metadata.set(metadata_keys[0])  # Set the default selection
 
     def convert_to_rgb(self, happy_data):
         # Extract the hyperspectral data array
