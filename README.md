@@ -432,9 +432,9 @@ usage: happy-process-data reader [preprocessor(s)] writer [-h|--help|--help-all|
 
 Processes data using the specified pipeline.
 
-readers: happy-reader
+readers: happy-reader, matlab-reader
 preprocessors: crop, derivative, down-sample, multi-pp, pca, pad, pass-through, snv, sni, std-scaler, wavelength-subset
-writers: happy-writer, matlab-writer
+writers: happy-writer, matlab-writer, png-writer
 
 optional arguments:
   -h, --help            show this help message and exit
