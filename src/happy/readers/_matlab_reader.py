@@ -67,15 +67,16 @@ class MatlabReader(HappyDataReader):
         wavelengths = reader.wavelengths
 
         # mask
-        mask_meta = {}
-        mask = reader.mat_file["FinalMask"]
-        mask = np.expand_dims(mask, -1)  # add third dimension for envi
-        mask_meta["data"] = mask
-        mapping = {}
-        for i in np.unique(mask):
-            mapping[str(i)] = int(i)
-        mask_meta["mapping"] = mapping
-        metadata_dict["mask"] = mask_meta
+        if "FinalMask" in reader.mat_file:
+            mask_meta = {}
+            mask = reader.mat_file["FinalMask"]
+            mask = np.expand_dims(mask, -1)  # add third dimension for envi
+            mask_meta["data"] = mask
+            mapping = {}
+            for i in np.unique(mask):
+                mapping[str(i)] = int(i)
+            mask_meta["mapping"] = mapping
+            metadata_dict["mask"] = mask_meta
 
         # assemble data
         result = HappyData(sample_id, region_name, data, global_dict, metadata_dict, wavenumbers=wavelengths)
