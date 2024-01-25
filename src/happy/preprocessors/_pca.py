@@ -20,6 +20,7 @@ class PCAPreprocessor(Preprocessor):
         parser.add_argument("-p", "--percent_pixels", type=float, help="The subset of pixels to use (0-100)", required=False, default=100.0)
         parser.add_argument("-l", "--load", type=str, help="The file with the pickled sklearn PCA instance to load and use instead of building one each time data is passing through", required=False, default=None)
         parser.add_argument("-s", "--save", type=str, help="The file to save the fitted sklearn PCA instance to", required=False, default=None)
+        parser.add_argument("-S", "--seed", type=int, help="The seed to use for reproducible results", required=False, default=None)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
@@ -28,6 +29,7 @@ class PCAPreprocessor(Preprocessor):
         self.params["percent_pixels"] = ns.percent_pixels
         self.params["load"] = ns.load
         self.params["save"] = ns.save
+        self.params["seed"] = ns.seed
         self.pca = None
 
     def _initialize(self):
@@ -44,15 +46,20 @@ class PCAPreprocessor(Preprocessor):
                 self.pca = pickle.load(fp)
         else:
             num_pixels = data.shape[0] * data.shape[1]
-            num_samples = int(num_pixels * (self.params.get('percent_pixels', 100) / 100))
             # Flatten the data for dimensionality reduction
             flattened_data = np.reshape(data, (num_pixels, data.shape[2]))
-            # Randomly sample pixels
-            sampled_indices = np.random.choice(num_pixels, num_samples, replace=False)
-            sampled_data = flattened_data[sampled_indices]
+            # Randomly sample pixels?
+            percent = self.params.get('percent_pixels', 100)
+            if percent != 100:
+                num_samples = int(num_pixels * (self.params.get('percent_pixels', 100) / 100))
+                rng = np.random.default_rng(seed=self.params.get('seed', None))
+                sampled_indices = rng.choice(num_pixels, num_samples, replace=False)
+                sampled_data = flattened_data[sampled_indices]
+            else:
+                sampled_data = flattened_data
 
             # Perform PCA fit on the sampled data
-            self.pca = PCA(n_components=self.params.get('components', 5))
+            self.pca = PCA(n_components=self.params.get('components', 5), random_state=self.params.get('seed', None))
             self.pca.fit(sampled_data)
 
             if self.params.get('save', None) is not None:

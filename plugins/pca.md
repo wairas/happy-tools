@@ -4,7 +4,7 @@ Applies principal components analysis to the data.
 
 ```
 usage: pca [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [-A LOGGER_NAME]
-           [-n COMPONENTS] [-p PERCENT_PIXELS] [-l LOAD] [-s SAVE]
+           [-n COMPONENTS] [-p PERCENT_PIXELS] [-l LOAD] [-s SAVE] [-S SEED]
 
 Applies principal components analysis to the data.
 
@@ -23,4 +23,6 @@ optional arguments:
                         passing through (default: None)
   -s SAVE, --save SAVE  The file to save the fitted sklearn PCA instance to
                         (default: None)
+  -S SEED, --seed SEED  The seed to use for reproducible results (default:
+                        None)
 ```
