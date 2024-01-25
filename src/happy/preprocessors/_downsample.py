@@ -9,12 +9,12 @@ class DownsamplePreprocessor(Preprocessor):
         return "down-sample"
 
     def description(self) -> str:
-        return "TODO"
+        return "Data reduction preprocessor that takes every x-th pixel on the x-axis and y-th pixel on the y-axis."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-x", "--xth", type=int, help="TODO", required=False, default=2)
-        parser.add_argument("-y", "--yth", type=int, help="TODO", required=False, default=2)
+        parser.add_argument("-x", "--xth", type=int, help="Every nth pixel on the x axis", required=False, default=2)
+        parser.add_argument("-y", "--yth", type=int, help="Every nth pixel on the y axis", required=False, default=2)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
