@@ -27,6 +27,7 @@
 
 ## HAPPY data readers
 * [happy-reader](happy-reader.md)
+* [matlab-reader](matlab-reader.md)
 
 ## HAPPY data preprocessors
 * [crop](crop.md)
