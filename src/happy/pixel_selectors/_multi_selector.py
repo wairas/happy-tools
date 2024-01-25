@@ -1,11 +1,15 @@
 import argparse
+
+from typing import List, Dict, Optional
+
 from ._pixel_selector import PixelSelector
 from happy.base.core import ConfigurableObject
+from happy.data import HappyData
 
 
 class MultiSelector(PixelSelector):
 
-    def __init__(self, selectors=None):
+    def __init__(self, selectors: Optional[List[PixelSelector]] = None):
         super().__init__()
         self.selectors = selectors
         self.n = 0
@@ -31,25 +35,25 @@ class MultiSelector(PixelSelector):
 
     def _calc_n(self):
         if self.selectors is not None:
-            self.n = sum(obj.n for obj in self.selectors)
+            self.n = sum(obj.get_n() for obj in self.selectors)
         else:
             self.n = 0
 
-    def get_n(self):
+    def get_n(self) -> int:
         return self.n
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         data = super().to_dict()
         data['selectors'] = [selector.to_dict() for selector in self.selectors]
         return data
 
-    def from_dict(self, d):
+    def from_dict(self, d: Dict):
         super().from_dict(d)
         self.selectors = [ConfigurableObject.create_from_dict(sub) for sub in d["selectors"]]
         self._calc_n()
         return self
 
-    def select_pixels(self, happy_data, n=None):
+    def select_pixels(self, happy_data: HappyData, n: int = None) -> List:
         pixels = []
         for selector in self.selectors:
             more_pixels = selector.select_pixels(happy_data, n=n)

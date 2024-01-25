@@ -1,6 +1,8 @@
 import re
 import numpy as np
 
+from typing import Dict, List, Iterator
+
 from happy.base.core import ConfigurableObject
 
 
@@ -25,7 +27,7 @@ OPERATIONS = [
 
 
 class Criteria(ConfigurableObject):
-    def __init__(self, operation=None, value=None, key=None):
+    def __init__(self, operation: str = None, value=None, key=None):
         if (operation is not None) and (operation not in OPERATIONS):
             raise Exception("Unknown operation: %s" % operation)
         self.operation = operation
@@ -81,16 +83,17 @@ class Criteria(ConfigurableObject):
 
 
 class CriteriaGroup(ConfigurableObject):
-    def __init__(self, criteria_list=None):
+
+    def __init__(self, criteria_list: List = None):
         self.criteria_list = criteria_list or []
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         result = super().to_dict()
         if self.criteria_list:
             result["criteria_list"] = [criteria.to_dict() for criteria in self.criteria_list]
         return result
 
-    def from_dict(self, d):
+    def from_dict(self, d: Dict):
         self.criteria_list = []
         if "criteria_list" in d:
             for dc in d["criteria_list"]:
@@ -98,17 +101,17 @@ class CriteriaGroup(ConfigurableObject):
                 self.criteria_list.append(c)
         return self
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.to_dict())
         
     def check(self, happy_data, x, y):
         return all(criteria.check(happy_data, x, y) for criteria in self.criteria_list)
      
-    def get_keys(self):
+    def get_keys(self) -> List:
         return [c.key for c in self.criteria_list]
 
     def add_criteria(self, criteria):
         self.criteria_list.append(criteria)
         
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self.criteria_list)

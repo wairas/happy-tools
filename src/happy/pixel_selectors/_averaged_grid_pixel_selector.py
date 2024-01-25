@@ -1,11 +1,16 @@
 import argparse
 import numpy as np
+
+from typing import Optional, Union, List, Dict
+
 from ._base_pixel_selector import BasePixelSelector
+from happy.criteria import Criteria, CriteriaGroup
+from happy.data import HappyData
 
 
 class AveragedGridSelector(BasePixelSelector):
 
-    def __init__(self, n=0, grid_size=0, criteria=None, include_background=False):
+    def __init__(self, n: int = 0, grid_size: int = 0, criteria: Optional[Union[Criteria, CriteriaGroup]] = None, include_background: bool = False):
         super().__init__(n, criteria=criteria,include_background=include_background)
         self.grid_size = grid_size
 
@@ -24,12 +29,12 @@ class AveragedGridSelector(BasePixelSelector):
         super()._apply_args(ns)
         self.grid_size = ns.grid_size
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         data = super().to_dict()
         data['grid_size'] = self.grid_size
         return data
 
-    def get_at(self, happy_data, x, y):
+    def get_at(self, happy_data: HappyData, x, y):
         # Get the pixel data at the specified location (x, y) from the happy_data
         width, height = happy_data.width, happy_data.height
         x0, x1 = max(0, x - self.grid_size), min(width - 1, x + self.grid_size)

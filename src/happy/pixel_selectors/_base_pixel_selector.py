@@ -1,14 +1,18 @@
 import abc
 import argparse
 import random
+
+from typing import Union, Optional, Dict, List
+
 from happy.base.core import ConfigurableObject
-from happy.criteria import Criteria
+from happy.criteria import Criteria, CriteriaGroup
+from happy.data import HappyData
 from ._pixel_selector import PixelSelector
 
 
 class BasePixelSelector(PixelSelector, abc.ABC):
 
-    def __init__(self, n=0, criteria=None, include_background=False):
+    def __init__(self, n: int = 0, criteria: Optional[Union[Criteria, CriteriaGroup]] = None, include_background: bool = False):
         super().__init__()
         self.n = n
         self.criteria = criteria
@@ -29,36 +33,36 @@ class BasePixelSelector(PixelSelector, abc.ABC):
             self.criteria = Criteria.from_json(ns.criteria)
         self.include_background = ns.include_background
 
-    def get_n(self):
+    def get_n(self) -> int:
         return self.n
         
-    def set_criteria(self, criteria):
+    def set_criteria(self, criteria: Union[Criteria, CriteriaGroup]):
         self.criteria = criteria
         
-    def check(self, happy_data, x, y):
+    def check(self, happy_data: HappyData, x, y):
         if self.criteria is None:
             return True
         else:
             return self.criteria.check(happy_data, x, y)
           
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         result = super().to_dict()
         result["n"] = self.n
         if self.criteria is not None:
             result["criteria"] = self.criteria.to_dict()
         return result
 
-    def from_dict(self, d):
+    def from_dict(self, d: Dict):
         self.n = d["n"]
         self.criteria = None
         if "criteria" in d:
             self.criteria = ConfigurableObject.create_from_dict(d["criteria"])
         return self
 
-    def get_at(self, happy_data, x, y):
+    def get_at(self, happy_data: HappyData, x: int, y: int) -> Optional[Union[int, float]]:
         raise NotImplementedError("Subclasses must implement the get_at method")
     
-    def _get_candidate_pixels(self, happy_data):
+    def _get_candidate_pixels(self, happy_data: HappyData):
         # This is a generator function that yields candidate pixels
         # until `n` pixels that match the criteria are found.
         i = 0
@@ -72,7 +76,7 @@ class BasePixelSelector(PixelSelector, abc.ABC):
                 i += 1
                 yield x, y
 
-    def select_pixels(self, happy_data, n=None):
+    def select_pixels(self, happy_data: HappyData, n: int = None) -> List:
         pixels = []
         if n is None:
             n = self.n

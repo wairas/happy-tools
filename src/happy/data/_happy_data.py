@@ -2,12 +2,17 @@ import spectral.io.envi as envi
 import numpy as np
 import copy
 
+from typing import Dict, List, Tuple, Union
+
+from spectral import SpyFile
+from happy.criteria import Criteria
+
 
 MASK_MAP = "mask-map"
 
 
 class HappyData:
-    def __init__(self, sample_id, region_id, data, global_dict, metadata_dict, wavenumbers=None):
+    def __init__(self, sample_id: str, region_id: str, data: np.ndarray, global_dict: Dict, metadata_dict: Dict, wavenumbers: List = None):
         self.sample_id = sample_id
         self.region_id = region_id
         self.data = data
@@ -17,20 +22,19 @@ class HappyData:
         self.height = self.data.shape[0]
         self.metadata_dict = metadata_dict
 
-    def get_full_id(self):
+    def get_full_id(self) -> str:
         return self.sample_id + ":" + self.region_id
         
-    def append_region_name(self, to_append):
+    def append_region_name(self, to_append: str):
         self.region_id = self.region_id + "_" + to_append
         
-    def get_unique_values(self, target):
+    def get_unique_values(self, target: str) -> List:
         if target not in self.metadata_dict:
             return []
+
         data = self.metadata_dict[target]["data"]
-        # Assuming 'my_array' is your numpy array
         unique_values = np.unique(data)
         unique_values_list = unique_values.tolist()
-
         return unique_values_list
         
     def apply_preprocess(self, preprocessor_method):
@@ -39,8 +43,7 @@ class HappyData:
         preprocessed_data, new_meta_dict = preprocessor_method.apply(self.data, self.metadata_dict)
         preprocessed_happy_data = HappyData(self.sample_id, self.region_id, preprocessed_data, copy.deepcopy(self.global_dict), new_meta_dict)
         processing_note = {
-            #"source": input_folder,
-            "preprocessing" : [preprocessor_method.to_string()]
+            "preprocessing": [preprocessor_method.to_string()]
         }
         preprocessed_happy_data.add_preprocessing_note(processing_note) 
         
@@ -54,7 +57,7 @@ class HappyData:
         return None, None
     """    
         
-    def find_pixels_with_criteria(self, criteria, calculate_centroid=True):
+    def find_pixels_with_criteria(self, criteria: Criteria, calculate_centroid: bool = True):
         x_coords = []
         y_coords = []
         valid_xy_pairs  = []
@@ -110,35 +113,30 @@ class HappyData:
             
         return valid_xy_pairs , (centroid_x, centroid_y)
         
-    def get_spectrum(self, x=None, y=None):
-        if x is None or y is None:
+    def get_spectrum(self, x: Union[int, float] = None, y: Union[int, float] = None) -> Union[int, float]:
+        if (x is None) or (y is None):
             return None
         x = int(x)
         y = int(y)
         return self.data[y, x, :]
         
-    def get_meta_data(self, x=None, y=None, key="type"):
+    def get_meta_data(self, x=None, y=None, key: str = "type"):
         if key == "x":
             return x
         elif key == "y":
             return y
 
         if key in self.metadata_dict:
-            #print(self.metadata_dict[key]["data"].shape)
-            #print (type(self.metadata_dict[key]["data"]))
             if x is None and y is None:
                 return self.metadata_dict[key]["data"]
-                #print("return full array")
             else:
-                #print(f"return element {self.metadata_dict[key]['data'][int(y),int(x),0]}")
                 return self.metadata_dict[key]["data"][int(y),int(x),0]
             
         if "meta_data" in self.global_dict and key in self.global_dict["meta_data"]:
             return self.global_dict["meta_data"][key]
 
         return None
-        #return(self.get_meta_global_data(key))
-        
+
     """
     def get_meta_global_data(self, key):
         if key in self.global_dict:
@@ -152,13 +150,11 @@ class HappyData:
         
         return(None)
     """        
-    def get_wavelengths(self):
+    def get_wavelengths(self) -> List:
         if self.wavenumbers is None:
-            arr = self.get_spectrum(0,0) # get a pixel
+            arr = self.get_spectrum(0, 0)  # get a pixel
             self.wavenumbers = np.arange(arr.size)
-            #print("in here")
-            #print(self.wavenumbers)
-       
+
         return self.wavenumbers
             
     def get_numpy_xy(self):
@@ -180,23 +176,19 @@ class HappyData:
         y_values = list(self.pixel_dict[x].keys())
         return(y_values)
     """
-    def get_all_xy_pairs(self, include_background=False):
-        
+    def get_all_xy_pairs(self, include_background: bool = False) -> List[Tuple]:
         all_pixel_coords = [(x, y) for x in range(self.width) for y in range(self.height)]
-        
         return all_pixel_coords
 
-    def get_all_x_values(self, include_background=False):
+    def get_all_x_values(self, include_background: bool = False) -> List[str]:
         all_x_values = [str(x) for x in range(self.width)]
-        
         return all_x_values
 
-    def get_y_values_at(self, x, include_background=False):
+    def get_y_values_at(self, x, include_background: bool = False) -> List[str]:
         all_y_values = [str(y) for y in range(self.height)]
+        return all_y_values
         
-        return all_y_values    
-        
-    def add_preprocessing_note(self, note_dic):
+    def add_preprocessing_note(self, note_dic: Dict):
         if self.global_dict is None:
             self.global_dict = {}
             
@@ -206,7 +198,7 @@ class HappyData:
         self.global_dict["preprocessing"].append(note_dic)
 
     @staticmethod
-    def create_envi_image(data, wavelengths):
+    def create_envi_image(data: np.ndarray, wavelengths: List) -> SpyFile:
         lines, samples, bands = data.shape
 
         # Define the metadata for the ENVI image

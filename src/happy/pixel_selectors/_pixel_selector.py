@@ -3,19 +3,20 @@ import os
 
 from happy.base.core import ConfigurableObject, PluginWithLogging
 from happy.base.registry import REGISTRY
+from happy.data import HappyData
 from seppl import split_args, split_cmdline, args_to_objects
 from typing import List, Optional
 
 
 class PixelSelector(ConfigurableObject, PluginWithLogging, abc.ABC):
 
-    def get_n(self):
+    def get_n(self) -> int:
         raise NotImplementedError()
 
-    def get_all_pixels(self, happy_data):
+    def get_all_pixels(self, happy_data: HappyData) -> List:
         return self.select_pixels(happy_data, n=-1)
 
-    def select_pixels(self, happy_data, n=None):
+    def select_pixels(self, happy_data: HappyData, n: int = None) -> List:
         raise NotImplementedError()
 
     @classmethod

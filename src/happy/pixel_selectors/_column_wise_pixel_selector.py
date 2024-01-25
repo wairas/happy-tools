@@ -1,12 +1,17 @@
 import argparse
-from ._base_pixel_selector import BasePixelSelector
 import random
 import numpy as np
+
+from typing import Union, Dict, Optional
+
+from happy.criteria import Criteria, CriteriaGroup
+from happy.data import HappyData
+from ._base_pixel_selector import BasePixelSelector
 
 
 class ColumnWisePixelSelector(BasePixelSelector):
 
-    def __init__(self, n=0, c=0, criteria=None):
+    def __init__(self, n: int = 0, c: int = 0, criteria: Optional[Union[Criteria, CriteriaGroup]] = None):
         super().__init__(n, criteria)
         self.c = c
 
@@ -25,17 +30,17 @@ class ColumnWisePixelSelector(BasePixelSelector):
         super()._apply_args(ns)
         self.c = ns.column
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         data = super().to_dict()
         data['c'] = self.c
         return data
 
-    def from_dict(self, d):
+    def from_dict(self, d: Dict):
         super().from_dict(d)
         self.c = d["c"]
         return self
 
-    def get_at(self, happy_data, x, y):
+    def get_at(self, happy_data: HappyData, x: int, y: int) -> Optional[Union[int, float]]:
         # Get the pixel data at the specified location (x, y) from the happy_data
         # Find some random pixels in the column and average them
         if x is None:
