@@ -1,6 +1,6 @@
 import argparse
 from ._region_extractor import RegionExtractor
-from happy.preprocessors import CropPreprocessor
+from happy.preprocessors import CropPreprocessor, apply_preprocessor
 
 
 class GridRegionExtractor(RegionExtractor):
@@ -44,7 +44,7 @@ class GridRegionExtractor(RegionExtractor):
                 if x_min >= width or y_min >= height:
                     continue
 
-                new_happy_data = happy_data.apply_preprocess(CropPreprocessor(x=x_min, y=y_min, width=x_max - x_min, height=y_max - y_min))
+                new_happy_data = apply_preprocessor(happy_data, CropPreprocessor(x=x_min, y=y_min, width=x_max - x_min, height=y_max - y_min))
                 new_happy_data.append_region_name(str(len(regions)))
                 regions.append(new_happy_data)
 

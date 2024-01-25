@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
 from happy.pixel_selectors import PixelSelector, MultiSelector
-from happy.preprocessors import Preprocessor, WavelengthSubsetPreprocessor
+from happy.preprocessors import Preprocessor, WavelengthSubsetPreprocessor, apply_preprocessor
 from happy.readers import HappyReader
 
 
@@ -67,7 +67,7 @@ def main():
         raise Exception("Failed to load data for sample ID: %s" % sample_id)
 
     w = WavelengthSubsetPreprocessor(from_index=args.from_index, to_index=args.to_index)
-    d = happy_data[0].apply_preprocess(w)
+    d = apply_preprocessor(happy_data[0], w)
 
     # List of preprocessors
     pre_processors = Preprocessor.parse_preprocessors(args.preprocessors)
@@ -83,8 +83,7 @@ def main():
     # Iterate through preprocessors and corresponding subplots
     for pre_processor, ax in zip(pre_processors, axes):
         # Apply the current preprocessor to the HappyData
-        preprocessed_data = d.apply_preprocess(pre_processor)
-
+        preprocessed_data = apply_preprocessor(d, pre_processor)
         preprocessor_params = pre_processor.to_string()
         ax.set_title(f"Pre-processor: {pre_processor.__class__.__name__} Params: {preprocessor_params}", fontsize=10)
 

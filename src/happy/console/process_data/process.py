@@ -4,11 +4,11 @@ import sys
 import traceback
 
 from seppl import split_args, args_to_objects, get_class_name, is_help_requested
-from wai.logging import set_logging_level, LOGGING_INFO, add_logging_level
+from wai.logging import set_logging_level, add_logging_level
 from happy.base.app import init_app
 from happy.base.registry import REGISTRY, print_help, print_help_all
 from happy.readers import HappyDataReader
-from happy.preprocessors import Preprocessor, MultiPreprocessor
+from happy.preprocessors import Preprocessor, MultiPreprocessor, apply_preprocessor
 from happy.writers import HappyDataWriter
 
 PROG = "happy-process-data"
@@ -101,7 +101,7 @@ def main():
         data_list = reader.load_data(sample_id)
         for data in data_list:
             if preprocessors is not None:
-                processed = data.apply_preprocess(preprocessors)
+                processed = apply_preprocessor(data, preprocessors)
                 writer.write_data(processed)
             else:
                 writer.write_data(data)

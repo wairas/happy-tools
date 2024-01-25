@@ -1,5 +1,5 @@
 from ._utils import check_ragged_data, remove_ragged_data, print_shape
-from ._preprocessor import Preprocessor
+from ._preprocessor import Preprocessor, apply_preprocessor
 from ._crop import CropPreprocessor
 from ._derivative import DerivativePreprocessor
 from ._downsample import DownsamplePreprocessor

@@ -1,4 +1,5 @@
 import abc
+import copy
 import numpy as np
 import os
 
@@ -6,6 +7,7 @@ from typing import List, Optional, Dict, Tuple
 
 from seppl import split_args, split_cmdline, args_to_objects
 from happy.base.core import PluginWithLogging
+from happy.data import HappyData
 from happy.base.registry import REGISTRY
 
 
@@ -98,3 +100,27 @@ class Preprocessor(PluginWithLogging, abc.ABC):
             plugins = REGISTRY.preprocessors()
             args = split_args(split_cmdline(cmdline), plugins.keys())
             return args_to_objects(args, plugins, allow_global_options=False)
+
+
+def apply_preprocessor(happy_data: HappyData, method: 'Preprocessor') -> HappyData:
+    """
+    Applies the preprocessing method to the data.
+
+    :param happy_data: the data to process
+    :type happy_data: HappyData
+    :param method: the preprocessing method to apply
+    :type method: Preprocessor
+    :return: the processed data
+    :rtype: HappyData
+    """
+    method.fit(happy_data.data)
+    # Apply the specified preprocessing
+    preprocessed_data, new_meta_dict = method.apply(happy_data.data, happy_data.metadata_dict)
+    preprocessed_happy_data = HappyData(happy_data.sample_id, happy_data.region_id, preprocessed_data,
+                                        copy.deepcopy(happy_data.global_dict), new_meta_dict)
+    processing_note = {
+        "preprocessing": [method.to_string()]
+    }
+    preprocessed_happy_data.add_preprocessing_note(processing_note)
+
+    return preprocessed_happy_data

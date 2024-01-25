@@ -1,6 +1,5 @@
 import spectral.io.envi as envi
 import numpy as np
-import copy
 
 from typing import Dict, List, Tuple, Union
 
@@ -36,19 +35,7 @@ class HappyData:
         unique_values = np.unique(data)
         unique_values_list = unique_values.tolist()
         return unique_values_list
-        
-    def apply_preprocess(self, preprocessor_method):
-        preprocessor_method.fit(self.data)
-        # Apply the specified preprocessing
-        preprocessed_data, new_meta_dict = preprocessor_method.apply(self.data, self.metadata_dict)
-        preprocessed_happy_data = HappyData(self.sample_id, self.region_id, preprocessed_data, copy.deepcopy(self.global_dict), new_meta_dict)
-        processing_note = {
-            "preprocessing": [preprocessor_method.to_string()]
-        }
-        preprocessed_happy_data.add_preprocessing_note(processing_note) 
-        
-        return preprocessed_happy_data
-        
+
     """    
     def get_segmentation_labels(self, target, mapping):
         if target in self.metadata_dict:

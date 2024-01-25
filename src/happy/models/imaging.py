@@ -1,6 +1,7 @@
 import abc
 from happy.readers import HappyReader
 from happy.models.happy import HappyModel
+from happy.preprocessors import apply_preprocessor
 import itertools
 
 
@@ -32,7 +33,7 @@ class ImagingModel(HappyModel, abc.ABC):
                 # Apply HappyPreprocessor if available
                 
                 if self.happy_preprocessor is not None:
-                    happy_data = happy_data.apply_preprocess(self.happy_preprocessor)
+                    happy_data = apply_preprocessor(happy_data, self.happy_preprocessor)
                 
                 region_list = self.region_selector.extract_regions(happy_data)
                 for region in region_list:
@@ -79,7 +80,7 @@ class ImagingModel(HappyModel, abc.ABC):
                 # Apply HappyPreprocessor if available
                 
                 if self.happy_preprocessor is not None:
-                    happy_data = happy_data.apply_preprocess(self.happy_preprocessor)
+                    happy_data = apply_preprocessor(happy_data, self.happy_preprocessor)
                 
                 region_list = self.region_selector.extract_regions(happy_data)
                 for region in region_list:

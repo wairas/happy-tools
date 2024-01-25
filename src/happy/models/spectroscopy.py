@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 from happy.readers import HappyReader
 from happy.models.happy import HappyModel
+from happy.preprocessors import apply_preprocessor
 
 
 class SpectroscopyModel(HappyModel, abc.ABC):
@@ -22,7 +23,7 @@ class SpectroscopyModel(HappyModel, abc.ABC):
                 # Apply HappyPreprocessor if available
                 
                 if self.happy_preprocessor is not None:
-                    happy_data = happy_data.apply_preprocess(self.happy_preprocessor)
+                    happy_data = apply_preprocessor(happy_data, self.happy_preprocessor)
                 if not added_wavelengths:
                     dataset['wavelengths']=happy_data.get_wavelengths()
                     added_wavelengths = True
@@ -51,7 +52,7 @@ class SpectroscopyModel(HappyModel, abc.ABC):
                 # Apply HappyPreprocessor if available
                 
                 if self.happy_preprocessor is not None:
-                    happy_data = happy_data.apply_preprocess(self.happy_preprocessor)
+                    happy_data = apply_preprocessor(happy_data, self.happy_preprocessor)
                 if not added_wavelengths:
                     dataset['wavelengths']=happy_data.get_wavelengths()
                     added_wavelengths = True

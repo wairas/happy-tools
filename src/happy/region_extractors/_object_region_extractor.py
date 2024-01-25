@@ -2,7 +2,7 @@ import argparse
 import json
 from ._region_extractor import RegionExtractor
 from happy.criteria import Criteria, CriteriaGroup, OP_NOT_MISSING, OP_IN
-from happy.preprocessors import CropPreprocessor
+from happy.preprocessors import CropPreprocessor, apply_preprocessor
 
 
 class ObjectRegionExtractor(RegionExtractor):
@@ -69,9 +69,8 @@ class ObjectRegionExtractor(RegionExtractor):
             x_max = min(happy_data.width, region_center_x + self.region_size[0] // 2)
             y_min = max(0, region_center_y - self.region_size[1] // 2)
             y_max = min(happy_data.height, region_center_y + self.region_size[1] // 2)
-            
-            new_happy_data = happy_data.apply_preprocess(CropPreprocessor(x=x_min,y=y_min,width=x_max-x_min,height=y_max-y_min))
-            
+
+            new_happy_data = apply_preprocessor(happy_data, CropPreprocessor(x=x_min, y=y_min, width=x_max-x_min, height=y_max-y_min))
             new_happy_data.append_region_name(str(obj_value))
             regions.append(new_happy_data)
         return regions
