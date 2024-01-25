@@ -16,9 +16,11 @@ optional arguments:
   -A LOGGER_NAME, --logger_name LOGGER_NAME
                         The custom name to use for the logger (default: None)
   -w WINDOW_LENGTH, --window_length WINDOW_LENGTH
-                        TODO (default: 5)
+                        The size of the window (must be odd number) (default:
+                        5)
   -p POLYORDER, --polyorder POLYORDER
-                        TODO (default: 2)
+                        The polynominal order (default: 2)
   -d DERIV, --deriv DERIV
-                        TODO (default: 1)
+                        The deriviative to use, 0 is just smoothing (default:
+                        1)
 ```

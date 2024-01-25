@@ -14,9 +14,9 @@ class DerivativePreprocessor(Preprocessor):
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-w", "--window_length", type=int, help="TODO", required=False, default=5)
-        parser.add_argument("-p", "--polyorder", type=int, help="TODO", required=False, default=2)
-        parser.add_argument("-d", "--deriv", type=int, help="TODO", required=False, default=1)
+        parser.add_argument("-w", "--window_length", type=int, help="The size of the window (must be odd number)", required=False, default=5)
+        parser.add_argument("-p", "--polyorder", type=int, help="The polynominal order", required=False, default=2)
+        parser.add_argument("-d", "--deriv", type=int, help="The deriviative to use, 0 is just smoothing", required=False, default=1)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
