@@ -1,7 +1,7 @@
 import spectral.io.envi as envi
 import numpy as np
 
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Optional
 
 from spectral import SpyFile
 from happy.criteria import Criteria
@@ -11,6 +11,7 @@ MASK_MAP = "mask-map"
 
 
 class HappyData:
+
     def __init__(self, sample_id: str, region_id: str, data: np.ndarray, global_dict: Dict, metadata_dict: Dict, wavenumbers: List = None):
         self.sample_id = sample_id
         self.region_id = region_id
@@ -44,10 +45,10 @@ class HappyData:
         return None, None
     """    
         
-    def find_pixels_with_criteria(self, criteria: Criteria, calculate_centroid: bool = True):
+    def find_pixels_with_criteria(self, criteria: Criteria, calculate_centroid: bool = True) -> Tuple[List[Tuple], Tuple]:
         x_coords = []
         y_coords = []
-        valid_xy_pairs  = []
+        valid_xy_pairs = []
         return_pairs = []
         
         key_list = criteria.get_keys()
@@ -83,10 +84,9 @@ class HappyData:
                 x_coords.append(x)
                 y_coords.append(y)
                 return_pairs.append((x, y))
-                #print(criteria.to_dict())
-                
-        if len(return_pairs ) == 0:
-            return [],(None, None)
+
+        if len(return_pairs) == 0:
+            return [], (None, None)
             
         # Calculate the centroid based on the extents of x and y coordinates
         if calculate_centroid:
@@ -98,9 +98,9 @@ class HappyData:
             centroid_x = None
             centroid_y = None
             
-        return valid_xy_pairs , (centroid_x, centroid_y)
+        return valid_xy_pairs, (centroid_x, centroid_y)
         
-    def get_spectrum(self, x: Union[int, float] = None, y: Union[int, float] = None) -> Union[int, float]:
+    def get_spectrum(self, x: Union[int, float] = None, y: Union[int, float] = None) -> Optional[np.ndarray]:
         if (x is None) or (y is None):
             return None
         x = int(x)
@@ -203,4 +203,3 @@ class HappyData:
         envi_image = envi.create_image('', data, metadata=pixel_dict)
 
         return envi_image
-
