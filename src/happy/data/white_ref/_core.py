@@ -21,6 +21,7 @@ class AbstractWhiteReferenceMethod(PluginWithLogging, abc.ABC):
         super().__init__()
         self._initialized = False
         self._reference = None
+        self.parse_args([])
 
     def _reset(self):
         """

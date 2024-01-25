@@ -9,6 +9,13 @@ from typing import List, Optional
 
 class PixelSelector(ConfigurableObject, PluginWithLogging, abc.ABC):
 
+    def __init__(self):
+        """
+        Basic initialization of the black reference method.
+        """
+        super().__init__()
+        self.parse_args([])
+
     def get_n(self):
         raise NotImplementedError()
 

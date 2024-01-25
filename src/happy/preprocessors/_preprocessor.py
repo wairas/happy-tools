@@ -12,7 +12,7 @@ class Preprocessor(PluginWithLogging, abc.ABC):
     def __init__(self, **kwargs):
         super().__init__()
         self.params = kwargs
-        # Handle additional positional arguments if needed
+        self.parse_args([])
 
     def _initialize(self):
         """

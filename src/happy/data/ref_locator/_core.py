@@ -14,6 +14,13 @@ class AbstractReferenceLocator(PluginWithLogging, abc.ABC):
     Ancestor for schemes that locate reference data.
     """
 
+    def __init__(self):
+        """
+        Basic initialization of the black reference method.
+        """
+        super().__init__()
+        self.parse_args([])
+
     def _pre_check(self) -> Optional[str]:
         """
         Hook method that gets called before attempting to locate the reference data.
