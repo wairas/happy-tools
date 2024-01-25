@@ -13,8 +13,8 @@ class RegionExtractor(Plugin, abc.ABC):
         self.target_name = target_name
         self.region_size = region_size
 
-    def _add_argparse_region_size(self, parser, t, h, d):
-        parser.add_argument("-r", "--region_size", type=t, help=h, required=(d is None), default=d)
+    def _add_argparse_region_size(self, parser, t, h, d, nargs=None):
+        parser.add_argument("-r", "--region_size", type=t, help=h, required=(d is None), default=d, nargs=nargs)
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()

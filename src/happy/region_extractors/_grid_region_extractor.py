@@ -17,7 +17,7 @@ class GridRegionExtractor(RegionExtractor):
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        self._add_argparse_region_size(parser=parser, t=int, h="The width and height of the region", d=None)
+        self._add_argparse_region_size(parser=parser, t=int, h="The width and height of the region", d=None, nargs=2)
         parser.add_argument("-T", "--truncate_regions", action="store_true", help="Whether to truncate the regions", required=False)
         return parser
 
