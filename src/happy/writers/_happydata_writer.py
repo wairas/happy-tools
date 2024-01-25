@@ -31,7 +31,6 @@ class HappyDataWriter(PluginWithLogging, abc.ABC):
         super().__init__()
         self.base_dir = base_dir
         self._initialized = False
-        self.parse_args([])
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
