@@ -83,7 +83,8 @@ class PadPreprocessor(Preprocessor):
         # Update the pixel_data dictionary
         new_meta_data = self.update_pixel_data(metadata, width, height, pad_value)
 
-        self.logger().info("pp shape")
-        self.logger().info(new_meta_data["mask"]["data"].shape)
+        if (new_meta_data is not None) and ("mask" in new_meta_data) and ("data" in new_meta_data["mask"]):
+            self.logger().info("pp shape")
+            self.logger().info(new_meta_data["mask"]["data"].shape)
 
         return pad_data, new_meta_data
