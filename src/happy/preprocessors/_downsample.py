@@ -26,9 +26,6 @@ class DownsamplePreprocessor(Preprocessor):
         if meta_dict is None:
             return None
 
-        # for key in meta_dict.items():
-        #    meta_dict["key"]["data"] = meta_dict["key"]["data"][:, ::xth, :]
-
         new_dict = {}
         for key, sub_dict in meta_dict.items():
             if "data" in sub_dict:
