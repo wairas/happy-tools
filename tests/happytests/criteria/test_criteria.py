@@ -1,3 +1,5 @@
+import unittest
+
 from happy.base.core import ConfigurableObject
 from happy.criteria import Criteria, CriteriaGroup, OP_NOT_MISSING, OP_EQUALS
 from happytests.tests import HappyRegressionTestCase
@@ -31,3 +33,16 @@ class CriteriaTestCase(HappyRegressionTestCase):
         regression_data.append(str(cng))
 
         self._compare_regression("\n------\n".join(regression_data))
+
+
+def suite():
+    """
+    Returns the test suite.
+    :return: the test suite
+    :rtype: unittest.TestSuite
+    """
+    return unittest.TestLoader().loadTestsFromTestCase(CriteriaTestCase)
+
+
+if __name__ == '__main__':
+    unittest.TextTestRunner().run(suite())
