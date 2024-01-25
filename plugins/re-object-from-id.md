@@ -3,7 +3,7 @@
 TODO
 
 ```
-usage: re-object-from-id [-h] [-t TARGET_NAME] [-r REGION_SIZE]
+usage: re-object-from-id [-h] [-t TARGET_NAME] [-r REGION_SIZE REGION_SIZE]
                          [-k OBJECT_KEY] [-o OBJ_VALUES]
                          [-c [BASE_CRITERIA [BASE_CRITERIA ...]]]
 
@@ -13,7 +13,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -t TARGET_NAME, --target_name TARGET_NAME
                         The name of the target value (default: None)
-  -r REGION_SIZE, --region_size REGION_SIZE
+  -r REGION_SIZE REGION_SIZE, --region_size REGION_SIZE REGION_SIZE
                         The width and height of the region (default: [128,
                         128])
   -k OBJECT_KEY, --object_key OBJECT_KEY
