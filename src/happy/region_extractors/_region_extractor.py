@@ -10,7 +10,6 @@ from happy.base.registry import REGISTRY
 class RegionExtractor(Plugin, abc.ABC):
 
     def __init__(self, region_size=None, target_name=None):
-        self.parse_args([])
         self.target_name = target_name
         self.region_size = region_size
 
