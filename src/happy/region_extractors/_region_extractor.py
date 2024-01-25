@@ -39,7 +39,7 @@ class RegionExtractor(Plugin, abc.ABC):
         return regions
 
     def _extract_regions(self, id):
-        raise NotImplementedError("Subclasses must implement extract_regions_impl")
+        raise NotImplementedError()
         
     def add_target_data(self, regions):
         return regions
