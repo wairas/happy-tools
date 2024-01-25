@@ -2,6 +2,7 @@ import unittest
 
 import happytests.criteria.all_tests
 import happytests.readers.all_tests
+import happytests.region_extractors.all_tests
 import happytests.preprocessors.all_tests
 
 
@@ -14,6 +15,7 @@ def suite():
     result = unittest.TestSuite()
     result.addTests(happytests.criteria.all_tests.suite())
     result.addTests(happytests.readers.all_tests.suite())
+    result.addTests(happytests.region_extractors.all_tests.suite())
     result.addTests(happytests.preprocessors.all_tests.suite())
     return result
 
