@@ -1,7 +1,7 @@
 from ._preprocessor import Preprocessor
 
 
-class PassThrough(Preprocessor):
+class PassThroughPreprocessor(Preprocessor):
 
     def name(self) -> str:
         return "pass-through"
