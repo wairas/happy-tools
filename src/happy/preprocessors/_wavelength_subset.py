@@ -1,5 +1,9 @@
 import argparse
 
+import numpy as np
+
+from typing import Optional, Dict, Tuple
+
 from ._preprocessor import Preprocessor
 
 
@@ -24,7 +28,7 @@ class WavelengthSubsetPreprocessor(Preprocessor):
         self.params["from_index"] = ns.from_index
         self.params["to_index"] = ns.to_index
 
-    def _do_apply(self, data, metadata=None):
+    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
         subset_indices = self.params.get('subset_indices', None)
         from_index = self.params.get('from_index', None)
         to_index = self.params.get('to_index', None)

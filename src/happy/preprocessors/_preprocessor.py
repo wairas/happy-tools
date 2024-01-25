@@ -1,10 +1,12 @@
 import abc
+import numpy as np
 import os
+
+from typing import List, Optional, Dict, Tuple
 
 from seppl import split_args, split_cmdline, args_to_objects
 from happy.base.core import PluginWithLogging
 from happy.base.registry import REGISTRY
-from typing import List, Optional
 
 
 class Preprocessor(PluginWithLogging, abc.ABC):
@@ -21,17 +23,17 @@ class Preprocessor(PluginWithLogging, abc.ABC):
         """
         pass
 
-    def _do_fit(self, data, metadata=None):
+    def _do_fit(self, data: np.ndarray, metadata: Optional[Dict] = None) -> 'Preprocessor':
         return self
 
-    def fit(self, data, metadata=None):
+    def fit(self, data: np.ndarray, metadata=None) -> 'Preprocessor':
         self._initialize()
         return self._do_fit(data, metadata=metadata)
         
-    def _do_apply(self, data, metadata=None):
+    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
         raise NotImplementedError()
 
-    def apply(self, data, metadata=None):
+    def apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
         self._initialize()
         return self._do_apply(data, metadata=metadata)
 

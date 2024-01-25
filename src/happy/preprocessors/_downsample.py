@@ -1,5 +1,9 @@
 import argparse
 
+from typing import Optional, Dict, Tuple
+
+import numpy as np
+
 from ._preprocessor import Preprocessor
 
 
@@ -22,7 +26,7 @@ class DownsamplePreprocessor(Preprocessor):
         self.params["xth"] = ns.xth
         self.params["yth"] = ns.yth
 
-    def update_pixel_data(self, meta_dict, xth, yth):
+    def update_pixel_data(self, meta_dict: Dict, xth: int, yth: int):
         if meta_dict is None:
             return None
 
@@ -38,7 +42,7 @@ class DownsamplePreprocessor(Preprocessor):
 
         return new_dict
 
-    def _do_apply(self, data, metadata=None):
+    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
         xth = self.params.get('xth', 2)
         yth = self.params.get('yth', 2)
         downsampled_data = data[:, ::xth, :]

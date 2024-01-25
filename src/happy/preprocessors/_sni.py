@@ -1,6 +1,8 @@
 import argparse
 import numpy as np
 
+from typing import Optional, Dict, Tuple
+
 from ._preprocessor import Preprocessor
 
 
@@ -25,22 +27,19 @@ class SpectralNoiseInterpolator(Preprocessor):
         # TODO not used?
         #self.params['neighborhood_size'] = ns.neighborhood_size
 
-    def calculate_gradient(self, data):
+    def calculate_gradient(self, data: np.ndarray) -> np.ndarray:
         # Calculate the gradient along the spectral dimension
         spectral_gradient = np.gradient(data, axis=2)
         self.logger().info(f"data:{data.shape} grad:{spectral_gradient.shape}")
         return spectral_gradient
 
-    def identify_noisy_pixels(self, gradient_data):
-        #gradient_diff = np.abs(gradient_data - np.mean(gradient_data, axis=(0, 1), keepdims=True))
-        #gradient_diff = np.abs(gradient_data - np.mean(gradient_data, axis=2, keepdims=True))
+    def identify_noisy_pixels(self, gradient_data: np.ndarray) -> np.ndarray:
         gradient_diff = np.abs(gradient_data - np.median(gradient_data, axis=(0, 1), keepdims=True))
         noisy_pixel_indices = gradient_diff > self.params.get('threshold', 0.8)
         return noisy_pixel_indices
 
-    def interpolate_noisy_pixels(self, data, noisy_pixel_indices, gradient_data):
+    def interpolate_noisy_pixels(self, data: np.ndarray, noisy_pixel_indices: np.ndarray, gradient_data: np.ndarray) -> np.ndarray:
         interpolated_data = data.copy()
-        num_wavelengths = data.shape[2]
 
         for i in range(data.shape[0]):
             for j in range(data.shape[1]):
@@ -63,7 +62,7 @@ class SpectralNoiseInterpolator(Preprocessor):
 
         return interpolated_data
 
-    def _do_apply(self, data, metadata=None):
+    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
         gradient_data = self.calculate_gradient(data)
         noisy_pixel_indices = self.identify_noisy_pixels(gradient_data)
         interpolated_data = self.interpolate_noisy_pixels(data, noisy_pixel_indices, gradient_data)

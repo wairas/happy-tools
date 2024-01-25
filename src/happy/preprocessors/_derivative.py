@@ -1,5 +1,8 @@
 import argparse
 
+from typing import Optional, Dict, Tuple
+
+import numpy as np
 from scipy.signal import savgol_filter
 from ._preprocessor import Preprocessor
 
@@ -25,7 +28,7 @@ class DerivativePreprocessor(Preprocessor):
         self.params["polyorder"] = ns.polyorder
         self.params["deriv"] = ns.deriv
 
-    def _do_apply(self, data, metadata=None):
+    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
         window_length = self.params.get('window_length', 5)
         polyorder = self.params.get('polyorder', 2)
         deriv = self.params.get('deriv', 1)
