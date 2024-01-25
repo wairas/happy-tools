@@ -11,8 +11,8 @@ class Preprocessor(PluginWithLogging, abc.ABC):
     
     def __init__(self, **kwargs):
         super().__init__()
-        self.params = kwargs
         self.parse_args([])
+        self.params = kwargs
 
     def _initialize(self):
         """
