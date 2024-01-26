@@ -33,8 +33,9 @@ class MatlabWriter(HappyDataWriter):
     def _write_item(self, happy_data, datatype_mapping=None):
         sample_id = happy_data.sample_id
         region_id = happy_data.region_id
-        self.logger().info("Creating dir: %s" % self.base_dir)
-        os.makedirs(self.base_dir, exist_ok=True)
+        if not os.path.exists(self.base_dir):
+            self.logger().info("Creating dir: %s" % self.base_dir)
+            os.makedirs(self.base_dir, exist_ok=True)
         filepath = self._expand_output(self._output, sample_id, region_id)
         self.logger().info("Writing: %s" % filepath)
         save_dic = dict()
