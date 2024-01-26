@@ -28,7 +28,7 @@ class ObjectRegionExtractor(RegionExtractor):
         self._add_argparse_region_size(parser=parser, t=int, h="The width and height of the region", d=[128, 128], nargs=2)
         parser.add_argument("-k", "--object_key", type=str, help="The object key in the meta-data", required=False, default=None)
         parser.add_argument("-o", "--obj_values", type=str, help="The object values to look for (supplied as JSON array string)", required=False, default="[]")
-        parser.add_argument("-c", "--base_criteria", type=str, help="The criteria (in JSON notation) to apply", required=False, nargs="*", default=[])
+        parser.add_argument("-c", "--base_criteria", type=str, help="The criteria (JSON string or filename) to apply", required=False, nargs="*", default=[])
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
