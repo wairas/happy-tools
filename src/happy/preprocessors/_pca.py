@@ -42,7 +42,7 @@ class PCAPreprocessor(Preprocessor):
         if percent_pixel > 100:
             raise Exception("'percent_pixels' cannot be larger than 100, provided: %f" % percent_pixel)
 
-    def _do_fit(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Preprocessor:
+    def _do_fit(self, data: np.ndarray, metadata: Optional[Dict] = None):
         if self.params.get('load', None) is not None:
             with open(self.params.get('load', None), "rb") as fp:
                 self.pca = pickle.load(fp)
@@ -67,8 +67,6 @@ class PCAPreprocessor(Preprocessor):
             if self.params.get('save', None) is not None:
                 with open(self.params.get('save', None), "wb") as fp:
                     pickle.dump(self.pca, fp)
-
-        return self
 
     def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
         if self.pca is None:

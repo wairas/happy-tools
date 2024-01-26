@@ -25,12 +25,12 @@ class Preprocessor(PluginWithLogging, abc.ABC):
         """
         pass
 
-    def _do_fit(self, data: np.ndarray, metadata: Optional[Dict] = None) -> 'Preprocessor':
-        return self
+    def _do_fit(self, data: np.ndarray, metadata: Optional[Dict] = None):
+        pass
 
-    def fit(self, data: np.ndarray, metadata=None) -> 'Preprocessor':
+    def fit(self, data: np.ndarray, metadata=None):
         self._initialize()
-        return self._do_fit(data, metadata=metadata)
+        self._do_fit(data, metadata=metadata)
         
     def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
         raise NotImplementedError()
