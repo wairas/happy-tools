@@ -1,10 +1,7 @@
 import argparse
 
-import numpy as np
-
-from typing import Optional, Dict, Tuple
-
 from ._preprocessor import Preprocessor
+from happy.data import HappyData
 
 
 class WavelengthSubsetPreprocessor(Preprocessor):
@@ -28,7 +25,7 @@ class WavelengthSubsetPreprocessor(Preprocessor):
         self.params["from_index"] = ns.from_index
         self.params["to_index"] = ns.to_index
 
-    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
+    def _do_apply(self, happy_data: HappyData) -> HappyData:
         subset_indices = self.params.get('subset_indices', None)
         from_index = self.params.get('from_index', None)
         to_index = self.params.get('to_index', None)
@@ -37,7 +34,7 @@ class WavelengthSubsetPreprocessor(Preprocessor):
                 subset_indices = list(range(from_index, to_index + 1))
         if subset_indices is not None:
             # Select the subset of wavelengths from the data
-            subset_data = data[:, :, subset_indices]
-            return subset_data, metadata
+            subset_data = happy_data.data[:, :, subset_indices]
+            return happy_data.copy(data=subset_data)
         else:
-            return data, metadata
+            return happy_data

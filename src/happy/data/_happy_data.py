@@ -1,5 +1,6 @@
-import spectral.io.envi as envi
+import copy
 import numpy as np
+import spectral.io.envi as envi
 
 from typing import Dict, List, Tuple, Union, Optional
 
@@ -203,3 +204,32 @@ class HappyData:
         envi_image = envi.create_image('', data, metadata=pixel_dict)
 
         return envi_image
+
+    def copy(self, sample_id: str = None, region_id: str = None, data: np.ndarray = None, global_dict: Dict = None, metadata_dict: Dict = None) -> 'HappyData':
+        """
+        Returns a new HappyData instance, filling in any None parameters with copies of its own values.
+
+        :param sample_id: the new sample ID
+        :type sample_id: str
+        :param region_id: the new region ID
+        :type region_id: str
+        :param data: the new data
+        :type data: np.ndarray
+        :param global_dict: the global meta-data
+        :type global_dict: dict
+        :param metadata_dict: the meta-data
+        :type metadata_dict: dict
+        :return: the new HappyData instance
+        :rtype: HappyData
+        """
+        if sample_id is None:
+            sample_id = self.sample_id
+        if region_id is None:
+            region_id = self.region_id
+        if data is None:
+            data = self.data.copy()
+        if global_dict is None:
+            global_dict = copy.deepcopy(self.global_dict)
+        if metadata_dict is None:
+            metadata_dict = copy.deepcopy(self.metadata_dict)
+        return HappyData(sample_id, region_id, data, global_dict, metadata_dict)

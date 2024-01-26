@@ -6,6 +6,7 @@ from typing import Optional, Dict, Tuple
 
 from sklearn.decomposition import PCA
 from ._preprocessor import Preprocessor
+from happy.data import HappyData
 
 
 class PCAPreprocessor(Preprocessor):
@@ -42,14 +43,14 @@ class PCAPreprocessor(Preprocessor):
         if percent_pixel > 100:
             raise Exception("'percent_pixels' cannot be larger than 100, provided: %f" % percent_pixel)
 
-    def _do_fit(self, data: np.ndarray, metadata: Optional[Dict] = None):
+    def _do_fit(self, happy_data: HappyData):
         if self.params.get('load', None) is not None:
             with open(self.params.get('load', None), "rb") as fp:
                 self.pca = pickle.load(fp)
         else:
-            num_pixels = data.shape[0] * data.shape[1]
+            num_pixels = happy_data.data.shape[0] * happy_data.data.shape[1]
             # Flatten the data for dimensionality reduction
-            flattened_data = np.reshape(data, (num_pixels, data.shape[2]))
+            flattened_data = np.reshape(happy_data.data, (num_pixels, happy_data.data.shape[2]))
             # Randomly sample pixels?
             percent = self.params.get('percent_pixels', 100)
             if percent != 100:
@@ -68,17 +69,17 @@ class PCAPreprocessor(Preprocessor):
                 with open(self.params.get('save', None), "wb") as fp:
                     pickle.dump(self.pca, fp)
 
-    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
+    def _do_apply(self, happy_data: HappyData) -> HappyData:
         if self.pca is None:
             raise ValueError("PCA model has not been fitted. Call the 'fit' method first.")
 
-        num_pixels = data.shape[0] * data.shape[1]
-        flattened_data = np.reshape(data, (num_pixels, data.shape[2]))
+        num_pixels = happy_data.data.shape[0] * happy_data.data.shape[1]
+        flattened_data = np.reshape(happy_data.data, (num_pixels, happy_data.data.shape[2]))
 
         # Apply PCA transformation to reduce dimensionality
         reduced_data = self.pca.transform(flattened_data)
 
         # Reshape the reduced data back to its original shape
-        processed_data = np.reshape(reduced_data, (data.shape[0], data.shape[1], self.pca.n_components_))
+        processed_data = np.reshape(reduced_data, (happy_data.data.shape[0], happy_data.data.shape[1], self.pca.n_components_))
 
-        return processed_data, metadata
+        return happy_data.copy(data=processed_data)

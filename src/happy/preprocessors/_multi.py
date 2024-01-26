@@ -1,9 +1,7 @@
 import argparse
-import numpy as np
-
-from typing import Optional, Dict, Tuple
 
 from happy.preprocessors import Preprocessor
+from happy.data import HappyData
 
 
 class MultiPreprocessor(Preprocessor):
@@ -26,11 +24,11 @@ class MultiPreprocessor(Preprocessor):
             preprocessor_list = Preprocessor.parse_preprocessors(ns.preprocessors)
         self.params["preprocessor_list"] = preprocessor_list
 
-    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
+    def _do_apply(self, happy_data: HappyData) -> HappyData:
         for preprocessor in self.params.get('preprocessor_list', []):
-            preprocessor.fit(data, metadata)
-            data, metadata = preprocessor.apply(data, metadata)
-        return data, metadata
+            preprocessor.fit(happy_data)
+            happy_data = preprocessor.apply(happy_data)
+        return happy_data
 
     def to_string(self) -> str:
         preprocessor_strings = [preprocessor.to_string() for preprocessor in self.params.get('preprocessor_list', [])]

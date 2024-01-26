@@ -1,5 +1,4 @@
 import abc
-import copy
 from typing import List
 
 from happy.data import HappyData
@@ -45,15 +44,14 @@ class PreprocessorTestCase(HappyDataTestCase, abc.ABC):
         preprocessors = self._regression_setup()
         if len(preprocessors) == 0:
             return
-        data = self._regression_data()
+        data_list = self._regression_data()
         processed_data = []
         for preprocessor in preprocessors:
-            for item in data:
-                preprocessor.fit(item.data)
-                filtered, metadata = preprocessor.apply(item.data)
-                new_data = HappyData(item.sample_id, item.region_id, filtered, copy.deepcopy(item.global_dict), metadata)
+            for data in data_list:
+                preprocessor.fit(data)
+                new_data = preprocessor.apply(data)
                 processed_data.append(new_data)
         regression_data = []
-        for item in processed_data:
-            regression_data.append(self._regression_item_to_str(item))
+        for data in processed_data:
+            regression_data.append(self._regression_item_to_str(data))
         self._compare_regression("\n------\n".join(regression_data))

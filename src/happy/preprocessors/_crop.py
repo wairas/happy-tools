@@ -1,10 +1,10 @@
 import argparse
-import numpy as np
 
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict
 
 from ._preprocessor import Preprocessor
 from ._pad_utils import pad_array
+from happy.data import HappyData
 
 
 class CropPreprocessor(Preprocessor):
@@ -52,7 +52,7 @@ class CropPreprocessor(Preprocessor):
 
         return new_dict
 
-    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
+    def _do_apply(self, happy_data: HappyData) -> HappyData:
         # Crop the numpy array
         x = self.params.get('x', 0)
         y = self.params.get('y', 0)
@@ -60,9 +60,8 @@ class CropPreprocessor(Preprocessor):
         width = self.params.get('width', 0)
         pad = self.params.get('pad', True)
         pad_value = self.params.get('pad_value', 0)
-        self.logger().info(data.shape)
-        # cropped_data = data[y:y + height, x:x + width, :]
-        cropped_data = data[y:y + height, x:x + width, :]
+        self.logger().info(happy_data.data.shape)
+        cropped_data = happy_data.data[y:y + height, x:x + width, :]
         self.logger().info(f"y: {y}")
         self.logger().info(f"height: {height}")
         self.logger().info(f"cropped_data.shape: {cropped_data.shape}")
@@ -71,10 +70,10 @@ class CropPreprocessor(Preprocessor):
             cropped_data = pad_array(cropped_data, height, width, pad_value, logger=self.logger())
         self.logger().info(f"padded: {cropped_data.shape}")
         # Update the pixel_data dictionary
-        new_meta_data = self.update_pixel_data(metadata, x, y, width, height, pad, pad_value)
+        new_meta_data = self.update_pixel_data(happy_data.metadata_dict, x, y, width, height, pad, pad_value)
 
         if (new_meta_data is not None) and ("mask" in new_meta_data) and ("data" in new_meta_data["mask"]):
             self.logger().info("pp shape")
             self.logger().info(new_meta_data["mask"]["data"].shape)
 
-        return cropped_data, new_meta_data
+        return happy_data.copy(data=cropped_data, metadata_dict=new_meta_data)

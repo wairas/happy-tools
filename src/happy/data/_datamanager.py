@@ -3,6 +3,7 @@ import spectral.io.envi as envi
 import traceback
 
 from PIL import Image
+from happy.data import HappyData
 from happy.data.annotations import ContoursManager, Contour
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
@@ -582,8 +583,10 @@ class DataManager:
                 if success and self.preprocessors is not None:
                     self.log("Applying preprocessing: %s" % str(self.preprocessors))
                     result[CALC_PREPROCESSORS_APPLIED] = False
-                    self.preprocessors.fit(self.norm_data)
-                    self.norm_data, _ = self.preprocessors.apply(self.norm_data)
+                    happy_data = HappyData("envi-viewer", "1", self.norm_data, {}, {})
+                    self.preprocessors.fit(happy_data)
+                    new_happy_data = self.preprocessors.apply(happy_data)
+                    self.norm_data = new_happy_data.data
                     result[CALC_PREPROCESSORS_APPLIED] = True
             except:
                 success = False

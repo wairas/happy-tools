@@ -1,9 +1,7 @@
 import abc
-import copy
-import numpy as np
 import os
 
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional
 
 from seppl import split_args, split_cmdline, args_to_objects
 from happy.base.core import PluginWithLogging
@@ -25,19 +23,19 @@ class Preprocessor(PluginWithLogging, abc.ABC):
         """
         pass
 
-    def _do_fit(self, data: np.ndarray, metadata: Optional[Dict] = None):
+    def _do_fit(self, happy_data: HappyData):
         pass
 
-    def fit(self, data: np.ndarray, metadata=None):
+    def fit(self, happy_data: HappyData):
         self._initialize()
-        self._do_fit(data, metadata=metadata)
+        self._do_fit(happy_data)
         
-    def _do_apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
+    def _do_apply(self, happy_data: HappyData) -> HappyData:
         raise NotImplementedError()
 
-    def apply(self, data: np.ndarray, metadata: Optional[Dict] = None) -> Tuple[np.ndarray, Optional[Dict]]:
+    def apply(self, happy_data: HappyData) -> HappyData:
         self._initialize()
-        return self._do_apply(data, metadata=metadata)
+        return self._do_apply(happy_data)
 
     def __str__(self) -> str:
         return self.to_string()
@@ -113,11 +111,8 @@ def apply_preprocessor(happy_data: HappyData, method: 'Preprocessor') -> HappyDa
     :return: the processed data
     :rtype: HappyData
     """
-    method.fit(happy_data.data)
-    # Apply the specified preprocessing
-    preprocessed_data, new_meta_dict = method.apply(happy_data.data, happy_data.metadata_dict)
-    preprocessed_happy_data = HappyData(happy_data.sample_id, happy_data.region_id, preprocessed_data,
-                                        copy.deepcopy(happy_data.global_dict), new_meta_dict)
+    method.fit(happy_data)
+    preprocessed_happy_data = method.apply(happy_data)
     processing_note = {
         "preprocessing": [method.to_string()]
     }
