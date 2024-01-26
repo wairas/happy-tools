@@ -42,7 +42,7 @@ class CriteriaTestCase(HappyRegressionTestCase):
 
         self._compare_regression("\n------\n".join(regression_data))
 
-    def test_load_from_json_file(self):
+    def test_load_from_file_like_object(self):
         """
         Tests loading from json files.
         """
