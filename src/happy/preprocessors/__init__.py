@@ -3,6 +3,7 @@ from ._preprocessor import Preprocessor, apply_preprocessor
 from ._crop import CropPreprocessor
 from ._derivative import DerivativePreprocessor
 from ._downsample import DownsamplePreprocessor
+from ._extract_regions import ExtractRegionsPreprocessor
 from ._multi import MultiPreprocessor
 from ._pad_utils import pad_array
 from ._pad import PadPreprocessor

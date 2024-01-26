@@ -33,6 +33,7 @@
 * [crop](crop.md)
 * [derivative](derivative.md)
 * [down-sample](down-sample.md)
+* [extract-regions](extract-regions.md)
 * [multi-pp](multi-pp.md)
 * [pad](pad.md)
 * [pass-through](pass-through.md)
