@@ -67,7 +67,7 @@ def main():
         raise Exception("Failed to load data for sample ID: %s" % sample_id)
 
     w = WavelengthSubsetPreprocessor(from_index=args.from_index, to_index=args.to_index)
-    d = apply_preprocessor(happy_data[0], w)
+    d = apply_preprocessor(happy_data[0], w)[0]
 
     # List of preprocessors
     pre_processors = Preprocessor.parse_preprocessors(args.preprocessors)
@@ -84,6 +84,8 @@ def main():
     for pre_processor, ax in zip(pre_processors, axes):
         # Apply the current preprocessor to the HappyData
         preprocessed_data = apply_preprocessor(d, pre_processor)
+        if len(preprocessed_data) != 1:
+            logger.warning("Preprocessor %s did not generate exactly one output, but %d!")
         preprocessor_params = pre_processor.to_string()
         ax.set_title(f"Pre-processor: {pre_processor.__class__.__name__} Params: {preprocessor_params}", fontsize=10)
 

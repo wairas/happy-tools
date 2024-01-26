@@ -586,7 +586,10 @@ class DataManager:
                     happy_data = HappyData("envi-viewer", "1", self.norm_data, {}, {})
                     self.preprocessors.fit(happy_data)
                     new_happy_data = self.preprocessors.apply(happy_data)
-                    self.norm_data = new_happy_data.data
+                    if len(new_happy_data) == 1:
+                        self.norm_data = new_happy_data[0].data
+                    else:
+                        self.log("Preprocessing: preprocessors did not generate just a single output, but: %d" % len(new_happy_data))
                     result[CALC_PREPROCESSORS_APPLIED] = True
             except:
                 success = False

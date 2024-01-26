@@ -23,9 +23,9 @@ class SpectroscopyModel(HappyModel, abc.ABC):
                 # Apply HappyPreprocessor if available
                 
                 if self.happy_preprocessor is not None:
-                    happy_data = apply_preprocessor(happy_data, self.happy_preprocessor)
+                    happy_data = apply_preprocessor(happy_data, self.happy_preprocessor)[0]
                 if not added_wavelengths:
-                    dataset['wavelengths']=happy_data.get_wavelengths()
+                    dataset['wavelengths'] = happy_data.get_wavelengths()
                     added_wavelengths = True
                     
                 reshaped_hsi_data = happy_data.get_numpy_yx().reshape(-1, happy_data.get_numpy_yx().shape[2])
@@ -36,8 +36,6 @@ class SpectroscopyModel(HappyModel, abc.ABC):
                     dataset["y_pred"].append(target_value)
                 dataset["x"].append(happy_data.get_numpy_yx().shape[1])
                 dataset["y"].append(happy_data.get_numpy_yx().shape[0])
-                #dataset["y_pred"].append(target_value)
-                #dataset["sample_id"].append(happy_data.get_full_id())
         return dataset
         
     def _generate_dataset(self, sample_ids, is_train=True, return_actuals=False):
@@ -52,9 +50,9 @@ class SpectroscopyModel(HappyModel, abc.ABC):
                 # Apply HappyPreprocessor if available
                 
                 if self.happy_preprocessor is not None:
-                    happy_data = apply_preprocessor(happy_data, self.happy_preprocessor)
+                    happy_data = apply_preprocessor(happy_data, self.happy_preprocessor)[0]
                 if not added_wavelengths:
-                    dataset['wavelengths']=happy_data.get_wavelengths()
+                    dataset['wavelengths'] = happy_data.get_wavelengths()
                     added_wavelengths = True
                 # Apply PixelSelector and collect pixels
                 selected_pixels = self.pixel_selector.select_pixels(happy_data)
@@ -62,7 +60,6 @@ class SpectroscopyModel(HappyModel, abc.ABC):
                 for ind, (x, y, z_data) in enumerate(selected_pixels):
                     # Check if the target value is not missing for the pixel
                     target_value = happy_data.get_meta_data(x=x, y=y, key=self.target)
-                    #print(type(target_value))
                     if target_value is not None and is_train:
                         dataset["X_train"].append(z_data)
                         dataset["y_train"].append(target_value)

@@ -1,5 +1,7 @@
 import argparse
 
+from typing import List
+
 from ._preprocessor import Preprocessor
 from happy.data import HappyData
 
@@ -25,7 +27,7 @@ class WavelengthSubsetPreprocessor(Preprocessor):
         self.params["from_index"] = ns.from_index
         self.params["to_index"] = ns.to_index
 
-    def _do_apply(self, happy_data: HappyData) -> HappyData:
+    def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
         subset_indices = self.params.get('subset_indices', None)
         from_index = self.params.get('from_index', None)
         to_index = self.params.get('to_index', None)
@@ -35,6 +37,6 @@ class WavelengthSubsetPreprocessor(Preprocessor):
         if subset_indices is not None:
             # Select the subset of wavelengths from the data
             subset_data = happy_data.data[:, :, subset_indices]
-            return happy_data.copy(data=subset_data)
+            return [happy_data.copy(data=subset_data)]
         else:
-            return happy_data
+            return [happy_data]

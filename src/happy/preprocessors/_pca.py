@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 import pickle
 
-from typing import Optional, Dict, Tuple
+from typing import List
 
 from sklearn.decomposition import PCA
 from ._preprocessor import Preprocessor
@@ -69,7 +69,7 @@ class PCAPreprocessor(Preprocessor):
                 with open(self.params.get('save', None), "wb") as fp:
                     pickle.dump(self.pca, fp)
 
-    def _do_apply(self, happy_data: HappyData) -> HappyData:
+    def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
         if self.pca is None:
             raise ValueError("PCA model has not been fitted. Call the 'fit' method first.")
 
@@ -82,4 +82,4 @@ class PCAPreprocessor(Preprocessor):
         # Reshape the reduced data back to its original shape
         processed_data = np.reshape(reduced_data, (happy_data.data.shape[0], happy_data.data.shape[1], self.pca.n_components_))
 
-        return happy_data.copy(data=processed_data)
+        return [happy_data.copy(data=processed_data)]

@@ -1,6 +1,6 @@
 import argparse
 
-from typing import Dict
+from typing import Dict, List
 
 from ._preprocessor import Preprocessor
 from happy.data import HappyData
@@ -41,10 +41,10 @@ class DownsamplePreprocessor(Preprocessor):
 
         return new_dict
 
-    def _do_apply(self, happy_data: HappyData) -> HappyData:
+    def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
         xth = self.params.get('xth', 2)
         yth = self.params.get('yth', 2)
         downsampled_data = happy_data.data[:, ::xth, :]
         downsampled_data = downsampled_data[::yth, :, :]
         new_meta_data = self.update_pixel_data(happy_data.metadata_dict, xth, yth)
-        return happy_data.copy(data=downsampled_data, metadata_dict=new_meta_data)
+        return [happy_data.copy(data=downsampled_data, metadata_dict=new_meta_data)]

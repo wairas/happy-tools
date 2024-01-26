@@ -1,6 +1,6 @@
 import argparse
 
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from ._preprocessor import Preprocessor
 from ._pad_utils import pad_array
@@ -52,7 +52,7 @@ class CropPreprocessor(Preprocessor):
 
         return new_dict
 
-    def _do_apply(self, happy_data: HappyData) -> HappyData:
+    def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
         # Crop the numpy array
         x = self.params.get('x', 0)
         y = self.params.get('y', 0)
@@ -76,4 +76,4 @@ class CropPreprocessor(Preprocessor):
             self.logger().info("pp shape")
             self.logger().info(new_meta_data["mask"]["data"].shape)
 
-        return happy_data.copy(data=cropped_data, metadata_dict=new_meta_data)
+        return [happy_data.copy(data=cropped_data, metadata_dict=new_meta_data)]

@@ -453,12 +453,17 @@ class ViewerApp:
         self.green_scale.configure(to=num_bands - 1)
         self.blue_scale.configure(to=num_bands - 1)
         if r >= num_bands:
-            self.red_scale.set(num_bands - 1)
+            self.state_scale_r.set(num_bands - 1)
         if g >= num_bands:
-            self.red_scale.set(num_bands - 1)
+            self.state_scale_g.set(num_bands - 1)
         if b >= num_bands:
-            self.red_scale.set(num_bands - 1)
+            self.state_scale_b.set(num_bands - 1)
         self.label_dims.configure(text=DIMENSIONS % dimensions)
+
+        # update text
+        self.on_scale_r_changed(None)
+        self.on_scale_g_changed(None)
+        self.on_scale_b_changed(None)
 
         self.ignore_updates = False
         if do_update:

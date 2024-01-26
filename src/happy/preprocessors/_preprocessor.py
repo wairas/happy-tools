@@ -30,10 +30,10 @@ class Preprocessor(PluginWithLogging, abc.ABC):
         self._initialize()
         self._do_fit(happy_data)
         
-    def _do_apply(self, happy_data: HappyData) -> HappyData:
+    def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
         raise NotImplementedError()
 
-    def apply(self, happy_data: HappyData) -> HappyData:
+    def apply(self, happy_data: HappyData) -> List[HappyData]:
         self._initialize()
         return self._do_apply(happy_data)
 
@@ -100,7 +100,7 @@ class Preprocessor(PluginWithLogging, abc.ABC):
             return args_to_objects(args, plugins, allow_global_options=False)
 
 
-def apply_preprocessor(happy_data: HappyData, method: 'Preprocessor') -> HappyData:
+def apply_preprocessor(happy_data: HappyData, method: 'Preprocessor') -> List[HappyData]:
     """
     Applies the preprocessing method to the data.
 
@@ -108,14 +108,15 @@ def apply_preprocessor(happy_data: HappyData, method: 'Preprocessor') -> HappyDa
     :type happy_data: HappyData
     :param method: the preprocessing method to apply
     :type method: Preprocessor
-    :return: the processed data
-    :rtype: HappyData
+    :return: the list of processed data
+    :rtype: list
     """
     method.fit(happy_data)
-    preprocessed_happy_data = method.apply(happy_data)
-    processing_note = {
-        "preprocessing": [method.to_string()]
-    }
-    preprocessed_happy_data.add_preprocessing_note(processing_note)
+    new_happy_data = method.apply(happy_data)
+    for item in new_happy_data:
+        processing_note = {
+            "preprocessing": [method.to_string()]
+        }
+        item.add_preprocessing_note(processing_note)
 
-    return preprocessed_happy_data
+    return new_happy_data

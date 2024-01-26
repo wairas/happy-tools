@@ -1,5 +1,7 @@
 import argparse
 
+from typing import List
+
 from happy.preprocessors import Preprocessor
 from happy.data import HappyData
 
@@ -24,11 +26,16 @@ class MultiPreprocessor(Preprocessor):
             preprocessor_list = Preprocessor.parse_preprocessors(ns.preprocessors)
         self.params["preprocessor_list"] = preprocessor_list
 
-    def _do_apply(self, happy_data: HappyData) -> HappyData:
+    def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
+        happy_data_list = [happy_data]
         for preprocessor in self.params.get('preprocessor_list', []):
-            preprocessor.fit(happy_data)
-            happy_data = preprocessor.apply(happy_data)
-        return happy_data
+            tmp_list = []
+            for item in happy_data_list:
+                preprocessor.fit(item)
+                new_happy_data_list = preprocessor.apply(item)
+                tmp_list.extend(new_happy_data_list)
+            happy_data_list = tmp_list
+        return happy_data_list
 
     def to_string(self) -> str:
         preprocessor_strings = [preprocessor.to_string() for preprocessor in self.params.get('preprocessor_list', [])]

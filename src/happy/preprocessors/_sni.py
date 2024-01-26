@@ -1,6 +1,8 @@
 import argparse
 import numpy as np
 
+from typing import List
+
 from ._preprocessor import Preprocessor
 from happy.data import HappyData
 
@@ -61,8 +63,8 @@ class SpectralNoiseInterpolator(Preprocessor):
 
         return interpolated_data
 
-    def _do_apply(self, happy_data: HappyData) -> HappyData:
+    def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
         gradient_data = self.calculate_gradient(happy_data.data)
         noisy_pixel_indices = self.identify_noisy_pixels(gradient_data)
         interpolated_data = self.interpolate_noisy_pixels(happy_data.data, noisy_pixel_indices, gradient_data)
-        return happy_data.copy(data=interpolated_data)
+        return [happy_data.copy(data=interpolated_data)]
