@@ -3,17 +3,20 @@ import argparse
 import os
 
 from typing import Optional, List
-from seppl import Plugin, split_args, split_cmdline, args_to_objects
+from seppl import split_args, split_cmdline, args_to_objects
 from happy.base.registry import REGISTRY
+from happy.base.core import PluginWithLogging
+from happy.data import HappyData
 
 
-class RegionExtractor(Plugin, abc.ABC):
+class RegionExtractor(PluginWithLogging, abc.ABC):
 
-    def __init__(self, region_size=None, target_name=None):
+    def __init__(self, region_size=None, target_name: str = None):
+        super().__init__()
         self.target_name = target_name
         self.region_size = region_size
 
-    def _add_argparse_region_size(self, parser, t, h, d, nargs=None):
+    def _add_argparse_region_size(self, parser: argparse.ArgumentParser, t, h: str, d, nargs=None):
         parser.add_argument("-r", "--region_size", type=t, help=h, required=(d is None), default=d, nargs=nargs)
 
     def _create_argparser(self) -> argparse.ArgumentParser:
@@ -28,19 +31,19 @@ class RegionExtractor(Plugin, abc.ABC):
         if "region_size" in ns:
             self.region_size = ns.region_size
 
-    def is_compatible(self, region):
+    def is_compatible(self, region: 'RegionExtractor') -> bool:
         return self.region_size == region.region_size
     
-    def extract_regions(self, happy_data):
+    def extract_regions(self, happy_data: HappyData) -> List[HappyData]:
         # Get metadata for target names    
         regions = self._extract_regions(happy_data)
         regions = self.add_target_data(regions)           
         return regions
 
-    def _extract_regions(self, id):
+    def _extract_regions(self, happy_data: HappyData) -> List[HappyData]:
         raise NotImplementedError()
-        
-    def add_target_data(self, regions):
+
+    def add_target_data(self, regions: List[HappyData]) -> List[HappyData]:
         return regions
 
     @classmethod

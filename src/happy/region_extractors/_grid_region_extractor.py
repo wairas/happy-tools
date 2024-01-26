@@ -1,11 +1,15 @@
 import argparse
+
+from typing import List
+
 from ._region_extractor import RegionExtractor
 from happy.preprocessors import CropPreprocessor, apply_preprocessor
+from happy.data import HappyData
 
 
 class GridRegionExtractor(RegionExtractor):
 
-    def __init__(self, region_size=None, truncate_regions=False, target_name="THCA"):
+    def __init__(self, region_size=None, truncate_regions: bool = False, target_name: str = "THCA"):
         super().__init__(target_name=target_name, region_size=region_size)
         self.truncate_regions = truncate_regions
 
@@ -25,7 +29,7 @@ class GridRegionExtractor(RegionExtractor):
         super()._apply_args(ns)
         self.truncate_regions = ns.truncate_regions
 
-    def _extract_regions(self, happy_data):
+    def _extract_regions(self, happy_data: HappyData) -> List[HappyData]:
         regions = []
 
         width, height = happy_data.width, happy_data.height

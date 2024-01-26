@@ -4,7 +4,7 @@ import numpy as np
 from typing import Dict, List, Tuple, Union, Optional
 
 from spectral import SpyFile
-from happy.criteria import Criteria
+from happy.criteria import Criteria, CriteriaGroup
 
 
 MASK_MAP = "mask-map"
@@ -45,7 +45,7 @@ class HappyData:
         return None, None
     """    
         
-    def find_pixels_with_criteria(self, criteria: Criteria, calculate_centroid: bool = True) -> Tuple[List[Tuple], Tuple]:
+    def find_pixels_with_criteria(self, criteria: Union[Criteria, CriteriaGroup], calculate_centroid: bool = True) -> Tuple[List[Tuple], Tuple]:
         x_coords = []
         y_coords = []
         valid_xy_pairs = []

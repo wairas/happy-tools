@@ -1,17 +1,21 @@
 import argparse
 import json
+
+from typing import List
+
 from ._region_extractor import RegionExtractor
 from happy.criteria import Criteria, CriteriaGroup, OP_NOT_MISSING, OP_IN
 from happy.preprocessors import CropPreprocessor, apply_preprocessor
+from happy.data import HappyData
 
 
 class ObjectRegionExtractor(RegionExtractor):
 
-    def __init__(self, object_key=None, region_size=(128, 128), target_name=None, obj_values=None, base_criteria=[]):
+    def __init__(self, object_key=None, region_size=(128, 128), target_name: str = None, obj_values=None, base_criteria=()):
         super().__init__(region_size, target_name)
         self.object_key = object_key
         self.obj_values = obj_values
-        self.base_criteria = base_criteria
+        self.base_criteria = list(base_criteria)
 
     def name(self) -> str:
         return "re-object"
@@ -36,17 +40,17 @@ class ObjectRegionExtractor(RegionExtractor):
         self.obj_values = obj_values
         self.base_criteria = [Criteria.from_json(c) for c in ns.base_criteria]
 
-    def get_object_value(self, happy_data):
+    def get_object_value(self, happy_data: HappyData):
         # TODO undefined member?
         return self.obj_name
         
-    def _extract_regions(self, happy_data):
+    def _extract_regions(self, happy_data: HappyData) -> List[HappyData]:
         object_values = self.obj_values
         if object_values is None:
             object_values = happy_data.get_unique_values(self.object_key)
-        
-        print(object_values)
-      
+
+        self.logger().info("object_values: %s" % str(object_values))
+
         criteria_list = self.base_criteria
         if self.target_name is not None:
             criteria_list.extend([Criteria(OP_NOT_MISSING, key=self.target_name)])
@@ -73,8 +77,4 @@ class ObjectRegionExtractor(RegionExtractor):
             new_happy_data = apply_preprocessor(happy_data, CropPreprocessor(x=x_min, y=y_min, width=x_max-x_min, height=y_max-y_min))
             new_happy_data.append_region_name(str(obj_value))
             regions.append(new_happy_data)
-        return regions
-    
-    def add_target_data(self, regions):
-        # already added by the region extractor
         return regions
