@@ -1,0 +1,20 @@
+{
+  "class": "happy.criteria.CriteriaGroup",
+  "criteria_list": [
+    {
+      "class": "happy.criteria.Criteria",
+      "operation": "not_missing",
+      "value": [
+        2,
+        3
+      ],
+      "key": "type"
+    },
+    {
+      "class": "happy.criteria.Criteria",
+      "operation": "equals",
+      "value": 1,
+      "key": "type"
+    }
+  ]
+}

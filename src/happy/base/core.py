@@ -124,18 +124,22 @@ class ConfigurableObject:
         """
         Instantiates and returns a ConfigurableObject from the json data.
 
-        :param f: the filename (str) or file-like object
+        :param f: the filename/json (str) or file-like object
         :param c: the class to use instead of any stored in the json
         :type c: type
         :return: the instantiated object
         """
         if isinstance(f, str):
-            d = json.loads(f)
-            return cls.create_from_dict(d, c=c)
-        else:
-            with open(f, "r") as fp:
-                d = json.load(fp)
+            if f.strip().startswith("{"):
+                d = json.loads(f)
                 return cls.create_from_dict(d, c=c)
+            elif os.path.exists(f):
+                with open(f, "r") as fp:
+                    d = json.load(fp)
+                return cls.create_from_dict(d, c=c)
+        else:
+            d = json.load(f)
+            return cls.create_from_dict(d, c=c)
 
 
 def get_default_loglevel(default_level: str = wai.logging.LOGGING_WARNING):

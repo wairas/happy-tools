@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from happy.base.core import ConfigurableObject
@@ -32,7 +33,25 @@ class CriteriaTestCase(HappyRegressionTestCase):
         cng = ConfigurableObject.from_json(cg.to_json())
         regression_data.append(str(cng))
 
+        c = ConfigurableObject.from_json(os.path.join(self._data_dir(), "criteria.json"))
+        self.assertEqual(Criteria, type(c), msg="Incorrect type!")
+        regression_data.append(str(c))
+        cg = ConfigurableObject.from_json(os.path.join(self._data_dir(), "criteriagroup.json"))
+        self.assertEqual(CriteriaGroup, type(cg), msg="Incorrect type!")
+        regression_data.append(str(cg))
+
         self._compare_regression("\n------\n".join(regression_data))
+
+    def test_load_from_json_file(self):
+        """
+        Tests loading from json files.
+        """
+        with open(os.path.join(self._data_dir(), "criteria.json"), "r") as fp:
+            c = ConfigurableObject.from_json(fp)
+            self.assertEqual(Criteria, type(c), msg="Incorrect type!")
+        with open(os.path.join(self._data_dir(), "criteriagroup.json"), "r") as fp:
+            cg = ConfigurableObject.from_json(fp)
+            self.assertEqual(CriteriaGroup, type(cg), msg="Incorrect type!")
 
 
 def suite():
