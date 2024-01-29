@@ -17,6 +17,17 @@ class RegionExtractor(PluginWithLogging, abc.ABC):
         self.region_size = region_size
 
     def _add_argparse_region_size(self, parser: argparse.ArgumentParser, t, h: str, d, nargs=None):
+        """
+        Adds the region_size parameter to the parser.
+
+        :param parser: the parser to update
+        :type parser: argparse.ArgumentParser
+        :param t: the type of the parameter
+        :param h: the help text
+        :type h: str
+        :param d: the default value
+        :param nargs: the nargs definition, eg "+"/"*"/2
+        """
         parser.add_argument("-r", "--region_size", type=t, help=h, required=(d is None), default=d, nargs=nargs)
 
     def _create_argparser(self) -> argparse.ArgumentParser:
