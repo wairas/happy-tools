@@ -76,5 +76,6 @@ class ObjectRegionExtractor(RegionExtractor):
 
             new_happy_data = apply_preprocessor(happy_data, CropPreprocessor(x=x_min, y=y_min, width=x_max-x_min, height=y_max-y_min))[0]
             new_happy_data.append_region_name(str(obj_value))
+            new_happy_data.append_region_name("%d,%d,%d,%d" % (x_min, y_min, x_max-x_min, y_max-y_min))
             regions.append(new_happy_data)
         return regions
