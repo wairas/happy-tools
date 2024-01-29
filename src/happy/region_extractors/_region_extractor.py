@@ -37,7 +37,8 @@ class RegionExtractor(PluginWithLogging, abc.ABC):
     def extract_regions(self, happy_data: HappyData) -> List[HappyData]:
         # Get metadata for target names    
         regions = self._extract_regions(happy_data)
-        regions = self.add_target_data(regions)           
+        regions = self.add_target_data(regions)
+        # TODO add processing note
         return regions
 
     def _extract_regions(self, happy_data: HappyData) -> List[HappyData]:
