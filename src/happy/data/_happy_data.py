@@ -205,7 +205,8 @@ class HappyData:
 
         return envi_image
 
-    def copy(self, sample_id: str = None, region_id: str = None, data: np.ndarray = None, global_dict: Dict = None, metadata_dict: Dict = None) -> 'HappyData':
+    def copy(self, sample_id: str = None, region_id: str = None, data: np.ndarray = None,
+             global_dict: Dict = None, metadata_dict: Dict = None, wavenumbers: List = None) -> 'HappyData':
         """
         Returns a new HappyData instance, filling in any None parameters with copies of its own values.
 
@@ -219,6 +220,8 @@ class HappyData:
         :type global_dict: dict
         :param metadata_dict: the meta-data
         :type metadata_dict: dict
+        :param wavenumbers: the wave numbers
+        :type wavenumbers: list
         :return: the new HappyData instance
         :rtype: HappyData
         """
@@ -232,4 +235,7 @@ class HappyData:
             global_dict = copy.deepcopy(self.global_dict)
         if metadata_dict is None:
             metadata_dict = copy.deepcopy(self.metadata_dict)
-        return HappyData(sample_id, region_id, data, global_dict, metadata_dict)
+        if wavenumbers is None:
+            if self.wavenumbers is not None:
+                wavenumbers = copy.deepcopy(self.wavenumbers)
+        return HappyData(sample_id, region_id, data, global_dict, metadata_dict, wavenumbers=wavenumbers)
