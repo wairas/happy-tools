@@ -52,6 +52,7 @@ class PreprocessorTestCase(HappyDataTestCase, abc.ABC):
                 new_data = preprocessor.apply(data)
                 processed_data.append(new_data)
         regression_data = []
-        for data in processed_data:
-            regression_data.append(self._regression_item_to_str(data))
+        for data_list in processed_data:
+            for data in data_list:
+                regression_data.append(self._regression_item_to_str(data))
         self._compare_regression("\n------\n".join(regression_data))
