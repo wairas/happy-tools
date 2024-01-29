@@ -37,6 +37,9 @@ class WavelengthSubsetPreprocessor(Preprocessor):
         if subset_indices is not None:
             # Select the subset of wavelengths from the data
             subset_data = happy_data.data[:, :, subset_indices]
-            return [happy_data.copy(data=subset_data)]
+            wavenumbers = None
+            if happy_data.wavenumbers is not None:
+                wavenumbers = [happy_data.wavenumbers[x] for x in subset_indices]
+            return [happy_data.copy(data=subset_data, wavenumbers=wavenumbers)]
         else:
             return [happy_data]
