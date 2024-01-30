@@ -2,17 +2,20 @@ import json
 import os
 import random
 
+from typing import List, Tuple
+
 from sklearn.model_selection import train_test_split
 
 
 class HappySplitter:
-    def __init__(self, happy_base_folder):
+
+    def __init__(self, happy_base_folder: str):
         self.happy_base_folder = happy_base_folder
         self.splits = []
         self.holdout_ids = []
         
     @staticmethod
-    def load_splits_from_json(json_file):
+    def load_splits_from_json(json_file: str):
         with open(json_file, 'r') as f:
             split_data = json.load(f)
         
@@ -21,10 +24,10 @@ class HappySplitter:
         splitter.holdout_ids = split_data["holdout_ids"]
         return splitter
         
-    def get_holdout_ids(self):
+    def get_holdout_ids(self) -> List[str]:
         return self.holdout_ids
         
-    def get_train_validation_test_splits(self, repeat_idx, fold_idx):
+    def get_train_validation_test_splits(self, repeat_idx: int, fold_idx: int) -> Tuple[List[str], List[str], List[str]]:
         if repeat_idx >= len(self.splits) or fold_idx >= len(self.splits[repeat_idx]['repeats']):
             raise ValueError("Invalid repeat or fold index.")
         
@@ -36,12 +39,12 @@ class HappySplitter:
         
         return train_ids, validation_ids, test_ids
 
-    def save_splits_to_json(self, json_file):
+    def save_splits_to_json(self, json_file: str):
         split_data = {"happy_base_folder": self.happy_base_folder, "splits": self.splits, "holdout_ids": self.holdout_ids}
         with open(json_file, "w") as f:
             json.dump(split_data, f, indent=4)
 
-    def _get_all_sample_ids(self, use_regions):
+    def _get_all_sample_ids(self, use_regions: bool) -> List[str]:
         all_sample_ids = []
 
         if use_regions:
@@ -60,7 +63,7 @@ class HappySplitter:
 
         return all_sample_ids
 
-    def generate_splits(self, num_repeats, num_folds, train_percent, validation_percent, use_regions, holdout_percent=None):
+    def generate_splits(self, num_repeats: int, num_folds: int, train_percent: float, validation_percent: float, use_regions: bool, holdout_percent: float = None):
         all_sample_ids = self._get_all_sample_ids(use_regions)
 
         # Calculate the number of examples to hold out
