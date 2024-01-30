@@ -3,10 +3,10 @@ import os
 from typing import List, Optional, Tuple
 
 import numpy as np
+import scipy.io as sio
 
 from happy.data import HappyData
 from ._happydata_reader import HappyDataReader
-from ._mat_reader import MatReader
 
 
 class MatlabReader(HappyDataReader):
@@ -52,24 +52,22 @@ class MatlabReader(HappyDataReader):
         metadata_dict = {}
 
         # read matlab
-        reader = MatReader(
-            self.base_dir,
-            None,
-            "normcube",
-            wavelengths_struct="lambda"
-        )
-        reader.load_data("%s.%s" % (sample_id, region_name))
+        filename = os.path.join(self.base_dir, "%s.%s.mat" % (sample_id, region_name))
+        mat_file = sio.loadmat(filename)
 
         # data
-        data = reader.data
+        data = mat_file["normcube"]
 
         # wavelengths
-        wavelengths = reader.wavelengths
+        wavelengths = mat_file["lambda"]
+        if wavelengths is None:
+            arr = data[0, 0, :]
+            wavelengths = np.arange(arr.size)
 
         # mask
-        if "FinalMask" in reader.mat_file:
+        if "FinalMask" in mat_file:
             mask_meta = {}
-            mask = reader.mat_file["FinalMask"]
+            mask = mat_file["FinalMask"]
             mask = np.expand_dims(mask, -1)  # add third dimension for envi
             mask_meta["data"] = mask
             mapping = {}
