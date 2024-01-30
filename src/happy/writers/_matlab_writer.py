@@ -44,9 +44,6 @@ class MatlabWriter(HappyDataWriter):
             save_dic["lambda"] = happy_data.wavenumbers
         if "mask" in happy_data.metadata_dict:
             save_dic["FinalMask"] = np.squeeze(happy_data.metadata_dict["mask"]["data"])
-        # TODO ceiling?
-        # TODO class?
-        # TODO y?
         sio.savemat(filepath, save_dic)
 
     def _write_data(self, happy_data_or_list, datatype_mapping=None):
