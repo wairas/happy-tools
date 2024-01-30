@@ -1,12 +1,15 @@
 # sni
 
-Spectral noise interpolation
+Spectral noise interpolation. For each pixel it looks at the gradient between wavelengths and compares it against the average gradient of surrounding pixels. If that difference is larger than the specified threshold (= noisy) then interpolate this wavelength.
 
 ```
 usage: sni [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [-A LOGGER_NAME]
            [-t THRESHOLD]
 
-Spectral noise interpolation
+Spectral noise interpolation. For each pixel it looks at the gradient between
+wavelengths and compares it against the average gradient of surrounding
+pixels. If that difference is larger than the specified threshold (= noisy)
+then interpolate this wavelength.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -15,5 +18,6 @@ optional arguments:
   -A LOGGER_NAME, --logger_name LOGGER_NAME
                         The custom name to use for the logger (default: None)
   -t THRESHOLD, --threshold THRESHOLD
-                        TODO (default: 0.8)
+                        The threshold for identifying noisy pixels. (default:
+                        0.8)
 ```

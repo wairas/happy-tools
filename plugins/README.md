@@ -58,4 +58,3 @@
 * [re-full](re-full.md)
 * [re-grid](re-grid.md)
 * [re-object](re-object.md)
-* [re-object-from-id](re-object-from-id.md)

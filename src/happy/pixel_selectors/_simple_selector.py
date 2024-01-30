@@ -14,7 +14,7 @@ class SimpleSelector(BasePixelSelector):
         return "ps-simple"
 
     def description(self) -> str:
-        return "TODO"
+        return "Returns the spectrum at the requested x/y location."
 
     def get_at(self, happy_data: HappyData, x: int, y: int) -> Optional[Union[int, float]]:
         return happy_data.get_spectrum(x, y)

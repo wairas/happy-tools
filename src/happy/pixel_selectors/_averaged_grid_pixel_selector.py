@@ -18,11 +18,11 @@ class AveragedGridSelector(BasePixelSelector):
         return "ps-grid-wise"
 
     def description(self) -> str:
-        return "TODO"
+        return "Averages the pixels in the defined grid and returns that."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-g", "--grid_size", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-g", "--grid_size", type=int, help="Width and height of the grid to use", required=False, default=0)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):

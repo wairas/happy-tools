@@ -19,11 +19,11 @@ class ColumnWisePixelSelector(BasePixelSelector):
         return "ps-column-wise"
 
     def description(self) -> str:
-        return "TODO"
+        return "Calculates the average of randomly selected pixels per column."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-C", "--column", type=int, help="TODO", required=False, default=0)
+        parser.add_argument("-C", "--column", type=int, help="The column to select pixels from (0-based index).", required=False, default=0)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
@@ -47,6 +47,7 @@ class ColumnWisePixelSelector(BasePixelSelector):
             print("!!NONE")
         column_pixels = []
         all_ys = list(range(happy_data.height))
+        # TODO seed rng
         random.shuffle(all_ys)
         enough = False
         for num in all_ys:

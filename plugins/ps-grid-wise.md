@@ -1,12 +1,12 @@
 # ps-grid-wise
 
-TODO
+Averages the pixels in the defined grid and returns that.
 
 ```
 usage: ps-grid-wise [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                     [-A LOGGER_NAME] -n N [-c CRITERIA] [-b] [-g GRID_SIZE]
 
-TODO
+Averages the pixels in the defined grid and returns that.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -21,5 +21,5 @@ optional arguments:
   -b, --include_background
                         Whether to include the background (default: False)
   -g GRID_SIZE, --grid_size GRID_SIZE
-                        TODO (default: 0)
+                        Width and height of the grid to use (default: 0)
 ```

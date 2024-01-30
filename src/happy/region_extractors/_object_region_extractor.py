@@ -21,7 +21,7 @@ class ObjectRegionExtractor(RegionExtractor):
         return "re-object"
 
     def description(self) -> str:
-        return "TODO"
+        return "Extracts a region around objects with the specified object-data key in the meta-data."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
@@ -40,10 +40,6 @@ class ObjectRegionExtractor(RegionExtractor):
         self.obj_values = obj_values
         self.base_criteria = [Criteria.from_json(c) for c in ns.base_criteria]
 
-    def get_object_value(self, happy_data: HappyData):
-        # TODO undefined member?
-        return self.obj_name
-        
     def _extract_regions(self, happy_data: HappyData) -> List[HappyData]:
         object_values = self.obj_values
         if object_values is None:

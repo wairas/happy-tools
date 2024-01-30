@@ -1,12 +1,12 @@
 # ps-simple
 
-TODO
+Returns the spectrum at the requested x/y location.
 
 ```
 usage: ps-simple [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                  [-A LOGGER_NAME] -n N [-c CRITERIA] [-b]
 
-TODO
+Returns the spectrum at the requested x/y location.
 
 optional arguments:
   -h, --help            show this help message and exit

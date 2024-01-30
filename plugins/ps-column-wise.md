@@ -1,12 +1,12 @@
 # ps-column-wise
 
-TODO
+Calculates the average of randomly selected pixels per column.
 
 ```
 usage: ps-column-wise [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                       [-A LOGGER_NAME] -n N [-c CRITERIA] [-b] [-C COLUMN]
 
-TODO
+Calculates the average of randomly selected pixels per column.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -21,5 +21,6 @@ optional arguments:
   -b, --include_background
                         Whether to include the background (default: False)
   -C COLUMN, --column COLUMN
-                        TODO (default: 0)
+                        The column to select pixels from (0-based index).
+                        (default: 0)
 ```

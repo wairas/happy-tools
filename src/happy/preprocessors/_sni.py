@@ -13,20 +13,19 @@ class SpectralNoiseInterpolator(Preprocessor):
         return "sni"
 
     def description(self) -> str:
-        return "Spectral noise interpolation"
+        return "Spectral noise interpolation. For each pixel it looks at the gradient between "\
+               "wavelengths and compares it against the average gradient of surrounding pixels. "\
+               "If that difference is larger than the specified threshold (= noisy) then "\
+               "interpolate this wavelength."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-t", "--threshold", type=float, help="TODO", required=False, default=0.8)
-        # TODO not used?
-        #parser.add_argument("-n", "--neighborhood_size", type=int, help="TODO", required=False, default=2)
+        parser.add_argument("-t", "--threshold", type=float, help="The threshold for identifying noisy pixels.", required=False, default=0.8)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
         super()._apply_args(ns)
         self.params['threshold'] = ns.threshold
-        # TODO not used?
-        #self.params['neighborhood_size'] = ns.neighborhood_size
 
     def calculate_gradient(self, data: np.ndarray) -> np.ndarray:
         # Calculate the gradient along the spectral dimension

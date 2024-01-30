@@ -1,6 +1,6 @@
 # re-object
 
-TODO
+Extracts a region around objects with the specified object-data key in the meta-data.
 
 ```
 usage: re-object [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
@@ -8,7 +8,8 @@ usage: re-object [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                  [-r REGION_SIZE REGION_SIZE] [-k OBJECT_KEY] [-o OBJ_VALUES]
                  [-c [BASE_CRITERIA [BASE_CRITERIA ...]]]
 
-TODO
+Extracts a region around objects with the specified object-data key in the
+meta-data.
 
 optional arguments:
   -h, --help            show this help message and exit
