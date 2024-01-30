@@ -1,8 +1,10 @@
 import os
 
+from typing import Optional, List, Union
+
 
 class SampleIDHandler:
-    def __init__(self, base_folder):
+    def __init__(self, base_folder: str):
         self.base_folder = base_folder
         self.sample_ids = {}
         self.scan()
@@ -20,23 +22,23 @@ class SampleIDHandler:
                     if sample_id in self.sample_ids:
                         self.sample_ids[sample_id]["sub_ids"][dir_name] = full_folder_path
 
-    def get_all_sample_ids(self):
+    def get_all_sample_ids(self) -> List[str]:
         return list(self.sample_ids.keys())
 
-    def get_all_sub_sample_ids(self, sample_id):
+    def get_all_sub_sample_ids(self, sample_id: str) -> List[str]:
         if sample_id in self.sample_ids:
             return list(self.sample_ids[sample_id]["sub_ids"].keys())
         return []
 
-    def get_full_sample_folder(self, sample_id):
+    def get_full_sample_folder(self, sample_id: str) -> Optional[str]:
         return self.sample_ids.get(sample_id, {}).get("path", None)
 
-    def get_full_sub_sample_folder(self, sample_id, sub_sample_id):
+    def get_full_sub_sample_folder(self, sample_id: str, sub_sample_id: str) -> Optional[str]:
         if sample_id in self.sample_ids and sub_sample_id in self.sample_ids[sample_id]["sub_ids"]:
             return self.sample_ids[sample_id]["sub_ids"][sub_sample_id]
         return None
 
-    def to_sample_id(self, folder_path):
+    def to_sample_id(self, folder_path: str) -> Union[Optional[str], List[str]]:
         rel_path = os.path.relpath(folder_path, self.base_folder)
         
         if os.path.sep in rel_path:
@@ -52,7 +54,7 @@ class SampleIDHandler:
         
         return None
 
-    def to_path(self, sample_id):
+    def to_path(self, sample_id: str) -> Optional[str]:
         if ":" in sample_id:
             sample_id, sub_id = sample_id.split(":")
             sub_path = self.get_full_sub_sample_folder(sample_id, sub_id)
@@ -60,7 +62,7 @@ class SampleIDHandler:
                 return os.path.join(self.base_folder, sub_path)
         else:
             sample_path = self.get_full_sample_folder(sample_id)
-            if sample_path:
+            if sample_path is not None:
                 return os.path.join(self.base_folder, sample_path)
         
         return None
