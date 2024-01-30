@@ -5,6 +5,7 @@ Calculates the average of randomly selected pixels per column.
 ```
 usage: ps-column-wise [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                       [-A LOGGER_NAME] -n N [-c CRITERIA] [-b] [-C COLUMN]
+                      [-S SEED]
 
 Calculates the average of randomly selected pixels per column.
 
@@ -23,4 +24,6 @@ optional arguments:
   -C COLUMN, --column COLUMN
                         The column to select pixels from (0-based index).
                         (default: 0)
+  -S SEED, --seed SEED  The seed to use for reproducible results (default:
+                        None)
 ```
