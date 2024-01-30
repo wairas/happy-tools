@@ -19,7 +19,10 @@ class MatlabWriter(HappyDataWriter):
         return "matlab-writer"
 
     def description(self) -> str:
-        return "Writes data in Matlab format."
+        return "Writes data in HAPPy's Matlab format. "\
+               "'normcube': spectral data, 'lambda': wave numbers, "\
+               "'FinalMask': the pixel annotation mask, "\
+               "'FinalMaskLabels': the mask pixel index -> label relation table"
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
@@ -44,6 +47,12 @@ class MatlabWriter(HappyDataWriter):
             save_dic["lambda"] = happy_data.wavenumbers
         if "mask" in happy_data.metadata_dict:
             save_dic["FinalMask"] = np.squeeze(happy_data.metadata_dict["mask"]["data"])
+            # store label mapping: pixel index -> label
+            if "mapping" in happy_data.metadata_dict["mask"]:
+                mapping_list = []
+                for k in happy_data.metadata_dict["mask"]["mapping"]:
+                    mapping_list.append([k, happy_data.metadata_dict["mask"]["mapping"][k]])
+                save_dic["FinalMaskLabels"] = mapping_list
         sio.savemat(filepath, save_dic)
 
     def _write_data(self, happy_data_or_list, datatype_mapping=None):

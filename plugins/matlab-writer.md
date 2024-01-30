@@ -1,12 +1,14 @@
 # matlab-writer
 
-Writes data in Matlab format.
+Writes data in HAPPy's Matlab format. 'normcube': spectral data, 'lambda': wave numbers, 'FinalMask': the pixel annotation mask, 'FinalMaskLabels': the mask pixel index -> label relation table
 
 ```
 usage: matlab-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                      [-A LOGGER_NAME] -b BASE_DIR [-o OUTPUT]
 
-Writes data in Matlab format.
+Writes data in HAPPy's Matlab format. 'normcube': spectral data, 'lambda':
+wave numbers, 'FinalMask': the pixel annotation mask, 'FinalMaskLabels': the
+mask pixel index -> label relation table
 
 optional arguments:
   -h, --help            show this help message and exit

@@ -1,12 +1,14 @@
 # matlab-reader
 
-Reads data in HAPPy's Matlab format.
+Reads data in HAPPY's Matlab format. 'normcube': spectral data, 'lambda': wave numbers, 'FinalMask': the pixel annotation mask, 'FinalMaskLabels': the mask pixel index -> label relation table
 
 ```
 usage: matlab-reader [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                      [-A LOGGER_NAME] -b BASE_DIR
 
-Reads data in HAPPy's Matlab format.
+Reads data in HAPPY's Matlab format. 'normcube': spectral data, 'lambda': wave
+numbers, 'FinalMask': the pixel annotation mask, 'FinalMaskLabels': the mask
+pixel index -> label relation table
 
 optional arguments:
   -h, --help            show this help message and exit

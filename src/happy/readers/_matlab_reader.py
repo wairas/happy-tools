@@ -18,7 +18,10 @@ class MatlabReader(HappyDataReader):
         return "matlab-reader"
 
     def description(self) -> str:
-        return "Reads data in HAPPy's Matlab format."
+        return "Reads data in HAPPY's Matlab format. "\
+               "'normcube': spectral data, 'lambda': wave numbers, "\
+               "'FinalMask': the pixel annotation mask, "\
+               "'FinalMaskLabels': the mask pixel index -> label relation table"
 
     def _get_sample_ids(self) -> List[str]:
         sample_ids = []
@@ -67,12 +70,27 @@ class MatlabReader(HappyDataReader):
         # mask
         if "FinalMask" in mat_file:
             mask_meta = {}
+
+            # mask data
             mask = mat_file["FinalMask"]
             mask = np.expand_dims(mask, -1)  # add third dimension for envi
             mask_meta["data"] = mask
-            mapping = {}
-            for i in np.unique(mask):
-                mapping[str(i)] = int(i)
+
+            # restore label mapping: pixel index -> label
+            mapping = None
+            if "FinalMaskLabels" in mat_file:
+                try:
+                    mapping_list = mat_file["FinalMaskLabels"]
+                    mapping = {}
+                    for item in mapping_list:
+                        mapping[int(item[0])] = item[1].strip()
+                except:
+                    self.logger().exception("Failed to parse mask labels!")
+            if mapping is None:
+                mapping = {}
+                for i in np.unique(mask):
+                    mapping[str(i)] = int(i)
+
             mask_meta["mapping"] = mapping
             metadata_dict["mask"] = mask_meta
 
