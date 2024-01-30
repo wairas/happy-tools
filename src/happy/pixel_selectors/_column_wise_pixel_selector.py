@@ -11,9 +11,11 @@ from ._base_pixel_selector import BasePixelSelector
 
 class ColumnWisePixelSelector(BasePixelSelector):
 
-    def __init__(self, n: int = 0, c: int = 0, criteria: Optional[Union[Criteria, CriteriaGroup]] = None):
+    def __init__(self, n: int = 0, c: int = 0, seed: int = None, criteria: Optional[Union[Criteria, CriteriaGroup]] = None):
         super().__init__(n, criteria)
         self.c = c
+        self.seed = seed
+        self.rng = None
 
     def name(self) -> str:
         return "ps-column-wise"
@@ -24,31 +26,38 @@ class ColumnWisePixelSelector(BasePixelSelector):
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
         parser.add_argument("-C", "--column", type=int, help="The column to select pixels from (0-based index).", required=False, default=0)
+        parser.add_argument("-S", "--seed", type=int, help="The seed to use for reproducible results", required=False, default=None)
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
         super()._apply_args(ns)
         self.c = ns.column
+        self.seed = ns.seed
+        self.rng = None
 
     def to_dict(self) -> Dict:
         data = super().to_dict()
         data['c'] = self.c
+        data['seed'] = self.seed
         return data
 
     def from_dict(self, d: Dict):
         super().from_dict(d)
         self.c = d["c"]
+        self.seed = d["seed"]
+        self.rng = None
         return self
 
     def get_at(self, happy_data: HappyData, x: int, y: int) -> Optional[Union[int, float]]:
         # Get the pixel data at the specified location (x, y) from the happy_data
         # Find some random pixels in the column and average them
         if x is None:
-            print("!!NONE")
+            self.logger().warning("x is None!")
         column_pixels = []
         all_ys = list(range(happy_data.height))
-        # TODO seed rng
-        random.shuffle(all_ys)
+        if self.rng is None:
+            self.rng = random.Random(self.seed)
+        self.rng.shuffle(all_ys)
         enough = False
         for num in all_ys:
             if self.criteria.check(happy_data, x, num):
