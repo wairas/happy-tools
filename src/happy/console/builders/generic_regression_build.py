@@ -13,7 +13,7 @@ from happy.evaluators import PredictionActualHandler, RegressionEvaluator
 from happy.models.generic import GenericSpectroscopyModel, GenericScikitSpectroscopyModel
 from happy.models.spectroscopy import create_false_color_image, SpectroscopyModel
 from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
-from happy.splitters import HappySplitter
+from happy.splitters import DataSplits
 from happy.writers import CSVTrainingDataWriter
 
 
@@ -32,7 +32,7 @@ def main():
     parser.add_argument('-P', '--python_file', type=str, help='The Python module with the model class to load')
     parser.add_argument('-c', '--python_class', type=str, help='The name of the model class to load')
     parser.add_argument('-t', '--target_value', type=str, help='Target value column name')
-    parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file')
+    parser.add_argument('-s', '--splits_file', type=str, help='Happy Splitter file')
     parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions')
     parser.add_argument('-r', '--repeat_num', type=int, default=0, help='Repeat number (default: 1)')
     add_logging_level(parser, short_opt="-V")
@@ -45,9 +45,9 @@ def main():
     os.makedirs(args.output_folder, exist_ok=True)
 
     # splits
-    logger.info("Loading splits: %s" % args.happy_splitter_file)
-    happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
-    train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0, 0)
+    logger.info("Loading splits: %s" % args.splits_file)
+    splits = DataSplits.load(args.splits_file)
+    train_ids, valid_ids, test_ids = splits.get_train_validation_test_splits(0, 0)
 
     # method
     logger.info("Loading class %s from: %s" % (args.python_class, args.python_file))
@@ -70,10 +70,10 @@ def main():
         logger.info("Predicting...")
         predictions, actuals = model.predict_images(test_ids, return_actuals=True)
 
-        evl = RegressionEvaluator(happy_splitter, model, args.target_value)
+        evl = RegressionEvaluator(splits, model, args.target_value)
 
-        predictions = PredictionActualHandler.to_list(predictions,remove_last_dim=True)
-        actuals = PredictionActualHandler.to_list(actuals,remove_last_dim=True)
+        predictions = PredictionActualHandler.to_list(predictions, remove_last_dim=True)
+        actuals = PredictionActualHandler.to_list(actuals, remove_last_dim=True)
         logger.info(f"predictions.shape:{predictions[0].shape}  actuals.shape:{actuals[0].shape}")
 
         flat_actuals = np.concatenate(actuals).flatten()

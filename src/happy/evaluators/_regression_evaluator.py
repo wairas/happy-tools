@@ -1,15 +1,16 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from happy.evaluators import BaseEvaluator
+from ._base_evaluator import BaseEvaluator
+from happy.splitters import DataSplits
 
 
 class RegressionEvaluator(BaseEvaluator):
 
-    def __init__(self, happy_splitter, model, target):
-        super().__init__(happy_splitter, model, target)
+    def __init__(self, data_splits: DataSplits, model, target):
+        super().__init__(data_splits, model, target)
         self.data = {}
 
-    def accumulate_stats(self, predictions, actuals, repeat, fold, ignore_value=-1):
+    def accumulate_stats(self, predictions, actuals, repeat: int, fold: int, ignore_value=-1):
         self.logger().info(f"added: repeat={repeat}, fold={fold}")
         if repeat not in self.data:
             self.data[repeat] = {}

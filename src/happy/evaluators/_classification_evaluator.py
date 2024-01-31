@@ -1,15 +1,16 @@
-from happy.evaluators import BaseEvaluator
+from ._base_evaluator import BaseEvaluator
+from happy.splitters import DataSplits
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
 
 class ClassificationEvaluator(BaseEvaluator):
 
-    def __init__(self, happy_splitter, model, target):
-        super().__init__(happy_splitter, model, target)
+    def __init__(self, data_splits: DataSplits, model, target):
+        super().__init__(data_splits, model, target)
         self.data = {}
         
-    def accumulate_stats(self, predictions, actuals, repeat, fold):
+    def accumulate_stats(self, predictions, actuals, repeat: int, fold: int):
         self.logger().info(f"added: repeat={repeat}, fold={fold}")
         if repeat not in self.data:
             self.data[repeat] = {}

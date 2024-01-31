@@ -9,7 +9,7 @@ from happy.base.app import init_app
 from happy.base.core import load_class
 from happy.models.generic import GenericUnsupervisedPixelClusterer
 from happy.models.unsupervised_pixel_clusterer import create_false_color_image, create_prediction_image, UnsupervisedPixelClusterer
-from happy.splitters import HappySplitter
+from happy.splitters import DataSplits
 
 
 PROG = "happy-generic-unsupervised-build"
@@ -26,7 +26,7 @@ def main():
     parser.add_argument('-d', '--data_folder', type=str, help='Directory containing the HAPPy data', required=True)
     parser.add_argument('-P', '--python_file', type=str, help='The Python module with the model class to load')
     parser.add_argument('-c', '--python_class', type=str, help='The name of the model class to load')
-    parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
+    parser.add_argument('-s', '--splits_file', type=str, help='Happy Splitter file', required=True)
     parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions', required=True)
     parser.add_argument('-r', '--repeat_num', type=int, default=0, help='Repeat number (default: 0)')
     add_logging_level(parser, short_opt="-V")
@@ -39,9 +39,9 @@ def main():
     os.makedirs(args.output_folder, exist_ok=True)
 
     # splits
-    logger.info("Loading splits: %s" % args.happy_splitter_file)
-    happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
-    train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0, 0)
+    logger.info("Loading splits: %s" % args.splits_file)
+    splits = DataSplits.load(args.splits_file)
+    train_ids, valid_ids, test_ids = splits.get_train_validation_test_splits(0, 0)
 
     # Instantiate the model
     logger.info("Loading class %s from: %s" % (args.python_class, args.python_file))

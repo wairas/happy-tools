@@ -13,7 +13,7 @@ from happy.models.sklearn import create_model, REGRESSION_MODEL_MAP
 from happy.models.spectroscopy import create_false_color_image
 from happy.pixel_selectors import MultiSelector, PixelSelector
 from happy.preprocessors import Preprocessor, MultiPreprocessor
-from happy.splitters import HappySplitter
+from happy.splitters import DataSplits
 from happy.writers import CSVTrainingDataWriter
 
 
@@ -52,7 +52,7 @@ def main():
     parser.add_argument('-m', '--regression_method', type=str, default="linearregression", help='Regression method name (e.g., ' + ",".join(REGRESSION_MODEL_MAP.keys()) + ' or full class name)')
     parser.add_argument('-p', '--regression_params', type=str, default="{}", help='JSON string containing regression parameters')
     parser.add_argument('-t', '--target_value', type=str, help='Target value column name', required=True)
-    parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
+    parser.add_argument('-s', '--splits_file', type=str, help='Happy Splitter file', required=True)
     parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions', required=True)
     parser.add_argument('-r', '--repeat_num', type=int, default=0, help='Repeat number (default: 0)')
     add_logging_level(parser, short_opt="-V")
@@ -69,9 +69,9 @@ def main():
     regression_method = create_model(args.regression_method, args.regression_params)
 
     # splits
-    logger.info("Loading splits: %s" % args.happy_splitter_file)
-    happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
-    train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
+    logger.info("Loading splits: %s" % args.splits_file)
+    splits = DataSplits.load(args.splits_file)
+    train_ids, valid_ids, test_ids = splits.get_train_validation_test_splits(0, 0)
 
     # pixel selector
     logger.info("Creating pixel selector")
@@ -82,7 +82,7 @@ def main():
     preproc = MultiPreprocessor(preprocessor_list=Preprocessor.parse_preprocessors(args.preprocessors))
 
     # model
-    model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=preproc, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data = None)
+    model = ScikitSpectroscopyModel(args.happy_data_base_dir, args.target_value, happy_preprocessor=preproc, additional_meta_data=None, pixel_selector=train_pixel_selectors, model=regression_method, training_data=None)
     logger.info("Fitting model...")
     model.fit(train_ids, force=True, keep_training_data=False)
     
@@ -92,10 +92,10 @@ def main():
     logger.info("Predicting...")
     predictions, actuals = model.predict_images(test_ids, return_actuals=True)
     
-    evl = RegressionEvaluator(happy_splitter, model, args.target_value)
+    evl = RegressionEvaluator(splits, model, args.target_value)
 
     predictions = PredictionActualHandler.to_list(predictions, remove_last_dim=True)
-    actuals = PredictionActualHandler.to_list(actuals,remove_last_dim=True)
+    actuals = PredictionActualHandler.to_list(actuals, remove_last_dim=True)
     logger.info(f"predictions.shape:{predictions[0].shape}  actuals.shape:{actuals[0].shape}")
     
     flat_actuals = np.concatenate(actuals).flatten()
@@ -104,8 +104,8 @@ def main():
 
     # Save the predictions as PNG images
     for i, prediction in enumerate(predictions):
-        evl.accumulate_stats(np.array(predictions[i]),actuals[i],0,0)
-        if np.isnan(min_actual) or np.isnan(max_actual) or min_actual==max_actual:
+        evl.accumulate_stats(np.array(predictions[i]), actuals[i], 0, 0)
+        if np.isnan(min_actual) or np.isnan(max_actual) or (min_actual == max_actual):
             logger.warning("NaN value detected. Cannot proceed with gradient calculation.")
             continue
         false_color_image = create_false_color_image(prediction, min_actual, max_actual)

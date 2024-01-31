@@ -2,7 +2,7 @@ import argparse
 import traceback
 
 from happy.base.app import init_app
-from happy.splitters import HappySplitter
+from happy.splitters import CrossValidationSplitter, TrainTestSplitter
 
             
 def main():
@@ -19,13 +19,15 @@ def main():
     parser.add_argument('-R', '--use_regions', action='store_true', help='Use regions in generating splits')
     parser.add_argument('-H', '--holdout_percent', type=float, default=None, help='Percentage of data to hold out as a holdout set')
     parser.add_argument('-o', '--output_file', type=str, default='output_split.json', help='Path to the output split file', required=True)
+    parser.add_argument("-S", "--seed", type=int, help="The seed to use for reproducible results", required=False, default=None)
     args = parser.parse_args()
 
-    splitter = HappySplitter(args.happy_base_folder)
-    splitter.generate_splits(args.num_repeats, args.num_folds, args.train_percent, args.validation_percent, args.use_regions, args.holdout_percent)
-
-    # Save splits in the correct format
-    splitter.save_splits_to_json(args.output_file)
+    if args.num_folds == 1:
+        splitter = TrainTestSplitter(args.happy_base_folder, args.use_regions, args.train_percent, args.validation_percent, holdout_percent=args.holdout_percent, seed=args.seed)
+    else:
+        splitter = CrossValidationSplitter(args.happy_base_folder, args.use_regions, args.num_repeats, args.num_folds, args.train_percent, args.validation_percent, holdout_percent=args.holdout_percent, seed=args.seed)
+    splits = splitter.generate_splits()
+    splits.save(args.output_file)
 
 
 def sys_main() -> int:

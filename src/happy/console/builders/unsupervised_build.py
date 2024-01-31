@@ -5,7 +5,7 @@ import traceback
 
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
-from happy.splitters import HappySplitter
+from happy.splitters import DataSplits
 from happy.models.sklearn import create_model, CLUSTERING_MODEL_MAP
 from happy.models.unsupervised_pixel_clusterer import UnsupervisedPixelClusterer, create_false_color_image, create_prediction_image
 from happy.pixel_selectors import MultiSelector, PixelSelector
@@ -45,7 +45,7 @@ def main():
     parser.add_argument('-S', '--pixel_selectors', type=str, help='The pixel selectors to use. Either pixel selector command-line(s) or file with one pixel selector command-line per line.', required=False, default=default_pixel_selectors())
     parser.add_argument('-m', '--clusterer_method', type=str, default="kmeans", help='Clusterer name (e.g., ' + ",".join(CLUSTERING_MODEL_MAP.keys()) + ') or full class name')
     parser.add_argument('-p', '--clusterer_params', type=str, default="{}", help='JSON string containing clusterer parameters')
-    parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
+    parser.add_argument('-s', '--splits_file', type=str, help='Happy Splitter file', required=True)
     parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions', required=True)
     parser.add_argument('-r', '--repeat_num', type=int, default=0, help='Repeat number (default: 0)')
     add_logging_level(parser, short_opt="-V")
@@ -58,9 +58,9 @@ def main():
     os.makedirs(args.output_folder, exist_ok=True)
 
     # splits
-    logger.info("Loading splits: %s" % args.happy_splitter_file)
-    happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
-    train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0,0)
+    logger.info("Loading splits: %s" % args.splits_file)
+    splits = DataSplits.load(args.splits_file)
+    train_ids, valid_ids, test_ids = splits.get_train_validation_test_splits(0, 0)
 
     # pixel selector
     logger.info("Creating pixel selector")

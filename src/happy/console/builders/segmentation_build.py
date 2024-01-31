@@ -12,7 +12,7 @@ from happy.models.scikit_spectroscopy import ScikitSpectroscopyModel
 from happy.models.sklearn import create_model, CLASSIFICATION_MODEL_MAP
 from happy.pixel_selectors import MultiSelector, PixelSelector
 from happy.preprocessors import Preprocessor, MultiPreprocessor
-from happy.splitters import HappySplitter
+from happy.splitters import DataSplits
 from happy.writers import CSVTrainingDataWriter
 from happy.models.segmentation import create_false_color_image, create_prediction_image
 from happy.writers import EnviWriter
@@ -81,7 +81,7 @@ def main():
     parser.add_argument('-m', '--segmentation_method', type=str, default="svm", help='Segmentation method name (e.g., ' + ",".join(CLASSIFICATION_MODEL_MAP.keys()) + ' or full class name)')
     parser.add_argument('-p', '--segmentation_params', type=str, default="{}", help='JSON string containing segmentation parameters')
     parser.add_argument('-t', '--target_value', type=str, help='Target value column name', required=True)
-    parser.add_argument('-s', '--happy_splitter_file', type=str, help='Happy Splitter file', required=True)
+    parser.add_argument('-s', '--splits_file', type=str, help='Happy Splitter file', required=True)
     parser.add_argument('-o', '--output_folder', type=str, help='Output JSON file to store the predictions', required=True)
     parser.add_argument('-r', '--repeat_num', type=int, default=0, help='Repeat number (default: 0)')
     add_logging_level(parser, short_opt="-V")
@@ -98,9 +98,9 @@ def main():
     regression_method = create_model(args.segmentation_method, args.segmentation_params)
 
     # split
-    logger.info("Loading splits: %s" % args.happy_splitter_file)
-    happy_splitter = HappySplitter.load_splits_from_json(args.happy_splitter_file)
-    train_ids, valid_ids, test_ids = happy_splitter.get_train_validation_test_splits(0, 0)
+    logger.info("Loading splits: %s" % args.splits_file)
+    splits = DataSplits.load(args.splits_file)
+    train_ids, valid_ids, test_ids = splits.get_train_validation_test_splits(0, 0)
 
     # pixel selector
     logger.info("Creating pixel selector")
@@ -135,7 +135,7 @@ def main():
     predictions = one_hot_list(predictions, num_labels)
     logger.info(predictions.shape)
     logger.info(actuals.shape)
-    evl = ClassificationEvaluator(happy_splitter, model, args.target_value)
+    evl = ClassificationEvaluator(splits, model, args.target_value)
     evl.accumulate_stats(predictions, actuals, 0, 0)
     evl.calculate_and_show_metrics()
 
