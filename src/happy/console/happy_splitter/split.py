@@ -11,7 +11,7 @@ def main():
         description='Generate train/validation/test splits for Happy data.',
         prog="happy-splitter",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-d', '--happy_base_folder', type=str, help='Path to the Happy base folder', required=True)
+    parser.add_argument('-b', '--base_folder', type=str, help='Path to the Happy base folder', required=True)
     parser.add_argument('-r', '--num_repeats', type=int, default=1, help='Number of repeats')
     parser.add_argument('-f', '--num_folds', type=int, default=1, help='Number of folds')
     parser.add_argument('-t', '--train_percent', type=float, default=70.0, help='Percentage of data in the training set')
@@ -23,9 +23,9 @@ def main():
     args = parser.parse_args()
 
     if args.num_folds == 1:
-        splitter = TrainTestSplitter(args.happy_base_folder, args.use_regions, args.train_percent, args.validation_percent, holdout_percent=args.holdout_percent, seed=args.seed)
+        splitter = TrainTestSplitter(args.base_folder, args.use_regions, args.train_percent, args.validation_percent, holdout_percent=args.holdout_percent, seed=args.seed)
     else:
-        splitter = CrossValidationSplitter(args.happy_base_folder, args.use_regions, args.num_repeats, args.num_folds, args.train_percent, args.validation_percent, holdout_percent=args.holdout_percent, seed=args.seed)
+        splitter = CrossValidationSplitter(args.base_folder, args.use_regions, args.num_repeats, args.num_folds, args.train_percent, args.validation_percent, holdout_percent=args.holdout_percent, seed=args.seed)
     splits = splitter.generate_splits()
     splits.save(args.output_file)
 

@@ -620,16 +620,15 @@ optional arguments:
 ### Splitter
 
 ```
-usage: happy-splitter [-h] -d HAPPY_BASE_FOLDER [-r NUM_REPEATS]
-                      [-f NUM_FOLDS] [-t TRAIN_PERCENT]
-                      [-v VALIDATION_PERCENT] [-R] [-H HOLDOUT_PERCENT] -o
-                      OUTPUT_FILE [-S SEED]
+usage: happy-splitter [-h] -b BASE_FOLDER [-r NUM_REPEATS] [-f NUM_FOLDS]
+                      [-t TRAIN_PERCENT] [-v VALIDATION_PERCENT] [-R]
+                      [-H HOLDOUT_PERCENT] -o OUTPUT_FILE [-S SEED]
 
 Generate train/validation/test splits for Happy data.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -d HAPPY_BASE_FOLDER, --happy_base_folder HAPPY_BASE_FOLDER
+  -b BASE_FOLDER, --base_folder BASE_FOLDER
                         Path to the Happy base folder (default: None)
   -r NUM_REPEATS, --num_repeats NUM_REPEATS
                         Number of repeats (default: 1)
