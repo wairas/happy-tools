@@ -2,6 +2,8 @@ import numpy as np
 import spectral.io.envi as envi
 import traceback
 
+from typing import List, Dict, Optional
+
 from PIL import Image
 from happy.data import HappyData
 from happy.data.annotations import ContoursManager, Contour
@@ -135,7 +137,7 @@ class DataManager:
 
         return self.norm_data.shape[2]
 
-    def get_wavelengths(self):
+    def get_wavelengths(self) -> Dict:
         """
         Returns the indexed wave lengths.
 
@@ -153,6 +155,35 @@ class DataManager:
                     self.wavelengths[i] = metadata["wavelength"][i]
 
         return self.wavelengths
+
+    def get_wavelengths_list(self) -> List[float]:
+        """
+        Returns the wavelengths as list rather than a dictionary.
+
+        :return: the wavelengths
+        :rtype: list
+        """
+        result = []
+        wl = self.get_wavelengths()
+        for k in wl:
+            result.append(float(wl[k]))
+        return result
+
+    def set_wavelengths_list(self, wl: Optional[List]):
+        """
+        Uses the wavelengths from the list.
+
+        :param wl: the list of wavelengths to use; auto-generates dummy ones if None
+        :type wl: list
+        """
+        wl_dict = dict()
+        if wl is not None:
+            for i in range(len(wl)):
+                wl_dict[i] = str(wl[i])
+        else:
+            for i in range(self.get_num_bands_norm()):
+                wl_dict[i] = str(i)
+        self.wavelengths = wl_dict
 
     def has_annotations(self):
         """
@@ -583,11 +614,17 @@ class DataManager:
                 if success and self.preprocessors is not None:
                     self.log("Applying preprocessing: %s" % str(self.preprocessors))
                     result[CALC_PREPROCESSORS_APPLIED] = False
-                    happy_data = HappyData("envi-viewer", "1", self.norm_data, {}, {})
+                    wl = self.get_wavelengths_list()
+                    happy_data = HappyData("envi-viewer", "1", self.norm_data, {}, {}, wavenumbers=wl)
                     self.preprocessors.fit(happy_data)
                     new_happy_data = self.preprocessors.apply(happy_data)
                     if len(new_happy_data) == 1:
                         self.norm_data = new_happy_data[0].data
+                        if new_happy_data[0].wavenumbers is not None:
+                            if wl != new_happy_data[0].wavenumbers:
+                                self.set_wavelengths_list(new_happy_data[0].wavenumbers)
+                        else:
+                            self.set_wavelengths_list(None)
                     else:
                         self.log("Preprocessing: preprocessors did not generate just a single output, but: %d" % len(new_happy_data))
                     result[CALC_PREPROCESSORS_APPLIED] = True
