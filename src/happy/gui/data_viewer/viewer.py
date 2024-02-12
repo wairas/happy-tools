@@ -315,8 +315,13 @@ class ViewerApp:
         self.stored_happy_data = self.reader.load_data(self.session.current_sample + ":" + self.session.current_region)
         # Extract and store the metadata keys
         if self.stored_happy_data is not None:
-            metadata_keys = list(self.stored_happy_data[0].metadata_dict.keys())
-            sorted(metadata_keys)
+            # collect metadata keys that have data stored
+            metadata_keys = []
+            for k in self.stored_happy_data[0].metadata_dict:
+                if "data" in self.stored_happy_data[0].metadata_dict[k]:
+                    metadata_keys.append(k)
+            metadata_keys = sorted(metadata_keys)
+            # update GUI
             self.update_metadata_combobox(metadata_keys)  # Call a new method to update the Combobox
             if self.session.selected_metadata_key is not None:
                 if self.session.selected_metadata_key in self.stored_happy_data[0].metadata_dict:
@@ -499,9 +504,12 @@ class ViewerApp:
         self.combined_image = None
         self.session.selected_metadata_key = self.combobox_metadata.get()
         if (self.stored_happy_data is not None) and (self.session.selected_metadata_key is not None):
-            metadata_values = self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key]["data"]
-            self.metadata_values = np.squeeze(metadata_values)
-            self.metadata_rgb_colors = self.map_metadata_to_rgb(self.metadata_values)
+            if "data" in self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key]:
+                metadata_values = self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key]["data"]
+                self.metadata_values = np.squeeze(metadata_values)
+                self.metadata_rgb_colors = self.map_metadata_to_rgb(self.metadata_values)
+            else:
+                print(self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key])
         self.update_plot()
 
     def on_window_resize(self, event):
