@@ -304,6 +304,28 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Submenu" id="submenu101">
+                    <property name="label" translatable="yes">Brush color</property>
+                    <property name="tearoff">false</property>
+                    <child>
+                      <object class="tk.Menuitem.Radiobutton" id="radiobutton101" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_pixels_brush_color_click</property>
+                        <property name="label" translatable="yes">Black</property>
+                        <property name="value">0</property>
+                        <property name="variable">int:state_pixels_brush_color</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Radiobutton" id="radiobutton102" named="True">
+                        <property name="command" type="command" cbtype="simple">on_pixels_brush_color_click</property>
+                        <property name="label" translatable="yes">White</property>
+                        <property name="value">1</property>
+                        <property name="variable">int:state_pixels_brush_color</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command2" named="True">
                     <property name="accelerator">Ctrl+Shift+B</property>
                     <property name="command" type="command" cbtype="simple">on_pixels_brush_size_click</property>
@@ -338,17 +360,43 @@
                 <property name="label" translatable="yes">View</property>
                 <property name="tearoff">false</property>
                 <child>
+                  <object class="tk.Menuitem.Submenu" id="submenu51">
+                    <property name="label" translatable="yes">Options</property>
+                    <child>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_view_show_polygons" named="True">
+                        <property name="command" type="command" cbtype="simple">on_view_show_polygons</property>
+                        <property name="label" translatable="yes">Show polygon annotations</property>
+                        <property name="offvalue">0</property>
+                        <property name="onvalue">1</property>
+                        <property name="variable">int:state_view_show_polygons</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_view_show_pixels" named="True">
+                        <property name="command" type="command" cbtype="simple">on_view_show_pixels</property>
+                        <property name="label" translatable="yes">Show pixel annotations</property>
+                        <property name="offvalue">0</property>
+                        <property name="onvalue">1</property>
+                        <property name="variable">int:state_view_show_pixels</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator3" />
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_view_view_spectra" named="True">
                     <property name="accelerator">Ctrl+W</property>
                     <property name="command" type="command" cbtype="simple">on_view_view_spectra_click</property>
-                    <property name="label" translatable="yes">View spectra (raw)...</property>
+                    <property name="label" translatable="yes">Display spectra (raw)...</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_view_view_spectra_processed" named="True">
                     <property name="accelerator">Ctrl+Shift+W</property>
                     <property name="command" type="command" cbtype="simple">on_view_view_spectra_processed_click</property>
-                    <property name="label" translatable="yes">View spectra (processed)...</property>
+                    <property name="label" translatable="yes">Display spectra (processed)...</property>
                   </object>
                 </child>
                 <child>

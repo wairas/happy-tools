@@ -40,7 +40,10 @@ PROPERTIES = [
     "annotation_mode",
     "brush_shape",
     "brush_size",
+    "invert_cursor",
     "alpha",
+    "show_polygon_annotations",
+    "show_pixel_annotations",
 ]
 
 
@@ -92,7 +95,10 @@ class SessionManager(AbstractSessionManager):
         self.annotation_mode = ANNOTATION_MODE_POLYGONS
         self.brush_shape = BRUSH_SHAPE_ROUND
         self.brush_size = 7
+        self.invert_cursor = False
         self.alpha = 128
+        self.show_polygon_annotations = True
+        self.show_pixel_annotations = True
 
     def get_default_config_name(self):
         """

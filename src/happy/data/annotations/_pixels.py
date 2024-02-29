@@ -1,7 +1,10 @@
+import json
 import numpy as np
 import os
 import spectral.io.envi as envi
 import traceback
+
+from typing import Optional, Dict, Tuple
 
 from PIL import Image, ImageDraw
 from ._metadata import MetaDataManager
@@ -17,26 +20,59 @@ BRUSH_SHAPES = [
 ]
 
 
-def generate_cursor(shape: str, size: int, path: str):
+def generate_cursor(shape: str, size: int, path: str, width: int = None, height: int = None):
     """
     Generates an XBM image for a cursor.
 
     :param shape: the cursor shape
     :type shape: str
-    :param size: the size of the shape
+    :param size: the size of the shape (width and height)
     :type size: int
     :param path: where to store the image
     :type: str
+    :param width: the width of the shape, overrides size
+    :type width: int
+    :param height: the height of the shape, overrides size
+    :type height: int
     """
-    img = Image.new("1", (size+3, size+3))
+    if (width is None) or (height is None):
+        width = size
+        height = size
+    img = Image.new("1", (width + 3, height + 3))
     draw = ImageDraw.Draw(img)
     if shape == BRUSH_SHAPE_ROUND:
-        draw.ellipse((1, 1, size+1, size+1), width=1, outline=1)
+        draw.ellipse((1, 1, width + 1, height + 1), width=1, outline=1)
     elif shape == BRUSH_SHAPE_SQUARE:
-        draw.rectangle((1, 1, size+1, size+1), width=1, outline=1)
+        draw.rectangle((1, 1, width + 1, height + 1), width=1, outline=1)
     else:
         raise Exception("Unhandled cursor shape: %s" % shape)
-    img.save(path, format="xbm", hotspot=(int(size/2)+3, int(size/2)+3))
+    img.save(path, format="xbm", hotspot=(int(width / 2) + 3, int(height / 2) + 3))
+
+
+def load_label_map(path: str) -> Tuple[Optional[Dict], Optional[str]]:
+    """
+    Loads the label map, if possible.
+
+    :param path: the map in JSON format to load
+    :type path: str
+    :return: the tuple of label map and potential error message
+    :rtype: tuple
+    """
+    if not os.path.exists(path):
+        return None, "Label map does not exist: %s" % path
+    try:
+        with open(path, "r") as fp:
+            d = json.load(fp)
+        for k in d:
+            try:
+                int(k)
+            except:
+                return "Found non-integer index: %s" % k
+            if not isinstance(d[k], str):
+                return "Found non-string label for index: %d" % k
+        return d, None
+    except:
+        return None, "Failed to load label map: %s\n%s" % (path, traceback.format_exc())
 
 
 class PixelManager:
@@ -68,6 +104,10 @@ class PixelManager:
         self._palette = None
         self._alpha = None
         self._cursor_path = None
+        self._zoom_x = 1.0
+        self._zoom_y = 1.0
+        self._invert_cursor = False
+        self.label_map = dict()
         self.internal_metadata = False
         self.log_method = log_method
 
@@ -102,6 +142,7 @@ class PixelManager:
             width, height = self._image_indexed.size
             self._draw_indexed.rectangle((0, 0, width - 1, height - 1), fill=0)
             self._draw_rgba.rectangle((0, 0, width - 1, height - 1), fill=(0, 0, 0, 0))
+        self.clear_label_map()
 
     def reshape(self, width, height):
         """
@@ -125,10 +166,20 @@ class PixelManager:
             return
         if self._brush_size is None:
             return
-        path = os.path.join(get_config_dir(), "%s-%d.xbm" % (self._brush_shape, self._brush_size))
+        if (self.zoom_x == 1.0) and (self.zoom_y == 1.0):
+            width = self._brush_size
+            height = self._brush_size
+        else:
+            width = int(self._brush_size * self.zoom_x)
+            height = int(self._brush_size * self.zoom_y)
+        path = os.path.join(get_config_dir(), "%s-%d-%d.xbm" % (self._brush_shape, width, height))
         if not os.path.exists(path):
-           self.log("Saving cursor: %s" % path)
-           generate_cursor(self._brush_shape, self._brush_size, path)
+            self.log("Saving cursor: %s" % path)
+            if (self.zoom_x == 1.0) and (self.zoom_y == 1.0):
+                generate_cursor(self._brush_shape, self._brush_size, path)
+            else:
+                generate_cursor(self._brush_shape, self._brush_size, path,
+                                width=width, height=height)
         self._cursor_path = path
 
     @property
@@ -188,6 +239,48 @@ class PixelManager:
         self._create_cursor()
 
     @property
+    def zoom_x(self):
+        """
+        Returns the zoom for x axis.
+
+        :return: the zoom
+        :rtype: float
+        """
+        return self._zoom_x
+
+    @zoom_x.setter
+    def zoom_x(self, zoom):
+        """
+        Sets the zoom for the x axis.
+
+        :param zoom: the zoom
+        :type zoom: float
+        """
+        self._zoom_x = zoom
+        self._create_cursor()
+
+    @property
+    def zoom_y(self):
+        """
+        Returns the zoom for y axis.
+
+        :return: the zoom
+        :rtype: float
+        """
+        return self._zoom_y
+
+    @zoom_y.setter
+    def zoom_y(self, zoom):
+        """
+        Sets the zoom for the y axis.
+
+        :param zoom: the zoom
+        :type zoom: float
+        """
+        self._zoom_y = zoom
+        self._create_cursor()
+
+    @property
     def label(self):
         """
         Returns the label index in use.
@@ -196,6 +289,27 @@ class PixelManager:
         :rtype: int
         """
         return self._label
+
+    @property
+    def invert_cursor(self):
+        """
+        Returns whether to invert the color for the cursor.
+
+        :return: whether to invert
+        :rtype: bool
+        """
+        return self._invert_cursor
+
+    @invert_cursor.setter
+    def invert_cursor(self, invert):
+        """
+        Sets whether to invert the color for the cursor.
+
+        :param invert: true if to invert
+        :type invert: bool
+        """
+        self._invert_cursor = invert
+        self._create_cursor()
 
     @label.setter
     def label(self, label):
@@ -412,6 +526,53 @@ class PixelManager:
         self._image_rgba = Image.fromarray(data)
         self._draw_rgba = ImageDraw.Draw(self._image_rgba)
 
+    def clear_label_map(self):
+        """
+        Empties the label map.
+        """
+        self.label_map.clear()
+
+    def update_label_map(self, index: int, label: str):
+        """
+        Sets the label associated with the index.
+
+        :param index: the index to set the label string for
+        :type index: int
+        :param label: the label to use for the index
+        :type label: int
+        """
+        self.label_map[index] = label
+
+    def save_label_map(self, path: str) -> bool:
+        """
+        Saves the current label map in JSON format to the specified file.
+
+        :param path: the path to save the map to
+        :type path: str
+        :return: whether saved successfully
+        :rtype: bool
+        """
+        try:
+            with open(path, "w") as fp:
+                json.dump(self.label_map, fp, indent=2)
+            return True
+        except:
+            return False
+
+    def load_label_map(self, path: str) -> Optional[str]:
+        """
+        Loads the label map, if possible.
+
+        :param path: the map in JSON format to load
+        :type path: str
+        :return: None if successfully loaded, otherwise error message
+        :rtype: str
+        """
+        d, msg = load_label_map(path)
+        if msg is None:
+            self.label_map = d
+        return msg
+
     def to_dict(self):
         """
         Returns its state as a dictionary.
@@ -424,7 +585,7 @@ class PixelManager:
             result["indexed"] = self._image_indexed.copy()
             result["rgba"] = self._image_rgba.copy()
         return result
-    
+
     def from_dict(self, d):
         """
         Initializes itself from the state dictionary.

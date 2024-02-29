@@ -281,21 +281,22 @@ optional arguments:
 ```
 
 
-### OPEX to HAPPy
+### Annotations to HAPPy
 
 ```
-usage: happy-opex2happy [-h] -i DIR [DIR ...] [-r] [-o DIR] -f
-                        {flat,dir-tree,dir-tree-with-data} -l LABELS [-N]
-                        [-u UNLABELLED] [--black_ref_locator LOCATOR]
-                        [--black_ref_method METHOD]
-                        [--white_ref_locator LOCATOR]
-                        [--white_ref_method METHOD] [--pattern_mask PATTERN]
-                        [--pattern_labels PATTERN] [--pattern_png PATTERN]
-                        [--pattern_annotations PATTERN] [-I] [-n]
-                        [--resume_from DIR]
-                        [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+usage: happy-ann2happy [-h] -i DIR [DIR ...] [-r] [-o DIR] -f
+                       {flat,dir-tree,dir-tree-with-data} -l LABELS [-N]
+                       [-u UNLABELLED] [--black_ref_locator LOCATOR]
+                       [--black_ref_method METHOD]
+                       [--white_ref_locator LOCATOR]
+                       [--white_ref_method METHOD] [--pattern_mask PATTERN]
+                       [--pattern_labels PATTERN] [--pattern_png PATTERN]
+                       [--pattern_opex PATTERN] [--pattern_envi PATTERN] [-I]
+                       [-n] [--resume_from DIR]
+                       [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
-Turns annotations (PNG and OPEX JSON) into Happy ENVI format.
+Turns annotations (PNG, OPEX JSON, ENVI pixel annotations) into Happy ENVI
+format.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -347,10 +348,14 @@ optional arguments:
                         the pattern to use for saving the mask PNG file,
                         available placeholders: {SAMPLEID} (default:
                         {SAMPLEID}.png)
-  --pattern_annotations PATTERN
+  --pattern_opex PATTERN
                         the pattern to use for saving the OPEX JSON annotation
                         file, available placeholders: {SAMPLEID} (default:
                         {SAMPLEID}.json)
+  --pattern_envi PATTERN
+                        the pattern to use for saving the ENVI mask annotation
+                        file, available placeholders: {SAMPLEID} (default:
+                        MASK_{SAMPLEID}.hdr)
   -I, --include_input   whether to copy the PNG/JSON file across to the output
                         dir (default: False)
   -n, --dry_run         whether to omit generating any data or creating

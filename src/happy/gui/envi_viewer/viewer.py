@@ -94,6 +94,9 @@ class ViewerApp:
         self.state_normalization = None
         self.state_edit_annotation_mode = None
         self.state_pixels_brush_shape = None
+        self.state_pixels_brush_color = None
+        self.state_view_show_polygons = None
+        self.state_view_show_pixels = None
         builder.import_variables(self)
 
         # reference components
@@ -294,6 +297,33 @@ class ViewerApp:
         filetypes = (
             ('OPEX JSON files', '*.json'),
             ('All files', '*.*')
+        )
+
+        filename = fd.askopenfilename(
+            title=title,
+            initialdir=initial_dir,
+            filetypes=filetypes)
+        if filename == "":
+            filename = None
+        if isinstance(filename, tuple):
+            filename = None
+
+        return filename
+
+    def open_annotation_file(self, title, initial_dir):
+        """
+        Allows the user to select an OPEX JSON or ENVI mask annotation file.
+
+        :param title: the title for the open dialog
+        :type title: str
+        :param initial_dir: the initial directory in use
+        :type initial_dir: str
+        :return: the chosen filename, None if cancelled
+        :rtype: str
+        """
+        filetypes = (
+            ('ENVI files', '*.hdr'),
+            ('OPEX JSON files', '*.json'),
         )
 
         filename = fd.askopenfilename(
@@ -604,20 +634,21 @@ class ViewerApp:
             image_markers = self.markers.to_overlay(width, height, int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_markers is not None:
                 image.paste(image_markers, (0, 0), image_markers)
-            if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
+            if self.session.show_polygon_annotations:
                 image_contours = self.contours.to_overlay(width, height, self.entry_annotation_color.get())
                 if image_contours is not None:
                     image.paste(image_contours, (0, 0), image_contours)
-            elif self.annotation_mode == ANNOTATION_MODE_PIXELS:
+            if self.session.show_pixel_annotations:
                 image_pixels = self.pixels.to_overlay(width, height)
                 if image_pixels is not None:
                     image.paste(image_pixels, (0, 0), image_pixels)
-            else:
-                raise Exception("Unhandled annotation mode: %s" % self.annotation_mode)
             self.photo_scan = ImageTk.PhotoImage(image=image)
             self.image_canvas.create_image(0, 0, image=self.photo_scan, anchor=tk.NW)
             self.image_canvas.config(width=width, height=height)
             self.image_canvas.configure(scrollregion=(0, 0, width - 2, height - 2))
+            # calc/set zoom for cursor in pixel manager
+            self.pixels.zoom_x = width / self.data.scan_data.shape[1]
+            self.pixels.zoom_y = height / self.data.scan_data.shape[0]
 
     def update_image(self):
         """
@@ -905,12 +936,16 @@ class ViewerApp:
         self.session.preprocessing = self.text_preprocessing.get("1.0", "end-1c")
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
         self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
-        # zoom
         self.session.normalization = self.state_normalization.get()
         self.session.annotation_mode = self.annotation_mode
         self.session.brush_shape = self.pixels.brush_shape
         self.session.brush_size = self.pixels.brush_size
+        self.session.invert_cursor = self.state_pixels_brush_color.get() == 1
+        self.pixels.invert_cursor = self.state_pixels_brush_color.get() == 1
         self.session.alpha = self.pixels.alpha
+        # zoom
+        self.session.show_polygon_annotations = self.state_view_show_polygons.get() == 1
+        self.session.show_pixel_annotations = self.state_view_show_pixels.get() == 1
 
     def session_to_state(self):
         """
@@ -946,11 +981,15 @@ class ViewerApp:
         self.text_preprocessing.insert(tk.END, self.session.preprocessing)
         self.state_export_overlay_annotations.set(1 if self.session.export_overlay_annotations else 0)
         self.state_export_keep_aspectratio.set(1 if self.session.export_keep_aspectratio else 0)
-        # zoom
         self.state_normalization.set(self.session.normalization)
         self.pixels.brush_shape = self.session.brush_shape
+        self.pixels.invert_cursor = self.session.invert_cursor
+        self.state_pixels_brush_color.set(1 if self.session.invert_cursor else 0)
         self.pixels.brush_size = self.session.brush_size
         self.pixels.alpha = self.session.alpha
+        # zoom
+        self.state_view_show_polygons.set(1 if self.session.show_polygon_annotations else 0)
+        self.state_view_show_pixels.set(1 if self.session.show_pixel_annotations else 0)
 
         # activate
         self.ignore_updates = True
@@ -971,10 +1010,8 @@ class ViewerApp:
         """
         result = dict()
         result["markers"] = self.markers.to_json()
-        if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
-            result["contours"] = self.contours.to_json()
-        elif self.annotation_mode == ANNOTATION_MODE_PIXELS:
-            result["pixels"] = self.pixels.to_dict()
+        result["contours"] = self.contours.to_json()
+        result["pixels"] = self.pixels.to_dict()
         result["metadata"] = self.metadata.to_json()
         return result
 
@@ -986,10 +1023,8 @@ class ViewerApp:
         :type d: dict
         """
         self.markers.from_json(d["markers"])
-        if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
-            self.contours.from_json(d["contours"])
-        elif self.annotation_mode == ANNOTATION_MODE_PIXELS:
-            self.pixels.from_dict(d["pixels"])
+        self.contours.from_json(d["contours"])
+        self.pixels.from_dict(d["pixels"])
         self.metadata.from_json(d["metadata"])
 
     def apply_black_ref(self, do_update=False):
@@ -1176,35 +1211,56 @@ class ViewerApp:
             messagebox.showerror("Error", "Please load a scan file first!")
             return
 
-        if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
-            filename = self.open_opex_file('Open OPEX JSON annotations', self.session.last_scan_dir)
-            if filename is not None:
-                self.log("Loading OPEX JSON annotations: %s" % filename)
-                preds = ObjectPredictions.load_json_from_file(filename)
-                if len(self.state_predefined_labels.get()) > 0:
-                    pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
-                    cur_labels = [x.label for x in preds.objects]
-                    missing_labels = set()
-                    for cur_label in cur_labels:
-                        if cur_label not in pre_labels:
-                            missing_labels.add(cur_label)
-                    if len(missing_labels) > 0:
-                        missing_labels = sorted(list(missing_labels))
-                        messagebox.showwarning(
-                            "Warning",
-                            "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
-                self.undo_manager.add_undo("Importing annotations", self.get_undo_state())
-                self.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
-                self.update_image()
-        elif self.annotation_mode == ANNOTATION_MODE_PIXELS:
-            filename = self.open_envi_file("Open ENVI mask", self.session.last_scan_dir)
-            if filename is not None:
-                self.log("Loading ENVI mask: %s" % filename)
-                self.undo_manager.add_undo("Importing annotations", self.get_undo_state())
-                self.pixels.load_envi(filename)
-                self.update_image()
-        else:
-            messagebox.showerror("Import", "Cannot import annotations in annotation mode '%s'!" % self.annotation_mode)
+        filename = self.open_annotation_file('Open annotations', self.session.last_scan_dir)
+        if filename is None:
+            return
+        if filename.endswith(".json"):
+            self.log("Loading OPEX JSON annotations: %s" % filename)
+            preds = ObjectPredictions.load_json_from_file(filename)
+            if len(self.state_predefined_labels.get()) > 0:
+                pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
+                cur_labels = [x.label for x in preds.objects]
+                missing_labels = set()
+                for cur_label in cur_labels:
+                    if cur_label not in pre_labels:
+                        missing_labels.add(cur_label)
+                if len(missing_labels) > 0:
+                    missing_labels = sorted(list(missing_labels))
+                    messagebox.showwarning(
+                        "Warning",
+                        "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
+            self.undo_manager.add_undo("Importing annotations (polygons)", self.get_undo_state())
+            self.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
+            self.update_image()
+        elif filename.endswith(".hdr"):
+            self.log("Loading ENVI mask annotations: %s" % filename)
+            self.undo_manager.add_undo("Importing annotations (pixels)", self.get_undo_state())
+            self.pixels.load_envi(filename)
+            self.pixels.clear_label_map()
+            label_map = os.path.splitext(filename)[0] + ".json"
+            if os.path.exists(label_map):
+                msg = self.pixels.load_label_map(label_map)
+                if msg is None:
+                    if len(self.state_predefined_labels.get()) > 0:
+                        pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
+                        cur_labels = [x for x in self.pixels.label_map.values()]
+                        missing_labels = set()
+                        for cur_label in cur_labels:
+                            if cur_label not in pre_labels:
+                                missing_labels.add(cur_label)
+                        if len(missing_labels) > 0:
+                            missing_labels = sorted(list(missing_labels))
+                            messagebox.showwarning(
+                                "Warning",
+                                "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
+                                    missing_labels))
+                        if len(self.pixels.unique_values()) != len(cur_labels):
+                            messagebox.showwarning(
+                                "Warning",
+                                "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (self.state_predefined_labels.get(), ",".join(cur_labels)))
+                else:
+                    messagebox.showwarning("Error", msg)
+            self.update_image()
 
     def on_file_exportimage_click(self, event=None):
         """
@@ -1223,17 +1279,18 @@ class ViewerApp:
 
         # include annotations?
         if self.session.export_overlay_annotations:
+            # markers
             image_markers = self.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_markers is not None:
                 image.paste(image_markers, (0, 0), image_markers)
-            if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
-                image_contours = self.contours.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
-                if image_contours is not None:
-                    image.paste(image_contours, (0, 0), image_contours)
-            elif self.annotation_mode == ANNOTATION_MODE_PIXELS:
-                image_pixels = self.pixels.to_overlay(dims[0], dims[1])
-                if image_pixels is not None:
-                    image.paste(image_pixels, (0, 0), image_pixels)
+            # polygons
+            image_contours = self.contours.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            if image_contours is not None:
+                image.paste(image_contours, (0, 0), image_contours)
+            # pixels
+            image_pixels = self.pixels.to_overlay(dims[0], dims[1])
+            if image_pixels is not None:
+                image.paste(image_pixels, (0, 0), image_pixels)
             else:
                 self.log("WARNING: Can't overlay annotations in mode '%s'!" % self.annotation_mode)
 
@@ -1246,20 +1303,23 @@ class ViewerApp:
             self.session.last_image_dir = os.path.dirname(filename)
             image.save(filename)
             self.log("Image saved to: %s" % filename)
-            if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
-                annotations = self.contours.to_opex(dims[0], dims[1])
-                if annotations is not None:
-                    filename = os.path.splitext(filename)[0] + ".json"
-                    annotations.save_json_to_file(filename)
-                    self.log("Annotations saved to: %s" % filename)
-            elif self.annotation_mode == ANNOTATION_MODE_PIXELS:
-                filename = os.path.join(os.path.dirname(filename), "MASK_" + os.path.splitext(os.path.basename(filename))[0] + ".hdr")
-                if self.pixels.save_envi(filename):
-                    self.log("Annotations saved to: %s" % filename)
-                else:
-                    self.log("ERROR: Failed to save annotations to: %s" % filename)
+            # opex
+            annotations = self.contours.to_opex(dims[0], dims[1])
+            if annotations is not None:
+                filename = os.path.splitext(filename)[0] + ".json"
+                annotations.save_json_to_file(filename)
+                self.log("OPEX JSON annotations saved to: %s" % filename)
+            # envi + label map
+            filename = os.path.join(os.path.dirname(filename), "MASK_" + os.path.splitext(os.path.basename(filename))[0] + ".hdr")
+            if self.pixels.save_envi(filename):
+                self.log("ENVI Mask annotations saved to: %s" % filename)
             else:
-                self.log("WARNING: Can't save annotations in mode '%s'!" % self.annotation_mode)
+                self.log("ERROR: Failed to save ENVI Mask annotations to: %s" % filename)
+            filename = os.path.join(os.path.dirname(filename), os.path.splitext(os.path.basename(filename))[0] + ".json")
+            if self.pixels.save_label_map(filename):
+                self.log("ENVI Mask label map saved to: %s" % filename)
+            else:
+                self.log("ERROR: Failed to save ENVI Mask label map to: %s" % filename)
 
     def on_export_overlay_annotations(self, event=None):
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
@@ -1474,26 +1534,23 @@ class ViewerApp:
 
     def switch_annotation_mode(self, mode):
         if mode != self.annotation_mode:
-            if not self.ignore_updates:
-                answer = messagebox.askyesno("Annotation mode", "Switching annotation mode results in loss of any existing annotations. Proceed?")
-                if not answer:
-                    state = ANNOTATION_MODES.index(self.annotation_mode)
-                    self.state_edit_annotation_mode.set(state)
-                    return
             self.log("Switching annotation mode to: %s" % mode)
             self.annotation_mode = mode
-            self.contours.clear()
-            self.pixels.clear()
-            self.undo_manager.clear()
-            self.update_image()
             if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
                 self.image_canvas.unbind("<ButtonRelease-1>")
                 self.image_canvas.unbind("<B1-Motion>")
+                # ensure that polygons are visible
+                self.state_view_show_polygons.set(1)
+                self.on_view_show_polygons()
             elif self.annotation_mode == ANNOTATION_MODE_PIXELS:
                 self.image_canvas.bind("<ButtonRelease-1>", self.on_image_drag_release)
                 self.image_canvas.bind("<B1-Motion>", self.on_image_drag)
+                # ensure that pixel annotations are visible
+                self.state_view_show_pixels.set(1)
+                self.on_view_show_pixels()
             else:
                 raise Exception("Unhandled annotation mode: %s" % self.annotation_mode)
+            self.update_image()
 
     def on_edit_annotation_mode_click(self, event=None):
         mode = ANNOTATION_MODES[self.state_edit_annotation_mode.get()]
@@ -1574,9 +1631,6 @@ class ViewerApp:
             self.log("No marker points to clear")
 
     def on_polygons_clear_click(self, event=None):
-        if not self.available(ANNOTATION_MODE_POLYGONS, action="Clearing polygons"):
-            return
-
         self.undo_manager.add_undo("Clearing polygons/markers", self.get_undo_state())
         if self.contours.has_contours() or self.markers.has_points():
             self.contours.clear()
@@ -1609,8 +1663,6 @@ class ViewerApp:
         self.update_image()
 
     def on_polygons_modify_click(self, event=None):
-        if not self.available(ANNOTATION_MODE_POLYGONS, action="Modifying polygon annotations"):
-            return
         if not self.data.has_scan():
             messagebox.showerror("Error", "Please load a scan file first!")
             return
@@ -1639,8 +1691,6 @@ class ViewerApp:
         self.resize_image_canvas()
 
     def on_polygons_run_sam_click(self, event=None):
-        if not self.available(ANNOTATION_MODE_POLYGONS, action="Running SAM"):
-            return
         if not self.sam.is_connected():
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
             self.notebook.select(2)
@@ -1678,9 +1728,6 @@ class ViewerApp:
                          self.state_min_obj_size.get(), self.log, self.on_sam_predictions)
 
     def on_pixels_clear_click(self, event=None):
-        if not self.available(ANNOTATION_MODE_PIXELS, action="Clearing pixels"):
-            return
-
         self.undo_manager.add_undo("Clearing pixels", self.get_undo_state())
         self.pixels.clear()
         self.update_image()
@@ -1689,15 +1736,25 @@ class ViewerApp:
         if not self.available(ANNOTATION_MODE_PIXELS, show_error=False):
             return
         if self.shift_pressed:
-            self.image_canvas["cursor"] = ("@" + self.pixels.cursor_path, 'black')
+            if self.pixels.invert_cursor:
+                self.image_canvas["cursor"] = ("@" + self.pixels.cursor_path, 'white')
+            else:
+                self.image_canvas["cursor"] = ("@" + self.pixels.cursor_path, 'black')
         else:
             self.image_canvas["cursor"] = ""
 
     def on_pixels_brush_shape_click(self, event=None):
-        if not self.available(ANNOTATION_MODE_PIXELS, action="Selecting pixel label"):
+        if not self.available(ANNOTATION_MODE_PIXELS, action="Selecting brush shape"):
             return
 
         self.pixels.brush_shape = BRUSH_SHAPES[self.state_pixels_brush_shape.get()]
+        self.pixels_update_cursor()
+
+    def on_pixels_brush_color_click(self, event=None):
+        if not self.available(ANNOTATION_MODE_PIXELS, action="Selecting brush color"):
+            return
+
+        self.pixels.invert_cursor = self.state_pixels_brush_color.get() == 1
         self.pixels_update_cursor()
 
     def on_pixels_brush_size_click(self, event=None):
@@ -1752,15 +1809,17 @@ class ViewerApp:
             if index is not None:
                 if (index > 0) and (index <= 255):
                     self.pixels.label = index
+                    self.pixels.update_label_map(index, str(index))
                 else:
                     messagebox.showerror("Incorrect label index", "The label index must be >0 and <=255, provided: %d" % index)
         else:
             label = asklist(
-                title="Choose label", prompt="Please select the label to annotation:",
+                title="Choose label", prompt="Please select the label to annotate:",
                 items=labels, initialvalue=label)
             if label is not None:
-                index = labels.index(label)
-                self.pixels.label = index + 1
+                index = labels.index(label) + 1
+                self.pixels.label = index
+                self.pixels.update_label_map(index, label)
 
     def on_pixels_label_key(self, event=None):
         if not self.available(ANNOTATION_MODE_PIXELS, action="Displaying label key"):
@@ -1797,6 +1856,14 @@ class ViewerApp:
         self.contours.add([Contour(points=self.markers.points[:])])
         self.markers.clear()
         self.log("Polygon added")
+        self.update_image()
+
+    def on_view_show_polygons(self, event=None):
+        self.session.show_polygon_annotations = (self.state_view_show_polygons.get() == 1)
+        self.update_image()
+
+    def on_view_show_pixels(self, event=None):
+        self.session.show_pixel_annotations = (self.state_view_show_pixels.get() == 1)
         self.update_image()
 
     def on_view_view_spectra_click(self, event=None):
