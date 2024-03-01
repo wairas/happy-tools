@@ -41,6 +41,18 @@ FILENAME_PLACEHOLDERS = [
 ]
 
 
+CONVERSION_PIXELS = "pixels"
+CONVERSION_POLYGONS = "polygons"
+CONVERSION_PIXELS_THEN_POLYGONS = "pixels_then_polygons"
+CONVERSION_POLYGONS_THEN_PIXELS = "polygons_then_pixels"
+CONVERSIONS = [
+    CONVERSION_PIXELS,
+    CONVERSION_POLYGONS,
+    CONVERSION_PIXELS_THEN_POLYGONS,
+    CONVERSION_POLYGONS_THEN_PIXELS,
+]
+
+
 logger = logging.getLogger("ann2happy")
 
 
@@ -212,7 +224,78 @@ def remap_pixel_annotations(ann, label_map, envi_label_map):
     return ann
 
 
-def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager, output_format: str = OUTPUT_FORMAT_FLAT, labels=None,
+def apply_envi(cont_ann: AnnotationFiles, img: np.ndarray, label_map: dict) -> np.ndarray:
+    """
+    Applies the pixel annotations.
+
+    :param cont_ann: the annotation container
+    :type cont_ann: AnnotationFiles
+    :param img: the numpy array to overlay the annotations onto
+    :type img: np.ndarray
+    :param label_map: the label map to use
+    :type label_map: str
+    :return: the updated image
+    :rtype: np.ndarray
+    """
+    if cont_ann.envi is not None:
+        logger.info("Applying ENVI pixel annotations...")
+        envi_ann = envi.open(cont_ann.envi).load()
+        envi_ann = envi_ann.squeeze().astype(np.uint8)
+        envi_label_map = None
+        envi_label_map_path = os.path.splitext(cont_ann.envi)[0] + ".json"
+        if os.path.exists(envi_label_map_path):
+            envi_label_map, msg = load_label_map(envi_label_map_path)
+            if msg is not None:
+                logger.error(msg)
+        # remap indices, if necessary
+        if envi_label_map is None:
+            logger.warning("No label map available for: %s" % cont_ann.envi)
+        else:
+            envi_ann = remap_pixel_annotations(envi_ann, label_map, envi_label_map)
+        np.copyto(img, envi_ann, where=(envi_ann > 0) & (envi_ann < 255))
+    else:
+        logger.warning("No ENVI pixel annotations, skipping!")
+    return img
+
+
+def apply_opex(cont_ann: AnnotationFiles, img: np.ndarray, label_map: dict, labels_set: set) -> np.ndarray:
+    """
+    Applies the polygon annotations.
+
+    :param cont_ann: the annotation container
+    :type cont_ann: AnnotationFiles
+    :param img: the numpy array to overlay the annotations onto
+    :type img: np.ndarray
+    :param label_map: the label map to use
+    :type label_map: str
+    :param labels_set: the labels set, none if user supplied no labels
+    :type labels_set: set
+    :return: the updated image
+    :rtype: np.ndarray
+    """
+    if cont_ann.opex is not None:
+        ann = ObjectPredictions.load_json_from_file(cont_ann.opex)
+        if len(ann.objects) > 0:
+            logger.info("Applying OPEX polygon annotations...")
+            pimg = Image.fromarray(img, "L")
+            draw = ImageDraw.Draw(pimg)
+            for obj in ann.objects:
+                if (labels_set is None) or (obj.label in labels_set):
+                    if obj.label not in label_map:
+                        logger.warning("Skipping object with label %s: %s" % (obj.label, str(obj)))
+                        continue
+                    poly = [tuple(x) for x in obj.polygon.points]
+                    draw.polygon(poly, fill=label_map[obj.label])
+            img = np.asarray(pimg, dtype=np.uint8)
+        else:
+            logger.warning("OPEX annotations are empty, nothing to do.")
+    else:
+        logger.warning("No OPEX polygon annotations, skipping!")
+    return img
+
+
+def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager,
+            conversion=CONVERSION_PIXELS_THEN_POLYGONS, output_format: str = OUTPUT_FORMAT_FLAT, labels=None,
             pattern_mask: str = "mask.hdr",
             pattern_labels: str = "mask.json",
             pattern_png: str = FILENAME_PH_SAMPLEID + ".png",
@@ -226,6 +309,8 @@ def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager
     :type cont_ann: str
     :param output_dir: where to store the ENVI data
     :type output_dir: str
+    :param conversion: what annotations and in what order to apply
+    :type conversion: str
     :param output_format: how to store the generated ENVI images
     :type output_format: str
     :param labels: the list of labels to transfer from OPEX into ENVI
@@ -281,7 +366,7 @@ def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager
 
     # label lookup
     label_map = dict()
-    labels_set = set()
+    labels_set = None
     if no_implicit_background:
         label_offset = unlabelled + 1
     else:
@@ -291,41 +376,24 @@ def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager
         for index, label in enumerate(labels, start=label_offset):
             label_map[label] = index
 
-    # create base matrix
+    # create base image
     img = np.zeros((height, width), dtype=np.uint8)
     if no_implicit_background:
         img.fill(unlabelled)
 
-    # mask: envi mask
-    if cont_ann.envi is not None:
-        envi_ann = envi.open(cont_ann.envi).load()
-        envi_ann = envi_ann.squeeze().astype(np.uint8)
-        envi_label_map = None
-        envi_label_map_path = os.path.splitext(cont_ann.envi)[0] + ".json"
-        if os.path.exists(envi_label_map_path):
-            envi_label_map, msg = load_label_map(envi_label_map_path)
-            if msg is not None:
-                logger.error(msg)
-        # remap indices, if necessary
-        if envi_label_map is None:
-            logger.warning("No label map available for: %s" % cont_ann.envi)
-        else:
-            envi_ann = remap_pixel_annotations(envi_ann, label_map, envi_label_map)
-        np.copyto(img, envi_ann, where=(envi_ann > 0) & (envi_ann < 255))
-
-    # mask: opex
-    ann = ObjectPredictions.load_json_from_file(cont_ann.opex)
-    if len(ann.objects) > 0:
-        pimg = Image.fromarray(img, "L")
-        draw = ImageDraw.Draw(pimg)
-        for obj in ann.objects:
-            if (labels is None) or (obj.label in labels_set):
-                if obj.label not in label_map:
-                    logger.warning("Skipping object with label %s: %s" % (obj.label, str(obj)))
-                    continue
-                poly = [tuple(x) for x in obj.polygon.points]
-                draw.polygon(poly, fill=label_map[obj.label])
-        img = np.asarray(pimg, dtype=np.uint8)
+    # apply
+    if conversion == CONVERSION_PIXELS:
+        img = apply_envi(cont_ann, img, label_map)
+    elif conversion == CONVERSION_POLYGONS:
+        img = apply_opex(cont_ann, img, label_map, labels_set)
+    elif conversion == CONVERSION_PIXELS_THEN_POLYGONS:
+        img = apply_envi(cont_ann, img, label_map)
+        img = apply_opex(cont_ann, img, label_map, labels_set)
+    elif conversion == CONVERSION_POLYGONS_THEN_PIXELS:
+        img = apply_opex(cont_ann, img, label_map, labels_set)
+        img = apply_envi(cont_ann, img, label_map)
+    else:
+        raise Exception("Unsupported conversion: %s" % conversion)
 
     if not dry_run:
         if not os.path.exists(output_path):
@@ -358,13 +426,12 @@ def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager
                         metadata={'wavelength': wavelengths})
 
 
-def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMAT_FLAT, labels=None,
-             black_ref_locator=None, black_ref_method=None, white_ref_locator=None, white_ref_method=None,
-             pattern_mask="mask.hdr", pattern_labels="mask.json",
+def generate(input_dirs, output_dir, conversion=CONVERSION_PIXELS_THEN_POLYGONS, recursive=False,
+             output_format=OUTPUT_FORMAT_FLAT, labels=None, black_ref_locator=None, black_ref_method=None,
+             white_ref_locator=None, white_ref_method=None, pattern_mask="mask.hdr", pattern_labels="mask.json",
              pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_opex=FILENAME_PH_SAMPLEID + ".json",
-             pattern_envi="MASK_" + FILENAME_PH_SAMPLEID + ".hdr",
-             no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False,
-             resume_from=None):
+             pattern_envi="MASK_" + FILENAME_PH_SAMPLEID + ".hdr", no_implicit_background=False, unlabelled=0,
+             include_input=False, dry_run=False, resume_from=None):
     """
     Generates fake RGB images from the HSI images found in the specified directories.
 
@@ -372,6 +439,8 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
     :type input_dirs: str or list
     :param output_dir: the (optional) output directory to place the generated PNG images in instead of alongside HSI images
     :type output_dir: str
+    :param conversion: what annotations and in what order to apply
+    :type conversion: str
     :param recursive: whether to look for OPEX files recursively
     :type recursive: bool
     :param output_format: how to store the generated ENVI images
@@ -464,7 +533,7 @@ def generate(input_dirs, output_dir, recursive=False, output_format=OUTPUT_FORMA
 
     for i, ann_path in enumerate(ann_conts, start=1):
         logger.info("Converting %d/%d..." % (i, len(ann_conts)))
-        convert(ann_path, output_dir, datamanager, output_format=output_format,
+        convert(ann_path, output_dir, datamanager, conversion=conversion, output_format=output_format,
                 pattern_mask=pattern_mask, pattern_labels=pattern_labels,
                 pattern_png=pattern_png, pattern_opex=pattern_opex, pattern_envi=pattern_envi,
                 labels=labels, include_input=include_input,
@@ -484,8 +553,9 @@ def main(args=None):
         description="Turns annotations (PNG, OPEX JSON, ENVI pixel annotations) into Happy ENVI format.",
         prog="happy-ann2happy",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-i", "--input_dir", nargs="+", metavar="DIR", type=str, help="Path to the PNG/OPEX files", required=True)
-    parser.add_argument("-r", "--recursive", action="store_true", help="whether to look for OPEX files recursively", required=False)
+    parser.add_argument("-i", "--input_dir", nargs="+", metavar="DIR", type=str, help="Path to the PNG/OPEX/ENVI files", required=True)
+    parser.add_argument("-c", "--conversion", choices=CONVERSIONS, default=CONVERSION_PIXELS_THEN_POLYGONS, help="What annotations and in what order to apply (subsequent overlays can overwrite annotations).", required=False)
+    parser.add_argument("-r", "--recursive", action="store_true", help="whether to look for OPEX/ENVI files recursively", required=False)
     parser.add_argument("-o", "--output_dir", type=str, metavar="DIR", help="The directory to store the fake RGB PNG images instead of alongside the HSI images.", required=False)
     parser.add_argument("-f", "--output_format", choices=OUTPUT_FORMATS, default=OUTPUT_FORMAT_DIRTREE_WITH_DATA, help="Defines how to store the data in the output directory.", required=True)
     parser.add_argument("-l", "--labels", type=str, help="The comma-separated list of object labels to export ('Background' is automatically added).", required=True)
@@ -506,7 +576,7 @@ def main(args=None):
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
-    generate(parsed.input_dir, parsed.output_dir,
+    generate(parsed.input_dir, parsed.output_dir, conversion=parsed.conversion,
              recursive=parsed.recursive, output_format=parsed.output_format, labels=parsed.labels.split(","),
              black_ref_locator=parsed.black_ref_locator, black_ref_method=parsed.black_ref_method,
              white_ref_locator=parsed.white_ref_locator, white_ref_method=parsed.white_ref_method,
