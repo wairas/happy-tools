@@ -1,76 +1,41 @@
-from typing import Dict
-from seppl import Registry, Plugin, MODE_DYNAMIC, get_class
+from typing import Dict, Union, List
 
+from seppl import ClassListerRegistry, Plugin
 
 # the default modules to look for plugins
-HAPPY_DEFAULT_MODULES = ",".join(
-    [
-        "happy.data.black_ref",
-        "happy.data.white_ref",
-        "happy.data.ref_locator",
-        "happy.data.normalization",
-        "happy.readers",
-        "happy.preprocessors",
-        "happy.writers",
-        "happy.pixel_selectors",
-        "happy.region_extractors",
-    ])
-
-# the environment variable to use for overriding the default modules
-HAPPY_ENV_MODULES = "HAPPY_MODULES"
-
-# the environment variable to use for excluding modules
-HAPPY_ENV_MODULES_EXCL = "HAPPY_MODULES_EXCL"
-
-# the known entrypoints in setup.py
-ENTRYPOINT_BLACKREF_METHODS = "happy.blackref_methods"
-ENTRYPOINT_WHITEREF_METHODS = "happy.whiteref_methods"
-ENTRYPOINT_REF_LOCATOR = "happy.ref_locator"
-ENTRYPOINT_NORMALIZATION = "happy.normalization"
-ENTRYPOINT_HAPPYDATA_READERS = "happy.happydata_readers"
-ENTRYPOINT_PREPROCESSORS = "happy.preprocessors"
-ENTRYPOINT_HAPPYDATA_WRITERS = "happy.happydata_writers"
-ENTRYPOINT_PIXEL_SELECTORS = "happy.pixel_selectors"
-ENTRYPOINT_REGION_EXTRACTORS = "happy.region_extractors"
-ENTRYPOINTS = [
-    ENTRYPOINT_BLACKREF_METHODS,
-    ENTRYPOINT_WHITEREF_METHODS,
-    ENTRYPOINT_REF_LOCATOR,
-    ENTRYPOINT_NORMALIZATION,
-    ENTRYPOINT_HAPPYDATA_READERS,
-    ENTRYPOINT_PREPROCESSORS,
-    ENTRYPOINT_HAPPYDATA_WRITERS,
-    ENTRYPOINT_PIXEL_SELECTORS,
-    ENTRYPOINT_REGION_EXTRACTORS,
+HAPPY_DEFAULT_CLASS_LISTERS = [
+    "happy.base.class_lister",
 ]
 
+# the environment variable to use for overriding the default modules
+HAPPY_ENV_CLASS_LISTERS = "HAPPY_CLASS_LISTERS"
 
-class HappyRegistry(Registry):
+# the environment variable to use for excluding modules
+HAPPY_ENV_CLASS_LISTERS_EXCL = "HAPPY_CLASS_LISTERS_EXCL"
+
+
+class HappyRegistry(ClassListerRegistry):
     """
     Custom Registry class for the HAPPy tools.
     """
 
-    def __init__(self, default_modules=HAPPY_DEFAULT_MODULES,
-                 env_modules=HAPPY_ENV_MODULES,
-                 excluded_modules=None,
-                 excluded_env_modules=HAPPY_ENV_MODULES_EXCL):
+    def __init__(self, default_class_listers: Union[str, List[str]] = None, env_class_listers: str = None,
+                 excluded_class_listers: Union[str, List[str]] = None, env_excluded_class_listers: str = None):
         """
 
-        :param default_modules: the default modules to use for registering plugins, comma-separated string of module names or list of module names
-        :type default_modules: str or list
-        :param env_modules: the environment variable to retrieve the modules from (overrides default ones)
-        :type env_modules: str
-        :param excluded_modules: the modules to exclude from registering plugins, comma-separated string of module names or list of module names, ignored if None
-        :type excluded_modules: str or list
-        :param excluded_env_modules: the environment variable to retrieve the excluded modules from (overrides manually set ones)
-        :type excluded_env_modules: str
+        :param default_class_listers: the default class lister to use for registering plugins
+        :type default_class_listers: str or list
+        :param env_class_listers: the environment variable to retrieve the class listers from (overrides default ones)
+        :type env_class_listers: str
+        :param excluded_class_listers: the class listers to exclude from registering plugins, ignored if None
+        :type excluded_class_listers: str or list
+        :param env_excluded_class_listers: the environment variable to retrieve the excluded class listers from (overrides manually set ones)
+        :type env_excluded_class_listers: str
         """
-        super().__init__(mode=MODE_DYNAMIC,
-                         default_modules=default_modules,
-                         env_modules=env_modules,
-                         excluded_modules=excluded_modules,
-                         excluded_env_modules=excluded_env_modules,
-                         enforce_uniqueness=True)
+        super().__init__(default_class_listers=default_class_listers,
+                         env_class_listers=env_class_listers,
+                         excluded_class_listers=excluded_class_listers,
+                         env_excluded_class_listers=env_excluded_class_listers)
 
     def all_plugins(self) -> Dict[str, Plugin]:
         """
@@ -80,9 +45,15 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         result = dict()
-        for entrypoint in ENTRYPOINTS:
-            plugins = self.plugins(entrypoint)
-            result.update(plugins)
+        result.update(self.blackref_methods())
+        result.update(self.happydata_readers())
+        result.update(self.happydata_writers())
+        result.update(self.normalizations())
+        result.update(self.pixel_selectors())
+        result.update(self.preprocessors())
+        result.update(self.ref_locators())
+        result.update(self.region_extractors())
+        result.update(self.whiteref_methods())
         return result
 
     def blackref_methods(self) -> Dict[str, Plugin]:
@@ -93,7 +64,7 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_BLACKREF_METHODS, get_class("happy.data.black_ref._core.AbstractBlackReferenceMethod"))
+        return self.plugins("happy.data.black_ref._core.AbstractBlackReferenceMethod", fail_if_empty=False)
 
     def whiteref_methods(self) -> Dict[str, Plugin]:
         """
@@ -103,7 +74,7 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_WHITEREF_METHODS, get_class("happy.data.white_ref._core.AbstractWhiteReferenceMethod"))
+        return self.plugins("happy.data.white_ref._core.AbstractWhiteReferenceMethod", fail_if_empty=False)
 
     def ref_locators(self) -> Dict[str, Plugin]:
         """
@@ -113,7 +84,7 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_REF_LOCATOR, get_class("happy.data.ref_locator._core.AbstractReferenceLocator"))
+        return self.plugins("happy.data.ref_locator._core.AbstractReferenceLocator", fail_if_empty=False)
 
     def normalizations(self) -> Dict[str, Plugin]:
         """
@@ -123,7 +94,7 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_NORMALIZATION, get_class("happy.data.normalization._core.AbstractNormalization"))
+        return self.plugins("happy.data.normalization._core.AbstractNormalization", fail_if_empty=False)
 
     def happydata_readers(self) -> Dict[str, Plugin]:
         """
@@ -133,7 +104,7 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_HAPPYDATA_READERS, get_class("happy.readers._happydata_reader.HappyDataReader"))
+        return self.plugins("happy.readers._happydata_reader.HappyDataReader", fail_if_empty=False)
 
     def preprocessors(self) -> Dict[str, Plugin]:
         """
@@ -143,7 +114,7 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_PREPROCESSORS, get_class("happy.preprocessors._preprocessor.Preprocessor"))
+        return self.plugins("happy.preprocessors._preprocessor.Preprocessor", fail_if_empty=False)
 
     def happydata_writers(self) -> Dict[str, Plugin]:
         """
@@ -153,7 +124,7 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_HAPPYDATA_WRITERS, get_class("happy.writers._happydata_writer.HappyDataWriter"))
+        return self.plugins("happy.writers._happydata_writer.HappyDataWriter", fail_if_empty=False)
 
     def pixel_selectors(self) -> Dict[str, Plugin]:
         """
@@ -163,7 +134,7 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_PIXEL_SELECTORS, get_class("happy.pixel_selectors._pixel_selector.PixelSelector"))
+        return self.plugins("happy.pixel_selectors._pixel_selector.PixelSelector", fail_if_empty=False)
 
     def region_extractors(self) -> Dict[str, Plugin]:
         """
@@ -173,11 +144,14 @@ class HappyRegistry(Registry):
         :rtype: dict
         """
         # class via string to avoid circular imports
-        return self.plugins(ENTRYPOINT_REGION_EXTRACTORS, get_class("happy.region_extractors._region_extractor.RegionExtractor"))
+        return self.plugins("happy.region_extractors._region_extractor.RegionExtractor", fail_if_empty=False)
 
 
 # singleton of the Registry
-REGISTRY = HappyRegistry()
+REGISTRY = HappyRegistry(default_class_listers=HAPPY_DEFAULT_CLASS_LISTERS,
+                         env_class_listers=HAPPY_ENV_CLASS_LISTERS,
+                         excluded_class_listers=None,
+                         env_excluded_class_listers=HAPPY_ENV_CLASS_LISTERS_EXCL)
 
 
 def print_help_all():

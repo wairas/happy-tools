@@ -39,7 +39,7 @@ setup(
         "shapely",
         "scikit-learn",
         "matplotlib",
-        "seppl>=0.0.11",
+        "seppl>=0.2.1",
         "wai.logging",
         "tabulate",
     ],
@@ -77,32 +77,8 @@ setup(
             "happy-scikit-unsupervised-build=happy.console.builders.unsupervised_build:sys_main",
             "happy-splitter=happy.console.happy_splitter.split:sys_main",
         ],
-        "happy.blackref_methods": [
-            "happy_blackref_methods=happy.data:happy.data.black_ref.AbstractBlackReferenceMethod",
-        ],
-        "happy.whiteref_methods": [
-            "happy_whiteref_methods=happy.data:happy.data.white_ref.AbstractWhiteReferenceMethod",
-        ],
-        "happy.ref_locator": [
-            "happy_ref_locator=happy.data:happy.data.ref_locator.AbstractReferenceLocator",
-        ],
-        "happy.normalization": [
-            "happy_normalization=happy.data:happy.data.normalization.AbstractNormalization",
-        ],
-        "happy.preprocessors": [
-            "happy_preprocessors=happy.preprocessors:happy.preprocessors.Preprocessor",
-        ],
-        "happy.happydata_readers": [
-            "happy_happydata_readers=happy.readers:happy.readers.HappyDataReader",
-        ],
-        "happy.happydata_writers": [
-            "happy_happydata_writers=happy.writers:happy.writers.HappyDataWriter",
-        ],
-        "happy.pixel_selectors": [
-            "happy_pixel_selectors=happy.pixel_selectors:happy.pixel_selectors.PixelSelector",
-        ],
-        "happy.region_extractors": [
-            "happy_region_extractors=happy.region_extractors:happy.region_extractors.RegionExtractor",
+        "class_lister": [
+            "happy=happy.base.class_lister",
         ],
     },
     version="0.0.1",
