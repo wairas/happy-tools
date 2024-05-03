@@ -39,7 +39,7 @@ setup(
         "shapely",
         "scikit-learn",
         "matplotlib",
-        "seppl>=0.2.2",
+        "seppl>=0.2.3",
         "wai.logging",
         "tabulate",
     ],
