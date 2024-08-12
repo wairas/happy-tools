@@ -41,6 +41,7 @@
 * [sni](sni.md)
 * [snv](snv.md)
 * [std-scaler](std-scaler.md)
+* [subtract](subtract.md)
 * [wavelength-subset](wavelength-subset.md)
 
 ## HAPPY data writers

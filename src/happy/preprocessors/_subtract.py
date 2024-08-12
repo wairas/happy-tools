@@ -14,7 +14,7 @@ class SubtractPreprocessor(Preprocessor):
         return "subtract"
 
     def description(self) -> str:
-        return "Subtracts the specified reference."
+        return "Subtracts the specified ENVI file from the data passing through."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
