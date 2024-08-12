@@ -12,4 +12,5 @@ from ._pca import PCAPreprocessor
 from ._sni import SpectralNoiseInterpolator
 from ._snv import SNVPreprocessor
 from ._std_scaler import StandardScalerPreprocessor
+from ._subtract import SubtractPreprocessor
 from ._wavelength_subset import WavelengthSubsetPreprocessor
