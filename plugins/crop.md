@@ -17,9 +17,11 @@ optional arguments:
   -x X, --x X           The left of the cropping rectangle (default: 0)
   -y Y, --y Y           The top of the cropping rectangle (default: 0)
   -W WIDTH, --width WIDTH
-                        The width of the cropping rectangle (default: 0)
+                        The width of the cropping rectangle; -1=use current
+                        width (default: -1)
   -H HEIGHT, --height HEIGHT
-                        The height of the cropping rectangle (default: 0)
+                        The height of the cropping rectangle; -1=use current
+                        height (default: -1)
   -p, --pad             Whether to pad if necessary (default: False)
   -v PAD_VALUE, --pad_value PAD_VALUE
                         The value to pad with (default: 0)

@@ -19,8 +19,8 @@ class CropPreprocessor(Preprocessor):
         parser = super()._create_argparser()
         parser.add_argument("-x", "--x", type=int, help="The left of the cropping rectangle", required=False, default=0)
         parser.add_argument("-y", "--y", type=int, help="The top of the cropping rectangle", required=False, default=0)
-        parser.add_argument("-W", "--width", type=int, help="The width of the cropping rectangle", required=False, default=0)
-        parser.add_argument("-H", "--height", type=int, help="The height of the cropping rectangle", required=False, default=0)
+        parser.add_argument("-W", "--width", type=int, help="The width of the cropping rectangle; -1=use current width", required=False, default=-1)
+        parser.add_argument("-H", "--height", type=int, help="The height of the cropping rectangle; -1=use current height", required=False, default=-1)
         parser.add_argument("-p", "--pad", action="store_true", help="Whether to pad if necessary", required=False)
         parser.add_argument("-v", "--pad_value", type=int, help="The value to pad with", required=False, default=0)
         return parser
@@ -56,14 +56,18 @@ class CropPreprocessor(Preprocessor):
         # Crop the numpy array
         x = self.params.get('x', 0)
         y = self.params.get('y', 0)
-        height = self.params.get('height', 0)
-        width = self.params.get('width', 0)
+        height = self.params.get('height', -1)
+        if height == -1:
+            height = happy_data.data.shape[0]
+        width = self.params.get('width', -1)
+        if width == -1:
+            width = happy_data.data.shape[1]
         pad = self.params.get('pad', True)
         pad_value = self.params.get('pad_value', 0)
         self.logger().info(happy_data.data.shape)
         cropped_data = happy_data.data[y:y + height, x:x + width, :]
-        self.logger().info(f"y: {y}")
-        self.logger().info(f"height: {height}")
+        self.logger().info(f"x: {x}, y: {y}")
+        self.logger().info(f"height: {height}, width: {width}")
         self.logger().info(f"cropped_data.shape: {cropped_data.shape}")
         if pad:
             self.logger().info("do pad")
