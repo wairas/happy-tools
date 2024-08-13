@@ -71,7 +71,7 @@ def main():
 
     # check pipeline
     if len(objs) < 2:
-        raise Exception("At least a read and a writer need to be defined!")
+        raise Exception("At least a reader and a writer need to be defined!")
 
     # reader
     if not isinstance(objs[0], HappyDataReader):
