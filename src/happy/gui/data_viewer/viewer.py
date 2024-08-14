@@ -563,6 +563,16 @@ class ViewerApp:
         self.log("Launching: %s" % " ".join(cmd))
         subprocess.Popen(cmd)
 
+    def on_window_half_height_click(self, event=None):
+        w = self.mainwindow.winfo_width()
+        h = self.mainwindow.winfo_screenheight() // 2
+        self.mainwindow.geometry("%dx%d" % (w, h))
+
+    def on_window_half_width_click(self, event=None):
+        w = self.mainwindow.winfo_screenwidth() // 2
+        h = self.mainwindow.winfo_height()
+        self.mainwindow.geometry("%dx%d" % (w, h))
+
     def on_scale_opacity_changed(self, scale_value):
         self.combined_image = None
         self.update_plot()

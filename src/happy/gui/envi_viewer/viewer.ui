@@ -476,6 +476,21 @@
                     <property name="label" translatable="yes">New window</property>
                   </object>
                 </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator_window1" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_window_half_width" named="True">
+                    <property name="command" type="command" cbtype="simple">on_window_half_width_click</property>
+                    <property name="label" translatable="yes">Half width</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_window_half_height" named="True">
+                    <property name="command" type="command" cbtype="simple">on_window_half_height_click</property>
+                    <property name="label" translatable="yes">Half height</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
