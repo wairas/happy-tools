@@ -234,7 +234,7 @@
               <object class="tk.Menuitem.Submenu" id="submenu21">
                 <property name="label" translatable="yes">Polygons</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
+                <property name="underline">1</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_polygons_clear" named="True">
                     <property name="accelerator">Ctrl+N</property>
@@ -359,6 +359,7 @@
               <object class="tk.Menuitem.Submenu" id="submenu6">
                 <property name="label" translatable="yes">View</property>
                 <property name="tearoff">false</property>
+                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Submenu" id="submenu51">
                     <property name="label" translatable="yes">Options</property>
@@ -383,7 +384,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Separator" id="separator3" />
+                  <object class="tk.Menuitem.Separator" id="separator1" />
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_view_view_spectra" named="True">
@@ -460,6 +461,19 @@
                         <property name="label" translatable="yes">Custom...</property>
                       </object>
                     </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="tk.Menuitem.Submenu" id="submenu10">
+                <property name="label" translatable="yes">Window</property>
+                <property name="tearoff">false</property>
+                <property name="underline">0</property>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_window_new_window" named="True">
+                    <property name="command" type="command" cbtype="simple">on_window_new_window_click</property>
+                    <property name="label" translatable="yes">New window</property>
                   </object>
                 </child>
               </object>
@@ -1406,7 +1420,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="ttk.Separator" id="separator1">
+                      <object class="ttk.Separator" id="separator2">
                         <property name="orient">vertical</property>
                         <layout manager="pack">
                           <property name="expand">false</property>
@@ -1451,7 +1465,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="ttk.Separator" id="separator2">
+                      <object class="ttk.Separator" id="separator11">
                         <property name="orient">vertical</property>
                         <layout manager="pack">
                           <property name="expand">false</property>
@@ -1496,7 +1510,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="ttk.Separator" id="separator11">
+                      <object class="ttk.Separator" id="separator14">
                         <property name="orient">vertical</property>
                         <layout manager="pack">
                           <property name="expand">false</property>

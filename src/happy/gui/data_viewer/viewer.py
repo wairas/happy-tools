@@ -3,6 +3,8 @@ import argparse
 import logging
 import os
 import pathlib
+import subprocess
+import sys
 import tkinter as tk
 import tkinter.ttk as ttk
 import traceback
@@ -554,6 +556,12 @@ class ViewerApp:
         self.state_to_session()
         self.session.save()
         self.mainwindow.quit()
+
+    def on_window_new_window_click(self, event=None):
+        cmd = [sys.executable]
+        cmd.extend(sys.argv[:])
+        self.log("Launching: %s" % " ".join(cmd))
+        subprocess.Popen(cmd)
 
     def on_scale_opacity_changed(self, scale_value):
         self.combined_image = None

@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import os
 import pathlib
 import pygubu
+import subprocess
+import sys
 import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -1925,6 +1927,12 @@ class ViewerApp:
                 new_zoom = -1
             self.session.zoom = new_zoom
             self.update_image()
+
+    def on_window_new_window_click(self, event=None):
+        cmd = [sys.executable]
+        cmd.extend(sys.argv[:])
+        self.log("Launching: %s" % " ".join(cmd))
+        subprocess.Popen(cmd)
 
     def on_button_sam_connect_click(self, event=None):
         if self.sam.is_connected():
