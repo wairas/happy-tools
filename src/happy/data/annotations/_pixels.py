@@ -19,6 +19,8 @@ BRUSH_SHAPES = [
     BRUSH_SHAPE_SQUARE,
 ]
 
+MASK_PREFIX = "MASK_"
+
 
 def generate_cursor(shape: str, size: int, path: str, width: int = None, height: int = None):
     """
@@ -143,6 +145,21 @@ class PixelManager:
             self._draw_indexed.rectangle((0, 0, width - 1, height - 1), fill=0)
             self._draw_rgba.rectangle((0, 0, width - 1, height - 1), fill=(0, 0, 0, 0))
         self.clear_label_map()
+
+    def has_annotations(self):
+        """
+        Checks whether any annotations are present.
+
+        :return: True if annotations are present
+        :rtype: bool
+        """
+        result = False
+        if self._image_indexed is not None:
+            unique = list(np.unique(self._image_indexed))
+            if 0 in unique:
+                unique.remove(0)
+            result = len(unique) > 0
+        return result
 
     def reshape(self, width, height):
         """

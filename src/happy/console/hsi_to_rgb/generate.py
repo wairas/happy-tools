@@ -57,7 +57,7 @@ def convert(input_path, output_path, datamanager,
     """
     log("- %s" % input_path)
 
-    datamanager.set_scan(input_path)
+    datamanager.load_scan(input_path)
 
     if autodetect_channels:
         try:

@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from typing import List
 
+from ._pixels import MASK_PREFIX
+
 
 @dataclass
 class AnnotationFiles:
@@ -99,7 +101,7 @@ def locate_annotations(input_dirs, ann_files: List[AnnotationFiles], recursive=F
                 png_path = None
 
             # envi
-            envi_path = os.path.join(os.path.dirname(prefix), "MASK_" + os.path.basename(prefix) + ".hdr")
+            envi_path = os.path.join(os.path.dirname(prefix), MASK_PREFIX + os.path.basename(prefix) + ".hdr")
             if not os.path.exists(envi_path):
                 envi_path = None
 

@@ -219,7 +219,7 @@ class ContoursManager:
         :return: the generated OPEX data structure, None if no contours available
         :rtype: ObjectPredictions
         """
-        if not self.has_contours() and (len(self.metadata) == 0):
+        if not self.has_annotations() and (len(self.metadata) == 0):
             return None
         start_time = datetime.now()
         objs = []
@@ -274,7 +274,7 @@ class ContoursManager:
             contours.append(contour)
         self.add(contours)
 
-    def has_contours(self):
+    def has_annotations(self):
         """
         Checks whether any contours are stored.
 

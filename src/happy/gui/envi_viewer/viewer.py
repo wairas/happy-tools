@@ -27,14 +27,9 @@ from happy.data import LABEL_WHITEREF, LABEL_BLACKREF
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.preprocessors import Preprocessor
 from happy.data import DataManager, CALC_DIMENSIONS_DIFFER
-from happy.data.annotations import MetaDataManager
-from happy.data.annotations import ContoursManager, Contour
-from happy.data.annotations import MarkersManager
-from happy.data.annotations import PixelManager, BRUSH_SHAPES
-from happy.data.annotations import tableau_colors
-from happy.gui.envi_viewer import SamManager
-from happy.gui.envi_viewer import SessionManager, PROPERTIES
+from happy.data.annotations import Contour, BRUSH_SHAPES, tableau_colors, MASK_PREFIX
 from happy.gui.dialog import asklist
+from happy.gui.envi_viewer import SamManager, SessionManager, PROPERTIES
 from happy.gui.envi_viewer import ANNOTATION_MODES, ANNOTATION_MODE_POLYGONS, ANNOTATION_MODE_PIXELS, generate_color_key
 from happy.gui.envi_viewer.annotations import AnnotationsDialog
 from happy.gui.envi_viewer.image import ImageDialog
@@ -73,7 +68,6 @@ class ViewerApp:
         self.state_keep_aspectratio = None
         self.state_autodetect_channels = None
         self.state_check_scan_dimensions = None
-        self.state_export_to_scan_dir = None
         self.state_annotation_color = None
         self.state_predefined_labels = None
         self.state_redis_host = None
@@ -87,8 +81,10 @@ class ViewerApp:
         self.state_scale_r = None
         self.state_scale_g = None
         self.state_scale_b = None
+        self.state_export_to_scan_dir = None
         self.state_export_overlay_annotations = None
         self.state_export_keep_aspectratio = None
+        self.state_export_enforce_mask_prefix = None
         self.state_black_ref_locator = None
         self.state_black_ref_method = None
         self.state_white_ref_locator = None
@@ -115,7 +111,6 @@ class ViewerApp:
         self.checkbutton_autodetect_channels = builder.get_object("checkbutton_autodetect_channels", master)
         self.checkbutton_keep_aspectratio = builder.get_object("checkbutton_keep_aspectratio", master)
         self.checkbutton_check_scan_dimenions = builder.get_object("checkbutton_check_scan_dimensions", master)
-        self.checkbutton_export_to_scan_dir = builder.get_object("checkbutton_export_to_scan_dir", master)
         self.entry_annotation_color = builder.get_object("entry_annotation_color", master)
         self.entry_predefined_labels = builder.get_object("entry_predefined_labels", master)
         self.entry_redis_host = builder.get_object("entry_redis_host", master)
@@ -152,7 +147,6 @@ class ViewerApp:
         # https://tkinterexamples.com/events/keyboard/
         # file
         self.mainwindow.bind("<Control-o>", self.on_file_open_scan_click)
-        self.mainwindow.bind("<Alt-e>", self.on_file_exportimage_click)
         self.mainwindow.bind("<Alt-x>", self.on_file_close_click)
         # edit
         self.mainwindow.bind("<Control-z>", self.on_edit_undo_click)
@@ -189,13 +183,9 @@ class ViewerApp:
         # init some vars
         self.photo_scan = None
         self.session = SessionManager(log_method=self.log)
-        self.metadata = MetaDataManager()
-        self.contours = ContoursManager(metadata=self.metadata)
-        self.pixels = PixelManager(metadata=self.metadata, log_method=self.log)
-        self.data = DataManager(contours=self.contours, log_method=self.log)
+        self.data = DataManager(log_method=self.log)
         self.last_dims = None
         self.last_wavelengths = None
-        self.markers = MarkersManager()
         self.sam = SamManager()
         self.spectra_plot_raw = None
         self.spectra_plot_processed = None
@@ -347,12 +337,14 @@ class ViewerApp:
 
         return filename
 
-    def save_image_file(self, title, initial_dir, scan=None):
+    def save_file(self, title, file_type, initial_dir, scan=None):
         """
         Allows the user to select a PNG file for saving an image.
          
         :param title: the title to use for the save dialog
         :type title: str
+        :param file_type: the type of file to save (png|envi|opex)
+        :type file_type: str
         :param initial_dir: the initial directory in use
         :type initial_dir: str
         :param scan: the scan image to use for a suggestion
@@ -360,14 +352,30 @@ class ViewerApp:
         :return: the chosen filename, None if cancelled
         :rtype: str
         """
-        filetypes = (
-            ('PNG files', '*.png'),
-            ('All files', '*.*')
-        )
+        if file_type == "png":
+            ext = ".png"
+            filetypes = (
+                ('PNG files', '*' + ext),
+                ('All files', '*.*')
+            )
+        elif file_type == "envi":
+            ext = ".hdr"
+            filetypes = (
+                ('ENVI files', '*' + ext),
+                ('All files', '*.*')
+            )
+        elif file_type == "opex":
+            ext = ".json"
+            filetypes = (
+                ('OPEX JSON files', '*' + ext),
+                ('All files', '*.*')
+            )
+        else:
+            raise Exception("Unsupported file type: %s" % file_type)
 
         initial_file = None
         if scan is not None:
-            initial_file = os.path.splitext(os.path.basename(scan))[0] + ".png"
+            initial_file = os.path.splitext(os.path.basename(scan))[0] + ext
 
         filename = fd.asksaveasfilename(
             title=title,
@@ -390,9 +398,9 @@ class ViewerApp:
         :param do_update: whether to update the display
         :type do_update: bool
         """
-        self.markers.clear()
-        self.contours.clear()
-        self.pixels.clear()
+        self.data.markers.clear()
+        self.data.contours.clear()
+        self.data.pixels.clear()
 
         if self.data.has_scan():
             self.last_dims = self.data.scan_data.shape
@@ -401,7 +409,7 @@ class ViewerApp:
         self.log("Loading scan: %s" % filename)
         self.session.last_scan_file = filename
         self.start_busy()
-        warning = self.data.set_scan(filename)
+        warning = self.data.load_scan(filename)
         self.stop_busy()
         if warning is not None:
             messagebox.showerror("Warning", warning)
@@ -421,7 +429,7 @@ class ViewerApp:
         self.set_data_dimensions(self.data.scan_data.shape, do_update=False)
 
         # configure pixel annotations
-        self.pixels.reshape(self.data.scan_data.shape[1], self.data.scan_data.shape[0])
+        self.data.pixels.reshape(self.data.scan_data.shape[1], self.data.scan_data.shape[0])
 
         # set r/g/b from default bands?
         if self.session.autodetect_channels:
@@ -448,7 +456,7 @@ class ViewerApp:
         """
         self.log("Loading black reference: %s" % filename)
         self.start_busy()
-        error = self.data.set_blackref(filename)
+        error = self.data.load_blackref(filename)
         self.stop_busy()
         if error is not None:
             messagebox.showerror("Error", error)
@@ -467,7 +475,7 @@ class ViewerApp:
         """
         self.log("Loading white reference: %s" % filename)
         self.start_busy()
-        error = self.data.set_whiteref(filename)
+        error = self.data.load_whiteref(filename)
         self.stop_busy()
         if error is not None:
             messagebox.showerror("Error", error)
@@ -641,15 +649,15 @@ class ViewerApp:
         height = dims[1]
         image = self.get_scaled_image(width, height)
         if image is not None:
-            image_markers = self.markers.to_overlay(width, height, int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            image_markers = self.data.markers.to_overlay(width, height, int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_markers is not None:
                 image.paste(image_markers, (0, 0), image_markers)
             if self.session.show_polygon_annotations:
-                image_contours = self.contours.to_overlay(width, height, self.entry_annotation_color.get())
+                image_contours = self.data.contours.to_overlay(width, height, self.entry_annotation_color.get())
                 if image_contours is not None:
                     image.paste(image_contours, (0, 0), image_contours)
             if self.session.show_pixel_annotations:
-                image_pixels = self.pixels.to_overlay(width, height)
+                image_pixels = self.data.pixels.to_overlay(width, height)
                 if image_pixels is not None:
                     image.paste(image_pixels, (0, 0), image_pixels)
             self.photo_scan = ImageTk.PhotoImage(image=image)
@@ -657,8 +665,8 @@ class ViewerApp:
             self.image_canvas.config(width=width, height=height)
             self.image_canvas.configure(scrollregion=(0, 0, width - 2, height - 2))
             # calc/set zoom for cursor in pixel manager
-            self.pixels.zoom_x = width / self.data.scan_data.shape[1]
-            self.pixels.zoom_y = height / self.data.scan_data.shape[0]
+            self.data.pixels.zoom_x = width / self.data.scan_data.shape[1]
+            self.data.pixels.zoom_y = height / self.data.scan_data.shape[0]
 
     def update_image(self):
         """
@@ -699,7 +707,7 @@ class ViewerApp:
         if self.data.whiteref_file is not None:
             info += self.data.whiteref_file + "\n" + str(self.data.whiteref_data.shape)
         else:
-            contours = self.contours.get_contours(LABEL_WHITEREF)
+            contours = self.data.contours.get_contours(LABEL_WHITEREF)
             if len(contours) == 1:
                 info += str(contours[0].bbox())
             else:
@@ -832,7 +840,7 @@ class ViewerApp:
         x = self.image_canvas.canvasx(event.x) / self.photo_scan.width()
         y = self.image_canvas.canvasy(event.y) / self.photo_scan.height()
         point = (x, y)
-        self.markers.add(point)
+        self.data.markers.add(point)
         self.log("Marker point added: %s" % str(point))
         self.update_image()
 
@@ -861,7 +869,7 @@ class ViewerApp:
         """
         x = self.image_canvas.canvasx(event.x) / self.photo_scan.width()
         y = self.image_canvas.canvasy(event.y) / self.photo_scan.height()
-        contours = self.contours.contains(x, y)
+        contours = self.data.contours.contains(x, y)
         if len(contours) > 0:
             labels = set([x.label for x in contours])
             if len(contours) > 1:
@@ -897,7 +905,7 @@ class ViewerApp:
         """
         Clears all markers.
         """
-        self.markers.clear()
+        self.data.markers.clear()
         self.log("Marker points cleared")
 
     def remove_annotations(self, event):
@@ -906,11 +914,11 @@ class ViewerApp:
         """
         x = self.image_canvas.canvasx(event.x) / self.photo_scan.width()
         y = self.image_canvas.canvasy(event.y) / self.photo_scan.height()
-        contours = self.contours.contains(x, y)
+        contours = self.data.contours.contains(x, y)
         if len(contours) > 0:
             answer = messagebox.askquestion("Remove annotations", "Remove %d annotations?" % len(contours))
             if answer == messagebox.YES:
-                self.contours.remove(contours)
+                self.data.contours.remove(contours)
             self.update_image()
 
     def state_to_session(self):
@@ -920,7 +928,6 @@ class ViewerApp:
         self.session.autodetect_channels = (self.state_autodetect_channels.get() == 1)
         self.session.keep_aspectratio = (self.state_keep_aspectratio.get() == 1)
         self.session.check_scan_dimensions = (self.state_check_scan_dimensions.get() == 1)
-        self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
         # last_blackref_dir
         # last_whiteref_dir
         # last_scan_dir
@@ -944,15 +951,17 @@ class ViewerApp:
         self.session.white_ref_locator = self.state_white_ref_locator.get()
         self.session.white_ref_method = self.state_white_ref_method.get()
         self.session.preprocessing = self.text_preprocessing.get("1.0", "end-1c")
+        self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
         self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
+        self.session.export_enforce_mask_prefix = self.state_export_enforce_mask_prefix.get() == 1
         self.session.normalization = self.state_normalization.get()
         self.session.annotation_mode = self.annotation_mode
-        self.session.brush_shape = self.pixels.brush_shape
-        self.session.brush_size = self.pixels.brush_size
+        self.session.brush_shape = self.data.pixels.brush_shape
+        self.session.brush_size = self.data.pixels.brush_size
         self.session.invert_cursor = self.state_pixels_brush_color.get() == 1
-        self.pixels.invert_cursor = self.state_pixels_brush_color.get() == 1
-        self.session.alpha = self.pixels.alpha
+        self.data.pixels.invert_cursor = self.state_pixels_brush_color.get() == 1
+        self.session.alpha = self.data.pixels.alpha
         # zoom
         self.session.show_polygon_annotations = self.state_view_show_polygons.get() == 1
         self.session.show_pixel_annotations = self.state_view_show_pixels.get() == 1
@@ -964,7 +973,6 @@ class ViewerApp:
         self.state_autodetect_channels.set(1 if self.session.autodetect_channels else 0)
         self.state_keep_aspectratio.set(1 if self.session.keep_aspectratio else 0)
         self.state_check_scan_dimensions.set(1 if self.session.check_scan_dimensions else 0)
-        self.state_export_to_scan_dir.set(1 if self.session.export_to_scan_dir else 0)
         # last_blackref_dir
         # last_whiteref_dir
         # last_scan_dir
@@ -989,14 +997,16 @@ class ViewerApp:
         self.state_white_ref_method.set(self.session.white_ref_method)
         self.text_preprocessing.delete(1.0, tk.END)
         self.text_preprocessing.insert(tk.END, self.session.preprocessing)
+        self.state_export_to_scan_dir.set(1 if self.session.export_to_scan_dir else 0)
         self.state_export_overlay_annotations.set(1 if self.session.export_overlay_annotations else 0)
         self.state_export_keep_aspectratio.set(1 if self.session.export_keep_aspectratio else 0)
+        self.state_export_enforce_mask_prefix.set(1 if self.session.export_enforce_mask_prefix else 0)
         self.state_normalization.set(self.session.normalization)
-        self.pixels.brush_shape = self.session.brush_shape
-        self.pixels.invert_cursor = self.session.invert_cursor
+        self.data.pixels.brush_shape = self.session.brush_shape
+        self.data.pixels.invert_cursor = self.session.invert_cursor
         self.state_pixels_brush_color.set(1 if self.session.invert_cursor else 0)
-        self.pixels.brush_size = self.session.brush_size
-        self.pixels.alpha = self.session.alpha
+        self.data.pixels.brush_size = self.session.brush_size
+        self.data.pixels.alpha = self.session.alpha
         # zoom
         self.state_view_show_polygons.set(1 if self.session.show_polygon_annotations else 0)
         self.state_view_show_pixels.set(1 if self.session.show_pixel_annotations else 0)
@@ -1005,7 +1015,7 @@ class ViewerApp:
         self.ignore_updates = True
         self.state_edit_annotation_mode.set(ANNOTATION_MODES.index(self.session.annotation_mode))
         self.switch_annotation_mode(self.session.annotation_mode)
-        self.state_pixels_brush_shape.set(BRUSH_SHAPES.index(self.pixels.brush_shape))
+        self.state_pixels_brush_shape.set(BRUSH_SHAPES.index(self.data.pixels.brush_shape))
         self.ignore_updates = False
         self.apply_black_ref(do_update=False)
         self.apply_white_ref(do_update=False)
@@ -1018,12 +1028,7 @@ class ViewerApp:
         :return: the dictionary
         :rtype: dict
         """
-        result = dict()
-        result["markers"] = self.markers.to_json()
-        result["contours"] = self.contours.to_json()
-        result["pixels"] = self.pixels.to_dict()
-        result["metadata"] = self.metadata.to_json()
-        return result
+        return self.data.backup_state()
 
     def restore_undo_state(self, d):
         """
@@ -1032,10 +1037,7 @@ class ViewerApp:
         :param d: the state dictionary
         :type d: dict
         """
-        self.markers.from_json(d["markers"])
-        self.contours.from_json(d["contours"])
-        self.pixels.from_dict(d["pixels"])
-        self.metadata.from_json(d["metadata"])
+        self.data.restore_state(d)
 
     def apply_black_ref(self, do_update=False):
         # locator
@@ -1224,17 +1226,18 @@ class ViewerApp:
         filename = self.open_annotation_file('Open pixel annotations', "envi", self.session.last_scan_dir)
         if filename is None:
             return
+
         self.log("Loading ENVI mask annotations: %s" % filename)
         self.undo_manager.add_undo("Importing pixel annotations", self.get_undo_state())
-        self.pixels.load_envi(filename)
-        self.pixels.clear_label_map()
+        self.data.pixels.load_envi(filename)
+        self.data.pixels.clear_label_map()
         label_map = os.path.splitext(filename)[0] + ".json"
         if os.path.exists(label_map):
-            msg = self.pixels.load_label_map(label_map)
+            msg = self.data.pixels.load_label_map(label_map)
             if msg is None:
                 if len(self.state_predefined_labels.get()) > 0:
                     pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
-                    cur_labels = [x for x in self.pixels.label_map.values()]
+                    cur_labels = [x for x in self.data.pixels.label_map.values()]
                     missing_labels = set()
                     for cur_label in cur_labels:
                         if cur_label not in pre_labels:
@@ -1245,7 +1248,7 @@ class ViewerApp:
                             "Warning",
                             "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
                                 missing_labels))
-                    if len(self.pixels.unique_values()) != len(cur_labels):
+                    if len(self.data.pixels.unique_values()) != len(cur_labels):
                         messagebox.showwarning(
                             "Warning",
                             "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (self.state_predefined_labels.get(), ",".join(cur_labels)))
@@ -1279,13 +1282,17 @@ class ViewerApp:
                     "Warning",
                     "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
         self.undo_manager.add_undo("Importing polygon annotations", self.get_undo_state())
-        self.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
+        self.data.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
         self.update_image()
 
-    def on_file_exportimage_click(self, event=None):
+    def on_file_export_image_click(self, event=None):
         """
         Allows the user to select a PNG file for saving the false color RGB to.
         """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+
         if self.session.export_keep_aspectratio:
             dims = self.data.dims()
         else:
@@ -1300,15 +1307,15 @@ class ViewerApp:
         # include annotations?
         if self.session.export_overlay_annotations:
             # markers
-            image_markers = self.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            image_markers = self.data.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
             if image_markers is not None:
                 image.paste(image_markers, (0, 0), image_markers)
             # polygons
-            image_contours = self.contours.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_contours = self.data.contours.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
             # pixels
-            image_pixels = self.pixels.to_overlay(dims[0], dims[1])
+            image_pixels = self.data.pixels.to_overlay(dims[0], dims[1])
             if image_pixels is not None:
                 image.paste(image_pixels, (0, 0), image_pixels)
             else:
@@ -1318,34 +1325,89 @@ class ViewerApp:
             initial_dir = os.path.dirname(self.data.scan_file)
         else:
             initial_dir = self.session.last_image_dir
-        filename = self.save_image_file('Save image', initial_dir, scan=self.session.last_scan_file)
+        filename = self.save_file('Save image', "png", initial_dir, scan=self.session.last_scan_file)
         if filename is not None:
             self.session.last_image_dir = os.path.dirname(filename)
             image.save(filename)
             self.log("Image saved to: %s" % filename)
-            # opex
-            annotations = self.contours.to_opex(dims[0], dims[1])
-            if annotations is not None:
-                filename = os.path.splitext(filename)[0] + ".json"
-                annotations.save_json_to_file(filename)
-                self.log("OPEX JSON annotations saved to: %s" % filename)
-            # envi + label map
-            filename = os.path.join(os.path.dirname(filename), "MASK_" + os.path.splitext(os.path.basename(filename))[0] + ".hdr")
-            if self.pixels.save_envi(filename):
-                self.log("ENVI Mask annotations saved to: %s" % filename)
-            else:
-                self.log("ERROR: Failed to save ENVI Mask annotations to: %s" % filename)
-            filename = os.path.join(os.path.dirname(filename), os.path.splitext(os.path.basename(filename))[0] + ".json")
-            if self.pixels.save_label_map(filename):
-                self.log("ENVI Mask label map saved to: %s" % filename)
-            else:
-                self.log("ERROR: Failed to save ENVI Mask label map to: %s" % filename)
 
-    def on_export_overlay_annotations(self, event=None):
+    def on_file_export_polygon_annotations_click(self, event=None):
+        """
+        Allows the user to export polygon annotations.
+        """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+        if not self.data.contours.has_annotations():
+            messagebox.showerror("Error", "Please create polygon annotations first!")
+            return
+
+        if self.session.export_keep_aspectratio:
+            dims = self.data.dims()
+        else:
+            dims = self.get_image_canvas_dims()
+        if dims is None:
+            return
+        dims = self.fit_image_into_dims(dims[0], dims[1], self.session.export_keep_aspectratio)
+
+        if self.session.export_to_scan_dir:
+            initial_dir = os.path.dirname(self.data.scan_file)
+        else:
+            initial_dir = self.session.last_image_dir
+        filename = self.save_file('Save polygon annotations', "opex", initial_dir, scan=self.session.last_scan_file)
+        if filename is None:
+            return
+
+        annotations = self.data.contours.to_opex(dims[0], dims[1])
+        if annotations is not None:
+            annotations.save_json_to_file(filename)
+            self.log("OPEX JSON annotations saved to: %s" % filename)
+
+    def on_file_export_pixel_annotations_click(self, event=None):
+        """
+        Allows the user to export pixel annotations.
+        """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+        if not self.data.pixels.has_annotations():
+            messagebox.showerror("Error", "Please create pixel annotations first!")
+            return
+
+        if self.session.export_to_scan_dir:
+            initial_dir = os.path.dirname(self.data.scan_file)
+        else:
+            initial_dir = self.session.last_image_dir
+        filename = self.save_file('Save pixel annotations', "envi", initial_dir, scan=self.session.last_scan_file)
+        if filename is None:
+            return
+
+        if self.session.export_enforce_mask_prefix:
+            if not os.path.basename(filename).startswith(MASK_PREFIX):
+                messagebox.showerror("Error", "Please pixel annotations filename must start with %s!" % MASK_PREFIX)
+                return
+
+        if self.data.pixels.save_envi(filename):
+            self.log("ENVI Mask annotations saved to: %s" % filename)
+        else:
+            self.log("ERROR: Failed to save ENVI Mask annotations to: %s" % filename)
+        filename = os.path.join(os.path.dirname(filename), os.path.splitext(os.path.basename(filename))[0] + ".json")
+        if self.data.pixels.save_label_map(filename):
+            self.log("ENVI Mask label map saved to: %s" % filename)
+        else:
+            self.log("ERROR: Failed to save ENVI Mask label map to: %s" % filename)
+
+    def on_file_export_to_scan_dir_click(self, event=None):
+        self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
+
+    def on_file_export_overlay_annotations(self, event=None):
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
 
-    def on_export_keep_aspectratio(self, event=None):
+    def on_file_export_keep_aspectratio(self, event=None):
         self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
+
+    def on_file_export_enforce_mask_prefix(self, event=None):
+        self.session.export_enforce_mask_prefix = self.state_export_enforce_mask_prefix.get() == 1
 
     def on_file_session_open(self, event=None):
         """
@@ -1404,9 +1466,6 @@ class ViewerApp:
 
     def on_check_scan_dimensions_click(self):
         self.session.check_scan_dimensions = (self.state_check_scan_dimensions.get() == 1)
-
-    def on_export_to_scan_dir_click(self):
-        self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
 
     def on_scale_r_changed(self, event):
         self.red_scale_value.configure(text=self.scale_to_text(self.state_scale_r.get()))
@@ -1468,12 +1527,12 @@ class ViewerApp:
         if state == 0x0101:
             if add_undo:
                 self.undo_manager.add_undo("Adding pixels", self.get_undo_state())
-            self.pixels.add(self.pixel_points)
+            self.data.pixels.add(self.pixel_points)
         # CTRL+SHIFT -> remove
         elif state == 0x0105:
             if add_undo:
                 self.undo_manager.add_undo("Removing pixels", self.get_undo_state())
-            self.pixels.remove(self.pixel_points)
+            self.data.pixels.remove(self.pixel_points)
         self.pixel_points.clear()
         self.update_image()
 
@@ -1499,11 +1558,11 @@ class ViewerApp:
 
     def on_image_shift_pressed(self, event=None):
         self.shift_pressed = True
-        self.pixels_update_cursor()
+        self.update_pixels_annotation_cursor()
 
     def on_image_shift_released(self, event=None):
         self.shift_pressed = False
-        self.pixels_update_cursor()
+        self.update_pixels_annotation_cursor()
 
     def on_label_r_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
@@ -1582,7 +1641,7 @@ class ViewerApp:
             return
 
         self.undo_manager.add_undo("Clearing meta-data", self.get_undo_state())
-        self.metadata.clear()
+        self.data.metadata.clear()
         self.log("Meta-data cleared")
 
     def on_edit_metadata_set_click(self, event=None):
@@ -1603,9 +1662,9 @@ class ViewerApp:
         if (v is None) or (v == ""):
             return
         self.undo_manager.add_undo("Editing meta-data", self.get_undo_state())
-        self.metadata.set(k, v)
+        self.data.metadata.set(k, v)
         self.log("Meta-data set: %s=%s" % (k, v))
-        self.log("Meta-data:\n%s" % self.metadata.to_json())
+        self.log("Meta-data:\n%s" % self.data.metadata.to_json())
 
     def on_edit_metadata_remove_click(self, event=None):
         if not self.data.has_scan():
@@ -1615,36 +1674,36 @@ class ViewerApp:
         k = asklist(
             title="Meta-data",
             prompt="Please enter the name of the meta-data value to remove:",
-            items=sorted(list(self.metadata.to_dict().keys())),
+            items=sorted(list(self.data.metadata.to_dict().keys())),
             parent=self.mainwindow)
         if (k is None) or (k == ""):
             return
         self.undo_manager.add_undo("Removing meta-data", self.get_undo_state())
-        msg = self.metadata.remove(k)
+        msg = self.data.metadata.remove(k)
         if msg is not None:
             messagebox.showwarning("Meta-data", msg)
         else:
-            self.log("Meta-data:\n%s" % self.metadata.to_json())
+            self.log("Meta-data:\n%s" % self.data.metadata.to_json())
 
     def on_edit_metadata_view_click(self, event=None):
         if not self.data.has_scan():
             messagebox.showinfo("Info", "No data present!")
             return
 
-        if len(self.metadata) == 0:
+        if len(self.data.metadata) == 0:
             messagebox.showinfo("Meta-data", "Currently no meta-data stored.")
             return
         s = ""
-        d = self.metadata.to_dict()
+        d = self.data.metadata.to_dict()
         for k in d:
             s += "%s:\n  %s\n" % (k, d[k])
-        self.log("Meta-data:\n%s" % self.metadata.to_json())
+        self.log("Meta-data:\n%s" % self.data.metadata.to_json())
         messagebox.showinfo("Meta-data", "Current meta-data:\n\n%s" % s)
 
     def on_edit_markers_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing markers", self.get_undo_state())
-        if self.markers.has_points():
-            self.markers.clear()
+        if self.data.markers.has_points():
+            self.data.markers.clear()
             self.update_image()
             self.log("Marker points cleared")
         else:
@@ -1652,9 +1711,9 @@ class ViewerApp:
 
     def on_polygons_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing polygons/markers", self.get_undo_state())
-        if self.contours.has_contours() or self.markers.has_points():
-            self.contours.clear()
-            self.markers.clear()
+        if self.data.contours.has_annotations() or self.data.markers.has_points():
+            self.data.contours.clear()
+            self.data.markers.clear()
             self.update_image()
             self.log("Polygons/marker points cleared")
         else:
@@ -1675,22 +1734,22 @@ class ViewerApp:
         self.undo_manager.add_undo("Editing annotations", self.get_undo_state())
         if len(deleted) > 0:
             self.log("Removing %d annotations" % len(deleted))
-            self.contours.remove(deleted)
+            self.data.contours.remove(deleted)
         if len(changed) > 0:
             self.log("Updating labels for %d annotations" % len(changed))
             for c in changed:
-                self.contours.update_label(c, c.label)
+                self.data.contours.update_label(c, c.label)
         self.update_image()
 
     def on_polygons_modify_click(self, event=None):
         if not self.data.has_scan():
             messagebox.showerror("Error", "Please load a scan file first!")
             return
-        if len(self.contours.contours) == 0:
+        if len(self.data.contours.contours) == 0:
             messagebox.showerror("Error", "Please add annotations first!")
             return
 
-        dialog = AnnotationsDialog(self.mainwindow, self.contours,
+        dialog = AnnotationsDialog(self.mainwindow, self.data.contours,
                                    self.data.scan_data.shape[1], self.data.scan_data.shape[0],
                                    predefined_labels=self.get_predefined_labels())
         dialog.show(self.on_polygon_annotations_updated)
@@ -1706,7 +1765,7 @@ class ViewerApp:
         """
         self.undo_manager.add_undo("Adding SAM annotations", self.get_undo_state())
         # add contours
-        self.contours.add([Contour(points=x, meta=copy.copy(meta)) for x in contours])
+        self.data.contours.add([Contour(points=x, meta=copy.copy(meta)) for x in contours])
         # update contours/image
         self.resize_image_canvas()
 
@@ -1715,7 +1774,7 @@ class ViewerApp:
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
             self.notebook.select(2)
             return
-        if not self.markers.has_points():
+        if not self.data.markers.has_points():
             messagebox.showerror("Error", "No prompt points for SAM collected!")
             return
 
@@ -1739,8 +1798,8 @@ class ViewerApp:
         content = buf.getvalue()
 
         # absolute marker points
-        points = self.markers.to_absolute(self.image_canvas.winfo_width(), self.image_canvas.winfo_height())
-        self.markers.clear()
+        points = self.data.markers.to_absolute(self.image_canvas.winfo_width(), self.image_canvas.winfo_height())
+        self.data.markers.clear()
 
         # predict contours
         self.sam.predict(content, points,
@@ -1749,17 +1808,17 @@ class ViewerApp:
 
     def on_pixels_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing pixels", self.get_undo_state())
-        self.pixels.clear()
+        self.data.pixels.clear()
         self.update_image()
 
-    def pixels_update_cursor(self):
+    def update_pixels_annotation_cursor(self):
         if not self.available(ANNOTATION_MODE_PIXELS, show_error=False):
             return
         if self.shift_pressed:
-            if self.pixels.invert_cursor:
-                self.image_canvas["cursor"] = ("@" + self.pixels.cursor_path, 'white')
+            if self.data.pixels.invert_cursor:
+                self.image_canvas["cursor"] = ("@" + self.data.pixels.cursor_path, 'white')
             else:
-                self.image_canvas["cursor"] = ("@" + self.pixels.cursor_path, 'black')
+                self.image_canvas["cursor"] = ("@" + self.data.pixels.cursor_path, 'black')
         else:
             self.image_canvas["cursor"] = ""
 
@@ -1767,31 +1826,31 @@ class ViewerApp:
         if not self.available(ANNOTATION_MODE_PIXELS, action="Selecting brush shape"):
             return
 
-        self.pixels.brush_shape = BRUSH_SHAPES[self.state_pixels_brush_shape.get()]
-        self.pixels_update_cursor()
+        self.data.pixels.brush_shape = BRUSH_SHAPES[self.state_pixels_brush_shape.get()]
+        self.update_pixels_annotation_cursor()
 
     def on_pixels_brush_color_click(self, event=None):
         if not self.available(ANNOTATION_MODE_PIXELS, action="Selecting brush color"):
             return
 
-        self.pixels.invert_cursor = self.state_pixels_brush_color.get() == 1
-        self.pixels_update_cursor()
+        self.data.pixels.invert_cursor = self.state_pixels_brush_color.get() == 1
+        self.update_pixels_annotation_cursor()
 
     def on_pixels_brush_size_click(self, event=None):
         if not self.available(ANNOTATION_MODE_PIXELS, action="Setting brush size"):
             return
 
         size = ttkSimpleDialog.askinteger("Brush size", "Please enter brush size (>= 1):",
-                                          initialvalue=self.pixels.brush_size)
+                                          initialvalue=self.data.pixels.brush_size)
         if size is None:
             return
         size = int(size)
         if size < 1:
             messagebox.showerror("Brush size", "Brush size must be at least 1 pixel, provided: %d" % size)
             return
-        self.pixels.brush_size = size
+        self.data.pixels.brush_size = size
         self.log("New brush size: %d" % size)
-        self.pixels_update_cursor()
+        self.update_pixels_annotation_cursor()
 
     def on_pixels_change_alpha_click(self, event=None):
         if not self.available(ANNOTATION_MODE_PIXELS, action="Changing alpha"):
@@ -1799,14 +1858,14 @@ class ViewerApp:
 
         alpha = ttkSimpleDialog.askinteger(
             "Transparency", "Please enter new alpha (0-255, 0: transparent, 255: opaque):",
-            initialvalue=self.pixels.alpha)
+            initialvalue=self.data.pixels.alpha)
         if alpha is None:
             return
         alpha = int(alpha)
         if (alpha < 0) or (alpha > 255):
             messagebox.showerror("Transparency", "Alpha must be between 0 and 255, provided: %d" % alpha)
             return
-        self.pixels.alpha = alpha
+        self.data.pixels.alpha = alpha
         self.log("New alpha: %d" % alpha)
         self.update_image()
 
@@ -1814,7 +1873,7 @@ class ViewerApp:
         if not self.available(ANNOTATION_MODE_PIXELS, action="Selecting pixel label"):
             return
 
-        index = self.pixels.label
+        index = self.data.pixels.label
         label = None
         labels = self.get_predefined_labels(insert_empty_label=False)
         if labels is not None:
@@ -1828,8 +1887,8 @@ class ViewerApp:
                 initialvalue=index+1)
             if index is not None:
                 if (index > 0) and (index <= 255):
-                    self.pixels.label = index
-                    self.pixels.update_label_map(index, str(index))
+                    self.data.pixels.label = index
+                    self.data.pixels.update_label_map(index, str(index))
                 else:
                     messagebox.showerror("Incorrect label index", "The label index must be >0 and <=255, provided: %d" % index)
         else:
@@ -1838,8 +1897,8 @@ class ViewerApp:
                 items=labels, initialvalue=label)
             if label is not None:
                 index = labels.index(label) + 1
-                self.pixels.label = index
-                self.pixels.update_label_map(index, label)
+                self.data.pixels.label = index
+                self.data.pixels.update_label_map(index, label)
 
     def on_pixels_label_key(self, event=None):
         if not self.available(ANNOTATION_MODE_PIXELS, action="Displaying label key"):
@@ -1847,7 +1906,7 @@ class ViewerApp:
 
         labels = self.get_predefined_labels(insert_empty_label=False)
         if labels is None:
-            labels = [str(x) for x in self.pixels.unique_values()]
+            labels = [str(x) for x in self.data.pixels.unique_values()]
         key_img = generate_color_key(tableau_colors(), labels)
         key_dlg = ImageDialog(self.mainwindow)
         key_dlg.show(key_img)
@@ -1868,13 +1927,13 @@ class ViewerApp:
         if not self.available(ANNOTATION_MODE_POLYGONS, action="Adding polygon"):
             return
 
-        if not self.markers.has_polygon():
+        if not self.data.markers.has_polygon():
             messagebox.showerror("Error", "At least three marker points necessary to create a polygon!")
             return
 
         self.undo_manager.add_undo("Adding polygon", self.get_undo_state())
-        self.contours.add([Contour(points=self.markers.points[:])])
-        self.markers.clear()
+        self.data.contours.add([Contour(points=self.data.markers.points[:])])
+        self.data.markers.clear()
         self.log("Polygon added")
         self.update_image()
 
@@ -1887,11 +1946,11 @@ class ViewerApp:
         self.update_image()
 
     def on_view_view_spectra_click(self, event=None):
-        if not self.markers.has_points():
+        if not self.data.markers.has_points():
             messagebox.showerror("Error", "No marker points present!")
             return
 
-        points = self.markers.to_spectra(self.data.scan_data)
+        points = self.data.markers.to_spectra(self.data.scan_data)
         x = [x for x in range(self.data.get_num_bands_scan())]
         if self.spectra_plot_raw is not None:
             plt.close(self.spectra_plot_raw)
@@ -1905,11 +1964,11 @@ class ViewerApp:
         plt.show()
 
     def on_view_view_spectra_processed_click(self, event=None):
-        if not self.markers.has_points():
+        if not self.data.markers.has_points():
             messagebox.showerror("Error", "No marker points present!")
             return
 
-        points = self.markers.to_spectra(self.data.norm_data)
+        points = self.data.markers.to_spectra(self.data.norm_data)
         x = [x for x in range(self.data.get_num_bands_norm())]
         if self.spectra_plot_processed is not None:
             plt.close(self.spectra_plot_processed)
@@ -1999,8 +2058,11 @@ def main(args=None):
     parser.add_argument("-g", "--scale_g", metavar="INT", help="the wave length to use for the green channel", default=None, type=int, required=False)
     parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel", default=None, type=int, required=False)
     parser.add_argument("--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False, default=None)
+    parser.add_argument("--no_autodetect_channels", action="store_true", help="whether to turn off auto-detection of channels from meta-data", required=False, default=None)
     parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False, default=None)
+    parser.add_argument("--no_keep_aspectratio", action="store_true", help="whether to not keep the aspect ratio", required=False, default=None)
     parser.add_argument("--check_scan_dimensions", action="store_true", help="whether to compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
+    parser.add_argument("--no_check_scan_dimensions", action="store_true", help="whether to not compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
     parser.add_argument("--export_to_scan_dir", action="store_true", help="whether to export images to the scan directory rather than the last one used", required=False, default=None)
     parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default=None, required=False)
     parser.add_argument("--predefined_labels", metavar="LIST", help="the comma-separated list of labels to use", default=None, required=False)
@@ -2033,6 +2095,12 @@ def main(args=None):
             value = getattr(parsed, p)
             if value is not None:
                 setattr(app.session, p, value)
+    # check for --no_* flags to override any session values
+    for p in PROPERTIES:
+        if hasattr(parsed, "no_" + p):
+            value = getattr(parsed, "no_" + p)
+            if (value is not None) and value:
+                setattr(app.session, p, False)
     app.session_to_state()
 
     if not app.session.autodetect_channels:

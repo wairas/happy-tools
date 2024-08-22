@@ -14,7 +14,7 @@ from spectral import envi
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
 from happy.data import DataManager, HappyData
-from happy.data.annotations import locate_annotations, AnnotationFiles, load_label_map
+from happy.data.annotations import locate_annotations, AnnotationFiles, load_label_map, MASK_PREFIX
 from happy.data.black_ref import AbstractBlackReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator
 from happy.data.white_ref import AbstractWhiteReferenceMethod
@@ -99,8 +99,8 @@ def envi_to_happy(cont_ann: AnnotationFiles, output_dir, datamanager, dry_run=Fa
 
     logger.info("Loading: %s" % path_scan)
 
-    datamanager.set_scan(path_scan)
-    datamanager.set_annotations(cont_ann.opex)
+    datamanager.load_scan(path_scan)
+    datamanager.load_contours(cont_ann.opex)
     datamanager.calc_norm_data()
 
     wavenumbers = None
@@ -300,14 +300,14 @@ def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager
             pattern_labels: str = "mask.json",
             pattern_png: str = FILENAME_PH_SAMPLEID + ".png",
             pattern_opex: str = FILENAME_PH_SAMPLEID + ".json",
-            pattern_envi: str = "MASK_" + FILENAME_PH_SAMPLEID + ".hdr",
+            pattern_envi: str = MASK_PREFIX + FILENAME_PH_SAMPLEID + ".hdr",
             no_implicit_background=False, unlabelled=0, include_input=False, dry_run=False):
     """
     Converts the specified file.
 
     :param cont_ann: the container with the annotation files
-    :type cont_ann: str
     :param output_dir: where to store the ENVI data
+    :type cont_ann: str
     :type output_dir: str
     :param conversion: what annotations and in what order to apply
     :type conversion: str
@@ -430,7 +430,7 @@ def generate(input_dirs, output_dir, conversion=CONVERSION_PIXELS_THEN_POLYGONS,
              output_format=OUTPUT_FORMAT_FLAT, labels=None, black_ref_locator=None, black_ref_method=None,
              white_ref_locator=None, white_ref_method=None, pattern_mask="mask.hdr", pattern_labels="mask.json",
              pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_opex=FILENAME_PH_SAMPLEID + ".json",
-             pattern_envi="MASK_" + FILENAME_PH_SAMPLEID + ".hdr", no_implicit_background=False, unlabelled=0,
+             pattern_envi=MASK_PREFIX + FILENAME_PH_SAMPLEID + ".hdr", no_implicit_background=False, unlabelled=0,
              include_input=False, dry_run=False, resume_from=None):
     """
     Generates fake RGB images from the HSI images found in the specified directories.
@@ -569,7 +569,7 @@ def main(args=None):
     parser.add_argument("--pattern_labels", metavar="PATTERN", help="the pattern to use for saving the label map for the mask ENVI file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default="mask.json", required=False)
     parser.add_argument("--pattern_png", metavar="PATTERN", help="the pattern to use for saving the mask PNG file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=FILENAME_PH_SAMPLEID + ".png", required=False)
     parser.add_argument("--pattern_opex", metavar="PATTERN", help="the pattern to use for saving the OPEX JSON annotation file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=FILENAME_PH_SAMPLEID + ".json", required=False)
-    parser.add_argument("--pattern_envi", metavar="PATTERN", help="the pattern to use for saving the ENVI mask annotation file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default="MASK_" + FILENAME_PH_SAMPLEID + ".hdr", required=False)
+    parser.add_argument("--pattern_envi", metavar="PATTERN", help="the pattern to use for saving the ENVI mask annotation file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=MASK_PREFIX + FILENAME_PH_SAMPLEID + ".hdr", required=False)
     parser.add_argument("-I", "--include_input", action="store_true", help="whether to copy the PNG/JSON file across to the output dir", required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
     parser.add_argument("--resume_from", metavar="DIR", type=str, help="The directory to restart the processing with (all determined dirs preceding this one get skipped)", required=False, default=None)

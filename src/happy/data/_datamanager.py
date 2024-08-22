@@ -6,7 +6,7 @@ from typing import List, Dict, Optional
 
 from PIL import Image
 from happy.data import HappyData
-from happy.data.annotations import ContoursManager, Contour
+from happy.data.annotations import ContoursManager, Contour, MetaDataManager, PixelManager, MarkersManager
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
@@ -29,7 +29,7 @@ class DataManager:
     For managing the loaded data.
     """
 
-    def __init__(self, contours=None, log_method=None):
+    def __init__(self, log_method=None):
         """
         Initializes the manager.
 
@@ -58,10 +58,13 @@ class DataManager:
         self.norm_data = None
         self.display_image = None
         self.wavelengths = None
-        self.contours = contours if (contours is not None) else ContoursManager()
         self.preprocessors = None
         self.normalization = SimpleNormalization()
         self.log_method = log_method
+        self.metadata = MetaDataManager()
+        self.contours = ContoursManager(metadata=self.metadata)
+        self.pixels = PixelManager(metadata=self.metadata, log_method=self.log)
+        self.markers = MarkersManager()
 
     def log(self, msg):
         """
@@ -94,14 +97,14 @@ class DataManager:
         self.wavelengths = None
         self.reset_norm_data()
 
-    def set_scan(self, path):
+    def load_scan(self, path):
         """
         Sets the scan.
 
         :param path: the filename
         :type path: str
         :return: None if successfully loaded, otherwise an error/warning message
-        :rtype: str
+        :rtype: str or None
         """
         img = envi.open(path)
         self.scan_file = path
@@ -185,24 +188,9 @@ class DataManager:
                 wl_dict[i] = str(i)
         self.wavelengths = wl_dict
 
-    def has_annotations(self):
+    def load_contours(self, path):
         """
-        Checks whether any contours are present.
-
-        :return: True if contours are present
-        :rtype: bool
-        """
-        return self.contours.has_contours()
-
-    def clear_annotations(self):
-        """
-        Removes all currently set contours.
-        """
-        self.contours.clear()
-
-    def set_annotations(self, path):
-        """
-        Loads the annotations in OPEX JSON format.
+        Loads the polygon annotations in OPEX JSON format.
 
         :param path: the OPEX JSON file to load
         :type path: str
@@ -237,7 +225,7 @@ class DataManager:
         Sets the method for applying the white reference.
         
         :param method: the method
-        :type method: AbstractWhiteReferenceMethod 
+        :type method: AbstractWhiteReferenceMethod or None
         """
         self.whiteref_method = method
         self.reset_norm_data()
@@ -247,12 +235,12 @@ class DataManager:
         Sets the locator for the white reference.
         
         :param locator: the locator to use
-        :type locator: AbstractReferenceLocator 
+        :type locator: AbstractReferenceLocator or None
         """
         self.whiteref_locator = locator
         self.reset_norm_data()
 
-    def set_whiteref(self, path):
+    def load_whiteref(self, path):
         """
         Sets the white reference.
 
@@ -332,7 +320,7 @@ class DataManager:
         Sets the locator for the black reference.
 
         :param locator: the locator to use
-        :type locator: AbstractReferenceLocator 
+        :type locator: AbstractReferenceLocator or None
         """
         self.blackref_locator = locator
         self.reset_norm_data()
@@ -342,19 +330,19 @@ class DataManager:
         Sets the method for applying the black reference.
 
         :param method: the method
-        :type method: AbstractBlackReferenceMethod
+        :type method: AbstractBlackReferenceMethod or None
         """
         self.blackref_method = method
         self.reset_norm_data()
 
-    def set_blackref(self, path):
+    def load_blackref(self, path):
         """
         Sets the black reference.
 
         :param path: the filename
         :type path: str
         :return: None if successfully added, otherwise error message
-        :rtype: str
+        :rtype: str or None
         """
         if not self.has_scan():
             return "Please load a scan first!"
@@ -449,7 +437,7 @@ class DataManager:
                 ref = self.blackref_locator.locate()
                 if ref is not None:
                     self.log("Using black reference file: %s" % ref)
-                    self.set_blackref(ref)
+                    self.load_blackref(ref)
         elif isinstance(self.blackref_locator, AbstractOPEXAnnotationBasedReferenceLocator):
             dims = self.scan_data.shape
             annotations = self.contours.to_opex(dims[1], dims[0])
@@ -464,7 +452,7 @@ class DataManager:
             if ref is not None:
                 if isinstance(ref, str):
                     self.log("Using black reference file: %s" % ref)
-                    self.set_blackref(ref)
+                    self.load_blackref(ref)
                 else:
                     raise Exception("Unhandled output of black reference locator %s: %s" % (self.blackref_locator.name(), get_class_name(ref)))
 
@@ -493,7 +481,7 @@ class DataManager:
                 ref = self.whiteref_locator.locate()
                 if ref is not None:
                     self.log("Using white reference file: %s" % ref)
-                    self.set_whiteref(ref)
+                    self.load_whiteref(ref)
         elif isinstance(self.whiteref_locator, AbstractOPEXAnnotationBasedReferenceLocator):
             dims = self.scan_data.shape
             annotations = self.contours.to_opex(dims[1], dims[0])
@@ -508,7 +496,7 @@ class DataManager:
             if ref is not None:
                 if isinstance(ref, str):
                     self.log("Using white reference file: %s" % ref)
-                    self.set_whiteref(ref)
+                    self.load_whiteref(ref)
                 else:
                     raise Exception("Unhandled output of white reference locator %s: %s" % (self.whiteref_locator.name(), get_class_name(ref)))
 
@@ -685,7 +673,7 @@ class DataManager:
         Caller needs to call update_image(r, g, b) to re-calculate the fake RGB image.
 
         :param normalization: the normalization scheme, None turns off normalization
-        :type normalization: AbstractNormalization
+        :type normalization: AbstractNormalization or None
         """
         self.normalization = normalization
 
@@ -786,3 +774,29 @@ class DataManager:
             return result
 
         return None
+
+    def backup_state(self):
+        """
+        Returns the state of the annotations etc as dictionary.
+
+        :return: the dictionary
+        :rtype: dict
+        """
+        result = dict()
+        result["markers"] = self.markers.to_json()
+        result["contours"] = self.contours.to_json()
+        result["pixels"] = self.pixels.to_dict()
+        result["metadata"] = self.metadata.to_json()
+        return result
+
+    def restore_state(self, d):
+        """
+        Restores the state of the annotations etc from the dictionary.
+
+        :param d: the state dictionary
+        :type d: dict
+        """
+        self.markers.from_json(d["markers"])
+        self.contours.from_json(d["contours"])
+        self.pixels.from_dict(d["pixels"])
+        self.metadata.from_json(d["metadata"])

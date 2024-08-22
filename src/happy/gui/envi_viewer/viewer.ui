@@ -67,7 +67,7 @@
                       <object class="tk.Menuitem.Command" id="command_file_import_pixel_annotations" named="True">
                         <property name="command" type="command" cbtype="simple">on_file_import_pixel_annotations_click</property>
                         <property name="label" translatable="yes">Pixel annotations...</property>
-                        <property name="underline">0</property>
+                        <property name="underline">2</property>
                       </object>
                     </child>
                     <child>
@@ -83,20 +83,48 @@
                   <object class="tk.Menuitem.Separator" id="separator10" />
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_file_exportimage" named="True">
-                    <property name="accelerator">Alt+E</property>
-                    <property name="command" type="command" cbtype="simple">on_file_exportimage_click</property>
-                    <property name="label" translatable="yes">Export image...</property>
-                    <property name="underline">7</property>
+                  <object class="tk.Menuitem.Submenu" id="submenu_export">
+                    <property name="label" translatable="yes">Export</property>
+                    <property name="tearoff">false</property>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_file_export_image" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_export_image_click</property>
+                        <property name="label" translatable="yes">Image...</property>
+                        <property name="underline">0</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_file_export_pixel_annotations" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_export_pixel_annotations_click</property>
+                        <property name="label" translatable="yes">Pixel annotations...</property>
+                        <property name="underline">2</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_file_export_ppolygon_annotations" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_export_polygon_annotations_click</property>
+                        <property name="label" translatable="yes">Polygon annotations...</property>
+                        <property name="underline">0</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Submenu" id="submenu5">
+                  <object class="tk.Menuitem.Submenu" id="submenu_export_options">
                     <property name="label" translatable="yes">Export options</property>
                     <property name="tearoff">false</property>
                     <child>
-                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_export_with_annotations" named="True">
-                        <property name="command" type="command" cbtype="simple">on_export_overlay_annotations</property>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_file_export_to_scan_dir" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_export_to_scan_dir_click</property>
+                        <property name="label" translatable="yes">Export to scan dir</property>
+                        <property name="offvalue">0</property>
+                        <property name="onvalue">1</property>
+                        <property name="variable">int:state_export_to_scan_dir</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_file_export_with_annotations" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_export_overlay_annotations</property>
                         <property name="label" translatable="yes">Overlay annotations</property>
                         <property name="offvalue">0</property>
                         <property name="onvalue">1</property>
@@ -104,12 +132,21 @@
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Checkbutton" id="checkbutton1" named="True">
-                        <property name="command" type="command" cbtype="simple">on_export_keep_aspectratio</property>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_file_export_keep_aspectratio" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_export_keep_aspectratio</property>
                         <property name="label" translatable="yes">Keep aspect ratio</property>
                         <property name="offvalue">0</property>
                         <property name="onvalue">1</property>
                         <property name="variable">int:state_export_keep_aspectratio</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_file_export_enforce_mask_prefix" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_export_enforce_mask_prefix</property>
+                        <property name="label" translatable="yes">Enforce MASK_ prefix</property>
+                        <property name="offvalue">0</property>
+                        <property name="onvalue">1</property>
+                        <property name="variable">int:state_export_enforce_mask_prefix</property>
                       </object>
                     </child>
                   </object>
@@ -724,23 +761,6 @@
                                               <property name="padx">10</property>
                                               <property name="pady">10</property>
                                               <property name="row">2</property>
-                                              <property name="sticky">w</property>
-                                            </layout>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="ttk.Checkbutton" id="checkbutton_export_to_scan_dir" named="True">
-                                            <property name="command" type="command" cbtype="simple">on_export_to_scan_dir_click</property>
-                                            <property name="offvalue">0</property>
-                                            <property name="onvalue">1</property>
-                                            <property name="text" translatable="yes">Export image to scan directory</property>
-                                            <property name="variable">int:state_export_to_scan_dir</property>
-                                            <layout manager="grid">
-                                              <property name="column">0</property>
-                                              <property name="columnspan">2</property>
-                                              <property name="padx">10</property>
-                                              <property name="pady">10</property>
-                                              <property name="row">3</property>
                                               <property name="sticky">w</property>
                                             </layout>
                                           </object>

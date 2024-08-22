@@ -62,7 +62,6 @@ class SessionManager(AbstractSessionManager):
         self.autodetect_channels = False
         self.keep_aspectratio = False
         self.check_scan_dimensions = True
-        self.export_to_scan_dir = False
         self.last_blackref_dir = ""
         self.last_whiteref_dir = ""
         self.last_scan_dir = ""
@@ -88,8 +87,10 @@ class SessionManager(AbstractSessionManager):
         self.white_ref_locator = "rl-manual"
         self.white_ref_method = "wr-same-size"
         self.preprocessing = ""
+        self.export_to_scan_dir = False
         self.export_overlay_annotations = False
         self.export_keep_aspectratio = True
+        self.export_enforce_mask_prefix = True
         self.zoom = -1
         self.normalization = ""
         self.annotation_mode = ANNOTATION_MODE_POLYGONS
