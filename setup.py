@@ -35,7 +35,7 @@ setup(
         "pygubu==0.31",
         "redis",
         "ttkSimpleDialog==1.2.1",
-        "fast-opex>=0.0.3",
+        "fast-opex>=0.0.4",
         "orjson",
         "shapely",
         "scikit-learn",
