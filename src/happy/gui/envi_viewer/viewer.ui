@@ -60,10 +60,23 @@
                   <object class="tk.Menuitem.Separator" id="separator7" />
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_file_importannotations" named="True">
-                    <property name="command" type="command" cbtype="simple">on_file_importannotations_click</property>
-                    <property name="label" translatable="yes">Import annotations...</property>
-                    <property name="underline">0</property>
+                  <object class="tk.Menuitem.Submenu" id="submenu95">
+                    <property name="label" translatable="yes">Import</property>
+                    <property name="tearoff">false</property>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_file_import_pixel_annotations" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_import_pixel_annotations_click</property>
+                        <property name="label" translatable="yes">Pixel annotations...</property>
+                        <property name="underline">0</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_file_import_polygon_annotations" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_import_polygon_annotations_click</property>
+                        <property name="label" translatable="yes">Polygon annotations...</property>
+                        <property name="underline">0</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
@@ -80,6 +93,7 @@
                 <child>
                   <object class="tk.Menuitem.Submenu" id="submenu5">
                     <property name="label" translatable="yes">Export options</property>
+                    <property name="tearoff">false</property>
                     <child>
                       <object class="tk.Menuitem.Checkbutton" id="checkbutton_export_with_annotations" named="True">
                         <property name="command" type="command" cbtype="simple">on_export_overlay_annotations</property>
@@ -363,6 +377,7 @@
                 <child>
                   <object class="tk.Menuitem.Submenu" id="submenu51">
                     <property name="label" translatable="yes">Options</property>
+                    <property name="tearoff">false</property>
                     <child>
                       <object class="tk.Menuitem.Checkbutton" id="checkbutton_view_show_polygons" named="True">
                         <property name="command" type="command" cbtype="simple">on_view_show_polygons</property>

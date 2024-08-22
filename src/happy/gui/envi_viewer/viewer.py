@@ -312,21 +312,29 @@ class ViewerApp:
 
         return filename
 
-    def open_annotation_file(self, title, initial_dir):
+    def open_annotation_file(self, title, file_type, initial_dir):
         """
         Allows the user to select an OPEX JSON or ENVI mask annotation file.
 
         :param title: the title for the open dialog
         :type title: str
+        :param file_type: the type of file (envi|opex)
+        :type file_type: str
         :param initial_dir: the initial directory in use
         :type initial_dir: str
         :return: the chosen filename, None if cancelled
         :rtype: str
         """
-        filetypes = (
-            ('ENVI files', '*.hdr'),
-            ('OPEX JSON files', '*.json'),
-        )
+        if file_type == "envi":
+            filetypes = (
+                ('ENVI files', '*.hdr'),
+            )
+        elif file_type == "opex":
+            filetypes = (
+                ('OPEX JSON files', '*.json'),
+            )
+        else:
+            raise Exception("Unsupported annotation file type: %s" % file_type)
 
         filename = fd.askopenfilename(
             title=title,
@@ -1205,7 +1213,7 @@ class ViewerApp:
             self.session.last_whiteref_dir = os.path.dirname(filename)
             self.load_whiteref(filename, do_update=True)
 
-    def on_file_importannotations_click(self, event=None):
+    def on_file_import_pixel_annotations_click(self, event=None):
         """
         Allows the user to import existing annotations.
         """
@@ -1213,56 +1221,66 @@ class ViewerApp:
             messagebox.showerror("Error", "Please load a scan file first!")
             return
 
-        filename = self.open_annotation_file('Open annotations', self.session.last_scan_dir)
+        filename = self.open_annotation_file('Open pixel annotations', "envi", self.session.last_scan_dir)
         if filename is None:
             return
-        if filename.endswith(".json"):
-            self.log("Loading OPEX JSON annotations: %s" % filename)
-            preds = ObjectPredictions.load_json_from_file(filename)
-            if len(self.state_predefined_labels.get()) > 0:
-                pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
-                cur_labels = [x.label for x in preds.objects]
-                missing_labels = set()
-                for cur_label in cur_labels:
-                    if cur_label not in pre_labels:
-                        missing_labels.add(cur_label)
-                if len(missing_labels) > 0:
-                    missing_labels = sorted(list(missing_labels))
-                    messagebox.showwarning(
-                        "Warning",
-                        "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
-            self.undo_manager.add_undo("Importing annotations (polygons)", self.get_undo_state())
-            self.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
-            self.update_image()
-        elif filename.endswith(".hdr"):
-            self.log("Loading ENVI mask annotations: %s" % filename)
-            self.undo_manager.add_undo("Importing annotations (pixels)", self.get_undo_state())
-            self.pixels.load_envi(filename)
-            self.pixels.clear_label_map()
-            label_map = os.path.splitext(filename)[0] + ".json"
-            if os.path.exists(label_map):
-                msg = self.pixels.load_label_map(label_map)
-                if msg is None:
-                    if len(self.state_predefined_labels.get()) > 0:
-                        pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
-                        cur_labels = [x for x in self.pixels.label_map.values()]
-                        missing_labels = set()
-                        for cur_label in cur_labels:
-                            if cur_label not in pre_labels:
-                                missing_labels.add(cur_label)
-                        if len(missing_labels) > 0:
-                            missing_labels = sorted(list(missing_labels))
-                            messagebox.showwarning(
-                                "Warning",
-                                "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
-                                    missing_labels))
-                        if len(self.pixels.unique_values()) != len(cur_labels):
-                            messagebox.showwarning(
-                                "Warning",
-                                "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (self.state_predefined_labels.get(), ",".join(cur_labels)))
-                else:
-                    messagebox.showwarning("Error", msg)
-            self.update_image()
+        self.log("Loading ENVI mask annotations: %s" % filename)
+        self.undo_manager.add_undo("Importing pixel annotations", self.get_undo_state())
+        self.pixels.load_envi(filename)
+        self.pixels.clear_label_map()
+        label_map = os.path.splitext(filename)[0] + ".json"
+        if os.path.exists(label_map):
+            msg = self.pixels.load_label_map(label_map)
+            if msg is None:
+                if len(self.state_predefined_labels.get()) > 0:
+                    pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
+                    cur_labels = [x for x in self.pixels.label_map.values()]
+                    missing_labels = set()
+                    for cur_label in cur_labels:
+                        if cur_label not in pre_labels:
+                            missing_labels.add(cur_label)
+                    if len(missing_labels) > 0:
+                        missing_labels = sorted(list(missing_labels))
+                        messagebox.showwarning(
+                            "Warning",
+                            "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
+                                missing_labels))
+                    if len(self.pixels.unique_values()) != len(cur_labels):
+                        messagebox.showwarning(
+                            "Warning",
+                            "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (self.state_predefined_labels.get(), ",".join(cur_labels)))
+            else:
+                messagebox.showwarning("Error", msg)
+        self.update_image()
+
+    def on_file_import_polygon_annotations_click(self, event=None):
+        """
+        Allows the user to import existing annotations.
+        """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+
+        filename = self.open_annotation_file('Open polygon annotations', "opex", self.session.last_scan_dir)
+        if filename is None:
+            return
+        self.log("Loading OPEX JSON annotations: %s" % filename)
+        preds = ObjectPredictions.load_json_from_file(filename)
+        if len(self.state_predefined_labels.get()) > 0:
+            pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
+            cur_labels = [x.label for x in preds.objects]
+            missing_labels = set()
+            for cur_label in cur_labels:
+                if cur_label not in pre_labels:
+                    missing_labels.add(cur_label)
+            if len(missing_labels) > 0:
+                missing_labels = sorted(list(missing_labels))
+                messagebox.showwarning(
+                    "Warning",
+                    "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
+        self.undo_manager.add_undo("Importing polygon annotations", self.get_undo_state())
+        self.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
+        self.update_image()
 
     def on_file_exportimage_click(self, event=None):
         """
