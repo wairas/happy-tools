@@ -1417,7 +1417,7 @@ class ViewerApp:
         dims = self.fit_image_into_dims(dims[0], dims[1], self.session.export_keep_aspectratio)
 
         # select output dir
-        export_dir = fd.askdirectory(initialdir=self.session.export_sub_images_path)
+        export_dir = fd.askdirectory(initialdir=self.session.export_sub_images_path, parent=self.mainwindow)
         if (export_dir is None) or (len(export_dir) == 0):
             return
         self.session.export_sub_images_path = export_dir
@@ -1429,7 +1429,8 @@ class ViewerApp:
         label_regexp = ttkSimpleDialog.askstring(
             "Label regexp",
             "Please enter regular expression to select subset of labels (empty for all):",
-            initialvalue=label_regexp)
+            initialvalue=label_regexp,
+            parent=self.mainwindow)
         if label_regexp is None:
             return
         if len(label_regexp.strip()) == 0:

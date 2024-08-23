@@ -60,7 +60,7 @@ class CheckerApp:
         raw_dir = self.session.raw_dir
         if raw_dir is None:
             raw_dir = "."
-        raw_dir = fd.askdirectory(initialdir=raw_dir)
+        raw_dir = fd.askdirectory(initialdir=raw_dir, parent=self.mainwindow)
         if (raw_dir is None) or (len(raw_dir) == 0):
             return
         self.session.raw_dir = raw_dir

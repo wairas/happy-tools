@@ -520,7 +520,8 @@ class ViewerApp:
     def on_file_open_dir_click(self):
         sel_dir = fd.askdirectory(
             title="Select base directory",
-            initialdir=self.session.current_dir)
+            initialdir=self.session.current_dir,
+            parent=self.mainwindow)
         if sel_dir is None:
             return
 
