@@ -7,7 +7,6 @@ PROPERTIES = [
     "autodetect_channels",
     "keep_aspectratio",
     "check_scan_dimensions",
-    "export_to_scan_dir",
     "last_blackref_dir",
     "last_whiteref_dir",
     "last_scan_dir",
@@ -33,8 +32,12 @@ PROPERTIES = [
     "white_ref_locator",
     "white_ref_method",
     "preprocessing",
+    "export_to_scan_dir",
     "export_overlay_annotations",
     "export_keep_aspectratio",
+    "export_enforce_mask_prefix",
+    "export_sub_images_path",
+    "export_sub_images_label_regexp",
     "zoom",
     "normalization",
     "annotation_mode",
@@ -91,6 +94,8 @@ class SessionManager(AbstractSessionManager):
         self.export_overlay_annotations = False
         self.export_keep_aspectratio = True
         self.export_enforce_mask_prefix = True
+        self.export_sub_images_path = None
+        self.export_sub_images_label_regexp = None
         self.zoom = -1
         self.normalization = ""
         self.annotation_mode = ANNOTATION_MODE_POLYGONS

@@ -101,9 +101,16 @@
                       </object>
                     </child>
                     <child>
-                      <object class="tk.Menuitem.Command" id="command_file_export_ppolygon_annotations" named="True">
+                      <object class="tk.Menuitem.Command" id="command_file_export_polygon_annotations" named="True">
                         <property name="command" type="command" cbtype="simple">on_file_export_polygon_annotations_click</property>
                         <property name="label" translatable="yes">Polygon annotations...</property>
+                        <property name="underline">0</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_file_export_sub_images" named="True">
+                        <property name="command" type="command" cbtype="simple">on_file_export_sub_images_click</property>
+                        <property name="label" translatable="yes">Sub-images...</property>
                         <property name="underline">0</property>
                       </object>
                     </child>

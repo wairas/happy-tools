@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import spectral.io.envi as envi
 import traceback
 
@@ -800,3 +801,32 @@ class DataManager:
         self.contours.from_json(d["contours"])
         self.pixels.from_dict(d["pixels"])
         self.metadata.from_json(d["metadata"])
+
+    def export_sub_images(self, path, prefix, contours):
+        """
+        Exports the sub-images defined in the contours as ENVI files.
+        Stores them in the specified directory with the specified prefix (and the label as suffix).
+
+        :param path: the directory to store the sub-images in
+        :type path: str
+        :param prefix: the name prefix for the sub-images, label and extension gets appended
+        :type prefix: str
+        :param contours: the list of absolute contours to export
+        :type contours: list
+        :return: None if successful, otherwise error message
+        :rtype: str
+        """
+        result = None
+        for i, contour in enumerate(contours, start=1):
+            filename = os.path.join(path, prefix + "-" + contour.label + ".hdr")
+            self.log("Exporting sub-image #%d to: %s" % (i, filename))
+            try:
+                bbox = contour.bbox()
+                # TODO raw or normalized?
+                sub_data = self.scan_data[bbox.top:bbox.bottom+1, bbox.left:bbox.right+1, :]
+                envi.save_image(filename, sub_data)
+            except:
+                result = "Failed to export sub-image #%d to: %s\n%s" % (i, filename, traceback.format_exc())
+                self.log(result)
+
+        return result

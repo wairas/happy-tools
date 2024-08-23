@@ -1397,6 +1397,62 @@ class ViewerApp:
         else:
             self.log("ERROR: Failed to save ENVI Mask label map to: %s" % filename)
 
+    def on_file_export_sub_images_click(self, event=None):
+        """
+        Allows the user to export polygon annotations as separate images.
+        """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+        if not self.data.contours.has_annotations():
+            messagebox.showerror("Error", "Please create polygon annotations first!")
+            return
+
+        if self.session.export_keep_aspectratio:
+            dims = self.data.dims()
+        else:
+            dims = self.get_image_canvas_dims()
+        if dims is None:
+            return
+        dims = self.fit_image_into_dims(dims[0], dims[1], self.session.export_keep_aspectratio)
+
+        # select output dir
+        export_dir = fd.askdirectory(initialdir=self.session.export_sub_images_path)
+        if (export_dir is None) or (len(export_dir) == 0):
+            return
+        self.session.export_sub_images_path = export_dir
+
+        # select subset of contours
+        label_regexp = self.session.export_sub_images_label_regexp
+        if label_regexp is None:
+            label_regexp = ""
+        label_regexp = ttkSimpleDialog.askstring(
+            "Label regexp",
+            "Please enter regular expression to select subset of labels (empty for all):",
+            initialvalue=label_regexp)
+        if label_regexp is None:
+            return
+        if len(label_regexp.strip()) == 0:
+            label_regexp = None
+        self.session.export_sub_images_label_regexp = label_regexp
+        if label_regexp is None:
+            all = self.data.contours.to_absolute(dims[0], dims[1])
+            contours = []
+            for l in all:
+                contours.extend(l)
+        else:
+            matches = self.data.contours.get_contours_regexp(label_regexp)
+            contours = [x.to_absolute(dims[0], dims[1]) for x in matches]
+
+        # export sub-images
+        if self.data.scan_file is None:
+            prefix = "scan"
+        else:
+            prefix = os.path.splitext(os.path.basename(self.data.scan_file))[0]
+        msg = self.data.export_sub_images(export_dir, prefix, contours)
+        if msg is not None:
+            messagebox.showerror("Error", "Failed to export sub-images to %s:\n%s" % (export_dir, msg))
+
     def on_file_export_to_scan_dir_click(self, event=None):
         self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
 
