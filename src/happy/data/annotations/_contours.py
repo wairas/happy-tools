@@ -1,5 +1,6 @@
 import copy
 import json
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from operator import itemgetter
@@ -392,6 +393,24 @@ class ContoursManager:
         for contours in self.contours:
             for contour in contours:
                 if contour.has_label() and (contour.label == label):
+                    result.append(contour)
+
+        return result
+
+    def get_contours_regexp(self, label_regexp):
+        """
+        Returns all the contours that match the specified label regexp.
+
+        :param label_regexp: the regexp that the labels of the contours must match
+        :type label_regexp: str
+        :return: the list of contours with the label present, can be empty
+        :rtype: list
+        """
+        result = []
+
+        for contours in self.contours:
+            for contour in contours:
+                if contour.has_label() and (re.search(label_regexp, contour.label) is not None):
                     result.append(contour)
 
         return result
