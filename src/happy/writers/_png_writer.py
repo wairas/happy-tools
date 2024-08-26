@@ -1,7 +1,7 @@
 import argparse
 import os
 from happy.data import HappyData, DataManager
-from happy.data.normalization import AbstractNormalization, SimpleNormalization
+from happy.data.normalization import SimpleNormalization
 from ._happydata_writer import HappyDataWriter, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, output_pattern_help
 
 
@@ -45,7 +45,7 @@ class PNGWriter(HappyDataWriter):
         self._width = ns.width
         self._height = ns.height
         self._output = ns.output
-        self._normalization = AbstractNormalization.parse_normalization(ns.normalization)
+        self._normalization = ns.normalization
 
     def _write_item(self, happy_data, datatype_mapping=None):
         def log(msg):

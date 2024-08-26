@@ -20,12 +20,8 @@ from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
-from happy.data.black_ref import AbstractBlackReferenceMethod
-from happy.data.white_ref import AbstractWhiteReferenceMethod
-from happy.data.normalization import AbstractNormalization, SimpleNormalization
+from happy.data.normalization import SimpleNormalization
 from happy.data import LABEL_WHITEREF, LABEL_BLACKREF
-from happy.data.ref_locator import AbstractReferenceLocator
-from happy.preprocessors import Preprocessor
 from happy.data import DataManager, CALC_DIMENSIONS_DIFFER
 from happy.data.annotations import Contour, BRUSH_SHAPES, tableau_colors, MASK_PREFIX
 from happy.gui.dialog import asklist
@@ -1047,8 +1043,7 @@ class ViewerApp:
         cmdline = self.state_black_ref_locator.get()
         if len(cmdline.strip()) > 0:
             try:
-                loc = AbstractReferenceLocator.parse_locator(cmdline)
-                self.data.set_blackref_locator(loc)
+                self.data.set_blackref_locator(cmdline)
                 self.session.black_ref_locator = cmdline
                 self.log("Setting black ref locator: %s" % cmdline)
             except:
@@ -1063,8 +1058,7 @@ class ViewerApp:
         cmdline = self.state_black_ref_method.get()
         if len(cmdline.strip()) > 0:
             try:
-                method = AbstractBlackReferenceMethod.parse_method(cmdline)
-                self.data.set_blackref_method(method)
+                self.data.set_blackref_method(cmdline)
                 self.session.black_ref_method = cmdline
                 self.log("Setting black ref method: %s" % cmdline)
             except:
@@ -1085,8 +1079,7 @@ class ViewerApp:
         cmdline = self.state_white_ref_locator.get()
         if len(cmdline.strip()) > 0:
             try:
-                loc = AbstractReferenceLocator.parse_locator(cmdline)
-                self.data.set_whiteref_locator(loc)
+                self.data.set_whiteref_locator(cmdline)
                 self.session.white_ref_locator = cmdline
                 self.log("Setting white ref locator: %s" % cmdline)
             except:
@@ -1101,8 +1094,7 @@ class ViewerApp:
         cmdline = self.state_white_ref_method.get()
         if len(cmdline.strip()) > 0:
             try:
-                method = AbstractWhiteReferenceMethod.parse_method(cmdline)
-                self.data.set_whiteref_method(method)
+                self.data.set_whiteref_method(cmdline)
                 self.session.white_ref_method = cmdline
                 self.log("Setting white ref method: %s" % cmdline)
             except:
@@ -1121,14 +1113,13 @@ class ViewerApp:
         cmdline = self.text_preprocessing.get("1.0", "end-1c")
         if len(cmdline.strip()) > 0:
             try:
-                preprocs = Preprocessor.parse_preprocessors(cmdline)
-                self.data.set_preprocessors(preprocs)
+                self.data.set_preprocessors(cmdline)
                 self.log("Setting preprocessing: %s" % cmdline)
             except:
                 messagebox.showerror("Error", "Failed to parse preprocessing: %s" % cmdline)
                 return False
         else:
-            self.data.set_preprocessors([])
+            self.data.set_preprocessors(None)
             self.log("Removing preprocessing")
         if do_update:
             self.update_image()
@@ -1138,8 +1129,7 @@ class ViewerApp:
         cmdline = self.entry_normalization.get()
         if len(cmdline.strip()) > 0:
             try:
-                norm = AbstractNormalization.parse_normalization(cmdline)
-                self.data.set_normalization(norm)
+                self.data.set_normalization(cmdline)
                 self.log("Setting normalization: %s" % cmdline)
             except:
                 messagebox.showerror("Error", "Failed to parse normalization: %s" % cmdline)

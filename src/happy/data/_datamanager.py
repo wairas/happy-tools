@@ -13,7 +13,7 @@ from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotatio
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
 from happy.data.normalization import AbstractNormalization, SimpleNormalization, AbstractOPEXAnnotationBasedNormalization
-from happy.preprocessors import MultiPreprocessor
+from happy.preprocessors import MultiPreprocessor, Preprocessor
 from seppl import get_class_name
 from opex import BBox, ObjectPredictions
 
@@ -46,13 +46,17 @@ class DataManager:
         self.scan_img = None
         self.scan_data = None
         self.blackref_locator = None
+        self.blackref_locator_cmdline = None
         self.blackref_method = None
+        self.blackref_method_cmdline = None
         self.blackref_file = None
         self.blackref_img = None
         self.blackref_data = None
         self.blackref_annotation = None
         self.whiteref_locator = None
+        self.whiteref_locator_cmdline = None
         self.whiteref_method = None
+        self.whiteref_method_cmdline = None
         self.whiteref_file = None
         self.whiteref_img = None
         self.whiteref_data = None
@@ -61,7 +65,9 @@ class DataManager:
         self.display_image = None
         self.wavelengths = None
         self.preprocessors = None
+        self.preprocessors_cmdline = None
         self.normalization = SimpleNormalization()
+        self.normalization_cmdline = self.normalization.name()
         self.log_method = log_method
         self.metadata = MetaDataManager()
         self.contours = ContoursManager(metadata=self.metadata)
@@ -224,22 +230,30 @@ class DataManager:
 
     def set_whiteref_method(self, method):
         """
-        Sets the method for applying the white reference.
+        Sets the method commandline for applying the white reference.
         
         :param method: the method
-        :type method: AbstractWhiteReferenceMethod or None
+        :type method: str or None
         """
-        self.whiteref_method = method
+        if method is None:
+            self.whiteref_method = None
+        else:
+            self.whiteref_method = AbstractWhiteReferenceMethod.parse_method(method)
+        self.whiteref_method_cmdline = method
         self.reset_norm_data()
 
     def set_whiteref_locator(self, locator):
         """
-        Sets the locator for the white reference.
+        Sets the locator commandline for the white reference.
         
         :param locator: the locator to use
-        :type locator: AbstractReferenceLocator or None
+        :type locator: str or None
         """
-        self.whiteref_locator = locator
+        if locator is None:
+            self.whiteref_locator = None
+        else:
+            self.whiteref_locator = AbstractReferenceLocator.parse_locator(locator)
+        self.whiteref_locator_cmdline = locator
         self.reset_norm_data()
 
     def load_whiteref(self, path):
@@ -319,22 +333,30 @@ class DataManager:
 
     def set_blackref_locator(self, locator):
         """
-        Sets the locator for the black reference.
+        Sets the locator commandline for the black reference.
 
         :param locator: the locator to use
-        :type locator: AbstractReferenceLocator or None
+        :type locator: str or None
         """
-        self.blackref_locator = locator
+        if locator is None:
+            self.blackref_locator = None
+        else:
+            self.blackref_locator = AbstractReferenceLocator.parse_locator(locator)
+        self.blackref_locator_cmdline = locator
         self.reset_norm_data()
 
     def set_blackref_method(self, method):
         """
-        Sets the method for applying the black reference.
+        Sets the method commandline for applying the black reference.
 
         :param method: the method
-        :type method: AbstractBlackReferenceMethod or None
+        :type method: str or None
         """
-        self.blackref_method = method
+        if method is None:
+            self.blackref_method = None
+        else:
+            self.blackref_method = AbstractBlackReferenceMethod.parse_method(method)
+        self.blackref_method_cmdline = method
         self.reset_norm_data()
 
     def load_blackref(self, path):
@@ -396,16 +418,17 @@ class DataManager:
 
     def set_preprocessors(self, preprocessors):
         """
-        Sets the pipeline of preprocessors to use.
+        Sets the commandline pipeline of preprocessors to use.
 
-        :param preprocessors: the list of preprocessors to use or None for no preprocessing
-        :type preprocessors: list
+        :param preprocessors: the commandline of preprocessors to use or None for no preprocessing
+        :type preprocessors: str or None
         """
-        if isinstance(preprocessors, list) and (len(preprocessors) == 0):
-            preprocessors = None
+        if preprocessors is None:
+            preprocs = None
         else:
-            preprocessors = MultiPreprocessor(**{'preprocessor_list': preprocessors})
-        self.preprocessors = preprocessors
+            preprocs = MultiPreprocessor(**{'preprocessor_list': Preprocessor.parse_preprocessors(preprocessors)})
+        self.preprocessors = preprocs
+        self.preprocessors_cmdline = preprocessors
         self.reset_norm_data()
 
     def reset_norm_data(self):
@@ -671,13 +694,17 @@ class DataManager:
 
     def set_normalization(self, normalization):
         """
-        Sets the normalization scheme to use.
+        Sets the normalization commandline to use.
         Caller needs to call update_image(r, g, b) to re-calculate the fake RGB image.
 
         :param normalization: the normalization scheme, None turns off normalization
-        :type normalization: AbstractNormalization or None
+        :type normalization: str or None
         """
-        self.normalization = normalization
+        if normalization is None:
+            self.normalization = None
+        else:
+            self.normalization = AbstractNormalization.parse_normalization(normalization)
+        self.normalization_cmdline = normalization
 
     def update_image(self, r, g, b):
         """
@@ -839,6 +866,8 @@ class DataManager:
                         "right": bbox.right
                     }
                 }
+                if self.preprocessors_cmdline is not None:
+                    meta["preprocessors"] = self.preprocessors_cmdline
                 if not raw:
                     if self.norm_data is None:
                         raw = True
@@ -847,16 +876,18 @@ class DataManager:
                         data = self.norm_data
                         meta["raw"] = False
                         if self.has_blackref():
-                            # TODO blackref locator/method
+                            meta["blackref_locator"] = self.blackref_locator_cmdline
+                            meta["blackref_method"] = self.blackref_method_cmdline
                             meta["blackref_file"] = self.blackref_file
                         if self.has_whiteref():
-                            # TODO whiteref locator/method
+                            meta["whiteref_locator"] = self.whiteref_locator_cmdline
+                            meta["whiteref_method"] = self.whiteref_method_cmdline
                             meta["whiteref_file"] = self.whiteref_file
                 sub_data = data[bbox.top:bbox.bottom+1, bbox.left:bbox.right+1, :]
                 envi.save_image(path_envi, sub_data, force=True)
                 self.log("Saving meta-data #%d to: %s" % (i, path_meta))
                 with open(path_meta, "w") as fp:
-                    json.dump(meta, fp)
+                    json.dump(meta, fp, indent=2)
             except:
                 result = "Failed to export sub-image #%d to: %s\n%s" % (i, path_envi, traceback.format_exc())
                 self.log(result)

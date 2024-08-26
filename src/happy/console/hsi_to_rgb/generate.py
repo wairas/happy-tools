@@ -9,9 +9,6 @@ from wai.logging import add_logging_level, set_logging_level
 
 from happy.base.app import init_app
 from happy.data import DataManager
-from happy.data.black_ref import AbstractBlackReferenceMethod
-from happy.data.ref_locator import AbstractReferenceLocator
-from happy.data.white_ref import AbstractWhiteReferenceMethod
 
 
 PROG = "happy-hsi2rgb"
@@ -182,24 +179,11 @@ def main(args=None):
 
     set_logging_level(logger, parsed.logging_level)
 
-    black_ref_locator = None
-    black_ref_method = None
-    white_ref_locator = None
-    white_ref_method = None
-    if parsed.black_ref_locator is not None:
-        black_ref_locator = AbstractReferenceLocator.parse_locator(parsed.black_ref_locator)
-    if parsed.black_ref_method is not None:
-        black_ref_method = AbstractBlackReferenceMethod.parse_method(parsed.black_ref_method)
-    if parsed.white_ref_locator is not None:
-        white_ref_locator = AbstractReferenceLocator.parse_locator(parsed.white_ref_locator)
-    if parsed.white_ref_method is not None:
-        white_ref_method = AbstractWhiteReferenceMethod.parse_method(parsed.white_ref_method)
-
     datamanager = DataManager(log_method=log)
-    datamanager.set_blackref_locator(black_ref_locator)
-    datamanager.set_blackref_method(black_ref_method)
-    datamanager.set_whiteref_locator(white_ref_locator)
-    datamanager.set_whiteref_method(white_ref_method)
+    datamanager.set_blackref_locator(parsed.black_ref_locator)
+    datamanager.set_blackref_method(parsed.black_ref_method)
+    datamanager.set_whiteref_locator(parsed.white_ref_locator)
+    datamanager.set_whiteref_method(parsed.white_ref_method)
 
     generate(parsed.input_dir, datamanager,
              extension=parsed.extension, autodetect_channels=parsed.autodetect_channels,

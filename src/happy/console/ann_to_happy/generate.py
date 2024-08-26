@@ -15,9 +15,6 @@ from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
 from happy.data import DataManager, HappyData
 from happy.data.annotations import locate_annotations, AnnotationFiles, load_label_map, MASK_PREFIX
-from happy.data.black_ref import AbstractBlackReferenceMethod
-from happy.data.ref_locator import AbstractReferenceLocator
-from happy.data.white_ref import AbstractWhiteReferenceMethod
 from happy.writers import HappyWriter
 
 OUTPUT_FORMAT_FLAT = "flat"
@@ -490,15 +487,6 @@ def generate(input_dirs, output_dir, conversion=CONVERSION_PIXELS_THEN_POLYGONS,
             white_ref_method = None
         if white_ref_method is None:
             white_ref_locator = None
-
-        if black_ref_locator is not None:
-            black_ref_locator = AbstractReferenceLocator.parse_locator(black_ref_locator)
-        if black_ref_method is not None:
-            black_ref_method = AbstractBlackReferenceMethod.parse_method(black_ref_method)
-        if white_ref_locator is not None:
-            white_ref_locator = AbstractReferenceLocator.parse_locator(white_ref_locator)
-        if white_ref_method is not None:
-            white_ref_method = AbstractWhiteReferenceMethod.parse_method(white_ref_method)
     else:
         black_ref_locator = None
         black_ref_method = None
