@@ -14,6 +14,15 @@
                 <property name="label" translatable="yes">File</property>
                 <property name="tearoff">false</property>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_file_clear_all" named="True">
+                    <property name="command" type="command" cbtype="simple">on_file_clear_all_click</property>
+                    <property name="label" translatable="yes">Clear all</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator_clear_all" />
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_scan" named="True">
                     <property name="accelerator">Ctrl+O</property>
                     <property name="command" type="command" cbtype="simple">on_file_open_scan_click</property>

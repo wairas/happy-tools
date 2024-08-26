@@ -87,6 +87,14 @@ class DataManager:
         else:
             print(msg)
 
+    def clear_all(self):
+        """
+        Clears all scans/annotations.
+        """
+        self.clear_scan()
+        self.clear_blackref()
+        self.clear_whiteref()
+
     def has_scan(self):
         """
         Checks whether scan data is present.

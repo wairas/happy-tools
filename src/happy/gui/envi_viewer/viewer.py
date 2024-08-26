@@ -621,6 +621,7 @@ class ViewerApp:
         Computes the scaled image and updates the GUI.
         """
         if not self.data.has_scan():
+            self.image_canvas.delete("all")
             return
 
         if self.session.zoom < 0:
@@ -674,7 +675,7 @@ class ViewerApp:
         success = self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
         if (CALC_DIMENSIONS_DIFFER in success) and success[CALC_DIMENSIONS_DIFFER]:
             self.set_data_dimensions(self.data.norm_data.shape, do_update=False)
-            self.update_info()
+        self.update_info()
         # make visible in UI
         if len(success) > 0:
             self.label_calc_norm_data["text"] = self.data.calc_norm_data_indicator(success)
@@ -1156,6 +1157,15 @@ class ViewerApp:
             return str(index) + ": " + str(self.data.get_wavelengths()[index])
         except:
             return str(index)
+
+    def on_file_clear_all_click(self, event=None):
+        """
+        Removes all loaded scans/annotations.
+        """
+        self.log("Clearing all")
+        self.undo_manager.clear()
+        self.data.clear_all()
+        self.update()
 
     def on_file_open_scan_click(self, event=None):
         """
