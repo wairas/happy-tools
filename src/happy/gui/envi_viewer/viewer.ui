@@ -441,6 +441,12 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_view_statistics" named="True">
+                    <property name="command" type="command" cbtype="simple">on_view_statistics_click</property>
+                    <property name="label" translatable="yes">Statistics...</property>
+                  </object>
+                </child>
+                <child>
                   <object class="tk.Menuitem.Separator" id="separator38" />
                 </child>
                 <child>

@@ -2034,6 +2034,17 @@ class ViewerApp:
         plt.legend()
         plt.show()
 
+    def on_view_statistics_click(self, event=None):
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+
+        stats = self.data.statistics()
+        stats_text = ""
+        for k in stats:
+            stats_text += "%s: %s\n" % (str(k), str(stats[k]))
+        messagebox.showinfo("Statistics", stats_text)
+
     def on_view_zoom_click(self, event=None):
         if (event is not None) and (event.startswith("command_view_zoom_")):
             try:

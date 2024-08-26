@@ -4,6 +4,7 @@ import os
 import spectral.io.envi as envi
 import traceback
 
+from collections import OrderedDict
 from typing import List, Dict, Optional
 
 from PIL import Image
@@ -899,4 +900,23 @@ class DataManager:
                 result = "Failed to export sub-image #%d to: %s\n%s" % (i, path_envi, traceback.format_exc())
                 self.log(result)
 
+        return result
+
+    def statistics(self):
+        """
+        Generates general statistics on the current data.
+
+        :return: the statistics
+        :rtype: OrderedDict
+        """
+        result = OrderedDict()
+        if self.has_scan():
+            result["scan.min"] = np.min(self.scan_data)
+            result["scan.max"] = np.max(self.scan_data)
+        if self.has_blackref():
+            result["blackref.min"] = np.min(self.blackref_data)
+            result["blackref.max"] = np.max(self.blackref_data)
+        if self.has_whiteref():
+            result["whiteref.min"] = np.min(self.whiteref_data)
+            result["whiteref.max"] = np.max(self.whiteref_data)
         return result
