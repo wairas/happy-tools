@@ -13,13 +13,11 @@
               <object class="tk.Menuitem.Submenu" id="submenu4">
                 <property name="label" translatable="yes">File</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_scan" named="True">
                     <property name="accelerator">Ctrl+O</property>
                     <property name="command" type="command" cbtype="simple">on_file_open_scan_click</property>
                     <property name="label" translatable="yes">Open scan...</property>
-                    <property name="underline">5</property>
                   </object>
                 </child>
                 <child>
@@ -29,14 +27,12 @@
                   <object class="tk.Menuitem.Command" id="command_file_clear_blackref" named="True">
                     <property name="command" type="command" cbtype="simple">on_file_clear_blackref</property>
                     <property name="label" translatable="yes">Clear black reference</property>
-                    <property name="underline">1</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_blackref" named="True">
                     <property name="command" type="command" cbtype="simple">on_file_open_blackref</property>
                     <property name="label" translatable="yes">Open black reference...</property>
-                    <property name="underline">5</property>
                   </object>
                 </child>
                 <child>
@@ -46,14 +42,12 @@
                   <object class="tk.Menuitem.Command" id="command_file_clear_whiteref" named="True">
                     <property name="command" type="command" cbtype="simple">on_file_clear_whiteref</property>
                     <property name="label" translatable="yes">Clear white reference</property>
-                    <property name="underline">1</property>
                   </object>
                 </child>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_whiteref" named="True">
                     <property name="command" type="command" cbtype="simple">on_file_open_whiteref</property>
                     <property name="label" translatable="yes">Open white reference...</property>
-                    <property name="underline">5</property>
                   </object>
                 </child>
                 <child>
@@ -67,14 +61,12 @@
                       <object class="tk.Menuitem.Command" id="command_file_import_pixel_annotations" named="True">
                         <property name="command" type="command" cbtype="simple">on_file_import_pixel_annotations_click</property>
                         <property name="label" translatable="yes">Pixel annotations...</property>
-                        <property name="underline">2</property>
                       </object>
                     </child>
                     <child>
                       <object class="tk.Menuitem.Command" id="command_file_import_polygon_annotations" named="True">
                         <property name="command" type="command" cbtype="simple">on_file_import_polygon_annotations_click</property>
                         <property name="label" translatable="yes">Polygon annotations...</property>
-                        <property name="underline">0</property>
                       </object>
                     </child>
                   </object>
@@ -90,28 +82,24 @@
                       <object class="tk.Menuitem.Command" id="command_file_export_image" named="True">
                         <property name="command" type="command" cbtype="simple">on_file_export_image_click</property>
                         <property name="label" translatable="yes">Image...</property>
-                        <property name="underline">0</property>
                       </object>
                     </child>
                     <child>
                       <object class="tk.Menuitem.Command" id="command_file_export_pixel_annotations" named="True">
                         <property name="command" type="command" cbtype="simple">on_file_export_pixel_annotations_click</property>
                         <property name="label" translatable="yes">Pixel annotations...</property>
-                        <property name="underline">2</property>
                       </object>
                     </child>
                     <child>
                       <object class="tk.Menuitem.Command" id="command_file_export_polygon_annotations" named="True">
                         <property name="command" type="command" cbtype="simple">on_file_export_polygon_annotations_click</property>
                         <property name="label" translatable="yes">Polygon annotations...</property>
-                        <property name="underline">0</property>
                       </object>
                     </child>
                     <child>
                       <object class="tk.Menuitem.Command" id="command_file_export_sub_images" named="True">
                         <property name="command" type="command" cbtype="simple">on_file_export_sub_images_click</property>
                         <property name="label" translatable="yes">Sub-images...</property>
-                        <property name="underline">0</property>
                       </object>
                     </child>
                   </object>
@@ -196,7 +184,6 @@
                     <property name="accelerator">Alt+X</property>
                     <property name="command" type="command" cbtype="simple">on_file_close_click</property>
                     <property name="label" translatable="yes">Close</property>
-                    <property name="underline">0</property>
                   </object>
                 </child>
               </object>
@@ -205,13 +192,11 @@
               <object class="tk.Menuitem.Submenu" id="submenu8">
                 <property name="label" translatable="yes">Edit</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_edit_undo" named="True">
                     <property name="accelerator">Ctrl+Z</property>
                     <property name="command" type="command" cbtype="simple">on_edit_undo_click</property>
                     <property name="label" translatable="yes">Undo</property>
-                    <property name="underline">0</property>
                   </object>
                 </child>
                 <child>
@@ -219,7 +204,6 @@
                     <property name="accelerator">Ctrl+Y</property>
                     <property name="command" type="command" cbtype="simple">on_edit_redo_click</property>
                     <property name="label" translatable="yes">Redo</property>
-                    <property name="underline">0</property>
                   </object>
                 </child>
               </object>
@@ -250,7 +234,6 @@
               <object class="tk.Menuitem.Submenu" id="submenu52">
                 <property name="label" translatable="yes">Markers</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_edit_clear_markers" named="True">
                     <property name="accelerator">Alt+N</property>
@@ -264,7 +247,6 @@
               <object class="tk.Menuitem.Submenu" id="submenu21">
                 <property name="label" translatable="yes">Polygons</property>
                 <property name="tearoff">false</property>
-                <property name="underline">1</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_polygons_clear" named="True">
                     <property name="accelerator">Ctrl+N</property>
@@ -277,7 +259,6 @@
                     <property name="accelerator">Ctrl+E</property>
                     <property name="command" type="command" cbtype="simple">on_polygons_modify_click</property>
                     <property name="label" translatable="yes">Modify...</property>
-                    <property name="underline">0</property>
                   </object>
                 </child>
                 <child>
@@ -303,7 +284,6 @@
               <object class="tk.Menuitem.Submenu" id="submenu20">
                 <property name="label" translatable="yes">Pixels</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command1" named="True">
                     <property name="accelerator">Ctrl+Shift+N</property>
@@ -389,7 +369,6 @@
               <object class="tk.Menuitem.Submenu" id="submenu2">
                 <property name="label" translatable="yes">Meta-data</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_edit_metadata_clear" named="True">
                     <property name="command" type="command" cbtype="simple">on_edit_metadata_clear_click</property>
@@ -420,7 +399,6 @@
               <object class="tk.Menuitem.Submenu" id="submenu6">
                 <property name="label" translatable="yes">View</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Submenu" id="submenu51">
                     <property name="label" translatable="yes">Options</property>
@@ -531,7 +509,6 @@
               <object class="tk.Menuitem.Submenu" id="submenu10">
                 <property name="label" translatable="yes">Window</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_window_new_window" named="True">
                     <property name="command" type="command" cbtype="simple">on_window_new_window_click</property>
@@ -961,7 +938,6 @@
                                           <object class="ttk.Button" id="button_sam_connect" named="True">
                                             <property name="command" type="command" cbtype="simple">on_button_sam_connect_click</property>
                                             <property name="text" translatable="yes">Connect</property>
-                                            <property name="underline">0</property>
                                             <layout manager="grid">
                                               <property name="column">1</property>
                                               <property name="padx">10</property>
@@ -1449,7 +1425,6 @@
                       <object class="ttk.Label" id="label_r" named="True">
                         <property name="padding">5</property>
                         <property name="text" translatable="yes">Red</property>
-                        <property name="underline">0</property>
                         <layout manager="pack">
                           <property name="anchor">n</property>
                           <property name="side">left</property>
@@ -1494,7 +1469,6 @@
                       <object class="ttk.Label" id="label_g" named="True">
                         <property name="padding">5</property>
                         <property name="text" translatable="yes">Green</property>
-                        <property name="underline">0</property>
                         <layout manager="pack">
                           <property name="anchor">n</property>
                           <property name="side">left</property>
@@ -1539,7 +1513,6 @@
                       <object class="ttk.Label" id="label_b" named="True">
                         <property name="padding">5</property>
                         <property name="text" translatable="yes">Blue</property>
-                        <property name="underline">0</property>
                         <layout manager="pack">
                           <property name="anchor">n</property>
                           <property name="side">left</property>
