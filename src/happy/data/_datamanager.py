@@ -557,7 +557,7 @@ class DataManager:
             try:
                 if success and self.can_init_blackref_data():
                     result[CALC_BLACKDATA_INITIALIZED] = False
-                    self.log("Initializing black reference data: %s" % self.blackref_locator.name())
+                    self.log("Initializing black reference data: %s" % self.blackref_locator_cmdline)
                     self.init_blackref_data()
                     result[CALC_BLACKDATA_INITIALIZED] = True
             except:
@@ -569,7 +569,7 @@ class DataManager:
             try:
                 if success and self.can_init_whiteref_data():
                     result[CALC_WHITEDATA_INITIALIZED] = False
-                    self.log("Initializing white reference data: %s" % self.whiteref_locator.name())
+                    self.log("Initializing white reference data: %s" % self.whiteref_locator_cmdline)
                     self.init_whiteref_data()
                     result[CALC_WHITEDATA_INITIALIZED] = True
             except:
@@ -584,14 +584,14 @@ class DataManager:
             try:
                 if success and self.blackref_method is not None:
                     if (self.blackref_annotation is not None) and isinstance(self.blackref_method, AbstractAnnotationBasedBlackReferenceMethod):
-                        self.log("Applying black reference method: %s" % self.blackref_method.name())
+                        self.log("Applying black reference method: %s" % self.blackref_method_cmdline)
                         result[CALC_BLACKREF_APPLIED] = False
                         self.blackref_method.reference = self.scan_data
                         self.blackref_method.annotation = self.blackref_annotation
                         self.norm_data = self.blackref_method.apply(self.norm_data)
                         result[CALC_BLACKREF_APPLIED] = True
                     elif self.blackref_data is not None:
-                        self.log("Applying black reference method: %s" % self.blackref_method.name())
+                        self.log("Applying black reference method: %s" % self.blackref_method_cmdline)
                         result[CALC_BLACKREF_APPLIED] = False
                         self.blackref_method.reference = self.blackref_data
                         self.norm_data = self.blackref_method.apply(self.norm_data)
@@ -605,14 +605,14 @@ class DataManager:
             try:
                 if success and self.whiteref_method is not None:
                     if (self.whiteref_annotation is not None) and isinstance(self.whiteref_method, AbstractAnnotationBasedWhiteReferenceMethod):
-                        self.log("Applying white reference method: %s" % self.whiteref_method.name())
+                        self.log("Applying white reference method: %s" % self.whiteref_method_cmdline)
                         result[CALC_WHITEREF_APPLIED] = False
                         self.whiteref_method.reference = self.scan_data
                         self.whiteref_method.annotation = self.whiteref_annotation
                         self.norm_data = self.whiteref_method.apply(self.norm_data)
                         result[CALC_WHITEREF_APPLIED] = True
                     elif self.whiteref_data is not None:
-                        self.log("Applying white reference method: %s" % self.whiteref_method.name())
+                        self.log("Applying white reference method: %s" % self.whiteref_method_cmdline)
                         result[CALC_WHITEREF_APPLIED] = False
                         self.whiteref_method.reference = self.whiteref_data
                         self.norm_data = self.whiteref_method.apply(self.norm_data)
@@ -625,7 +625,7 @@ class DataManager:
             # apply preprocessing
             try:
                 if success and self.preprocessors is not None:
-                    self.log("Applying preprocessing: %s" % str(self.preprocessors))
+                    self.log("Applying preprocessing: %s" % self.preprocessors_cmdline)
                     result[CALC_PREPROCESSORS_APPLIED] = False
                     wl = self.get_wavelengths_list()
                     happy_data = HappyData("envi-viewer", "1", self.norm_data, {}, {}, wavenumbers=wl)
@@ -737,6 +737,7 @@ class DataManager:
             norm_green = green_band
             norm_blue = blue_band
             if self.normalization is not None:
+                self.log("Applying normalization: %s" % self.normalization_cmdline)
                 if isinstance(self.normalization, AbstractOPEXAnnotationBasedNormalization):
                     self.normalization.annotations = self.contours.to_opex(self.norm_data.shape[1], self.norm_data.shape[0])
                 try:
