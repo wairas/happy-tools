@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import os
 import spectral.io.envi as envi
@@ -802,7 +803,7 @@ class DataManager:
         self.pixels.from_dict(d["pixels"])
         self.metadata.from_json(d["metadata"])
 
-    def export_sub_images(self, path, prefix, contours):
+    def export_sub_images(self, path, prefix, contours, raw):
         """
         Exports the sub-images defined in the contours as ENVI files.
         Stores them in the specified directory with the specified prefix (and the label as suffix).
@@ -813,20 +814,51 @@ class DataManager:
         :type prefix: str
         :param contours: the list of absolute contours to export
         :type contours: list
+        :param raw: whether to export the raw images or the normalized ones
+        :type raw: bool
         :return: None if successful, otherwise error message
         :rtype: str
         """
         result = None
         for i, contour in enumerate(contours, start=1):
-            filename = os.path.join(path, prefix + "-" + contour.label + ".hdr")
-            self.log("Exporting sub-image #%d to: %s" % (i, filename))
+            # TODO filename pattern
+            path_envi = os.path.join(path, prefix + "-" + contour.label + ".hdr")
+            path_meta = os.path.splitext(path_envi)[0] + "-meta.json"
+            self.log("Exporting sub-image #%d to: %s" % (i, path_envi))
             try:
                 bbox = contour.bbox()
-                # TODO raw or normalized?
-                sub_data = self.scan_data[bbox.top:bbox.bottom+1, bbox.left:bbox.right+1, :]
-                envi.save_image(filename, sub_data)
+                data = self.scan_data
+                meta = {
+                    "scan_file": self.scan_file,
+                    "raw": True,
+                    "label": contour.label,
+                    "region": {
+                        "top": bbox.top,
+                        "left": bbox.left,
+                        "bottom": bbox.bottom,
+                        "right": bbox.right
+                    }
+                }
+                if not raw:
+                    if self.norm_data is None:
+                        raw = True
+                        self.log("No normalized data available, using raw instead!")
+                    else:
+                        data = self.norm_data
+                        meta["raw"] = False
+                        if self.has_blackref():
+                            # TODO blackref locator/method
+                            meta["blackref_file"] = self.blackref_file
+                        if self.has_whiteref():
+                            # TODO whiteref locator/method
+                            meta["whiteref_file"] = self.whiteref_file
+                sub_data = data[bbox.top:bbox.bottom+1, bbox.left:bbox.right+1, :]
+                envi.save_image(path_envi, sub_data, force=True)
+                self.log("Saving meta-data #%d to: %s" % (i, path_meta))
+                with open(path_meta, "w") as fp:
+                    json.dump(meta, fp)
             except:
-                result = "Failed to export sub-image #%d to: %s\n%s" % (i, filename, traceback.format_exc())
+                result = "Failed to export sub-image #%d to: %s\n%s" % (i, path_envi, traceback.format_exc())
                 self.log(result)
 
         return result

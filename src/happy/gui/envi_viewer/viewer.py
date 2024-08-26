@@ -85,6 +85,7 @@ class ViewerApp:
         self.state_export_overlay_annotations = None
         self.state_export_keep_aspectratio = None
         self.state_export_enforce_mask_prefix = None
+        self.state_export_raw_sub_images = None
         self.state_black_ref_locator = None
         self.state_black_ref_method = None
         self.state_white_ref_locator = None
@@ -955,6 +956,7 @@ class ViewerApp:
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
         self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
         self.session.export_enforce_mask_prefix = self.state_export_enforce_mask_prefix.get() == 1
+        self.session.export_raw_sub_images = self.state_export_raw_sub_images.get() == 1
         self.session.normalization = self.state_normalization.get()
         self.session.annotation_mode = self.annotation_mode
         self.session.brush_shape = self.data.pixels.brush_shape
@@ -1001,6 +1003,7 @@ class ViewerApp:
         self.state_export_overlay_annotations.set(1 if self.session.export_overlay_annotations else 0)
         self.state_export_keep_aspectratio.set(1 if self.session.export_keep_aspectratio else 0)
         self.state_export_enforce_mask_prefix.set(1 if self.session.export_enforce_mask_prefix else 0)
+        self.state_export_raw_sub_images.set(1 if self.session.export_raw_sub_images else 0)
         self.state_normalization.set(self.session.normalization)
         self.data.pixels.brush_shape = self.session.brush_shape
         self.data.pixels.invert_cursor = self.session.invert_cursor
@@ -1450,7 +1453,7 @@ class ViewerApp:
             prefix = "scan"
         else:
             prefix = os.path.splitext(os.path.basename(self.data.scan_file))[0]
-        msg = self.data.export_sub_images(export_dir, prefix, contours)
+        msg = self.data.export_sub_images(export_dir, prefix, contours, self.session.export_raw_sub_images)
         if msg is not None:
             messagebox.showerror("Error", "Failed to export sub-images to %s:\n%s" % (export_dir, msg))
 
@@ -1465,6 +1468,9 @@ class ViewerApp:
 
     def on_file_export_enforce_mask_prefix(self, event=None):
         self.session.export_enforce_mask_prefix = self.state_export_enforce_mask_prefix.get() == 1
+
+    def on_file_export_raw_sub_images(self, event=None):
+        self.session.export_raw_sub_images = self.state_export_raw_sub_images.get() == 1
 
     def on_file_session_open(self, event=None):
         """

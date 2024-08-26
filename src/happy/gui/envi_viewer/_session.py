@@ -96,6 +96,7 @@ class SessionManager(AbstractSessionManager):
         self.export_enforce_mask_prefix = True
         self.export_sub_images_path = None
         self.export_sub_images_label_regexp = None
+        self.export_raw_sub_images = False
         self.zoom = -1
         self.normalization = ""
         self.annotation_mode = ANNOTATION_MODE_POLYGONS
