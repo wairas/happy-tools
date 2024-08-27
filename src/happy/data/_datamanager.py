@@ -26,6 +26,8 @@ CALC_WHITEREF_APPLIED = "whiteref_applied"
 CALC_PREPROCESSORS_APPLIED = "preprocessors_applied"
 CALC_DIMENSIONS_DIFFER = "dimensions_differ"
 
+SUB_IMAGE_PATTERN = "{PREFIX}-{LABEL}.hdr"
+
 
 class DataManager:
     """
@@ -36,8 +38,6 @@ class DataManager:
         """
         Initializes the manager.
 
-        :param contours: the contours manager, creates one automatically if None
-        :type contours: ContoursManager
         :param log_method: the log method to use (only takes a single str arg, the message)
         """
         # _file: the filename
@@ -54,6 +54,7 @@ class DataManager:
         self.blackref_img = None
         self.blackref_data = None
         self.blackref_annotation = None
+        self.blackref_annotation_in_scan = None
         self.whiteref_locator = None
         self.whiteref_locator_cmdline = None
         self.whiteref_method = None
@@ -62,6 +63,7 @@ class DataManager:
         self.whiteref_img = None
         self.whiteref_data = None
         self.whiteref_annotation = None
+        self.whiteref_annotation_in_scan = None
         self.norm_data = None
         self.display_image = None
         self.wavelengths = None
@@ -283,6 +285,7 @@ class DataManager:
         self.whiteref_img = img
         self.whiteref_data = data
         self.whiteref_annotation = None
+        self.whiteref_annotation_in_scan = None
         self.reset_norm_data()
         return None
 
@@ -301,24 +304,25 @@ class DataManager:
         self.whiteref_img = None
         self.whiteref_data = data
         self.whiteref_annotation = None
+        self.whiteref_annotation_in_scan = None
         self.reset_norm_data()
         return None
 
-    def set_whiteref_annotation(self, ann):
+    def set_whiteref_annotation(self, ann, in_scan):
         """
         Sets the white reference annotation tuple.
 
         :param ann: the annotation rectangle to use (top,left,bottom,right)
+        :param in_scan: whether the annotation is part of the scan or in the white ref image
+        :type in_scan: bool
         :return: None if successfully added, otherwise error message
         :rtype: str
         """
         if not self.has_scan():
             return "Please load a scan first!"
 
-        self.whiteref_file = None
-        self.whiteref_img = None
-        self.whiteref_data = None
         self.whiteref_annotation = ann
+        self.whiteref_annotation_in_scan = in_scan
         self.reset_norm_data()
         return None
 
@@ -386,6 +390,7 @@ class DataManager:
         self.blackref_img = img
         self.blackref_data = data
         self.blackref_annotation = None
+        self.blackref_annotation_in_scan = None
         self.reset_norm_data()
         return None
 
@@ -404,24 +409,25 @@ class DataManager:
         self.blackref_img = None
         self.blackref_data = data
         self.blackref_annotation = None
+        self.blackref_annotation_in_scan = None
         self.reset_norm_data()
         return None
 
-    def set_blackref_annotation(self, ann):
+    def set_blackref_annotation(self, ann, in_scan):
         """
         Sets the black reference annotation tuple.
 
         :param ann: the annotation rectangle to use (top,left,bottom,right)
         :return: None if successfully added, otherwise error message
+        :param in_scan: whether the annotation is part of the scan or in the white ref image
+        :type in_scan: bool
         :rtype: str
         """
         if not self.has_scan():
             return "Please load a scan first!"
 
-        self.blackref_file = None
-        self.blackref_img = None
-        self.blackref_data = None
         self.blackref_annotation = ann
+        self.blackref_annotation_in_scan = in_scan
         self.reset_norm_data()
         return None
 
@@ -480,7 +486,7 @@ class DataManager:
                 ref = self.blackref_locator.locate()
                 if ref is not None:
                     self.log("Using black reference annotation: %s" % str(ref.bbox))
-                    self.set_blackref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right))
+                    self.set_blackref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right), True)
         else:
             ref = self.blackref_locator.locate()
             if ref is not None:
@@ -524,7 +530,7 @@ class DataManager:
                 ref = self.whiteref_locator.locate()
                 if ref is not None:
                     self.log("Using white reference annotation: %s" % str(ref.bbox))
-                    self.set_whiteref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right))
+                    self.set_whiteref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right), True)
         else:
             ref = self.whiteref_locator.locate()
             if ref is not None:
@@ -596,7 +602,10 @@ class DataManager:
                         if self.blackref_annotation is not None:
                             self.log("Applying black reference method: %s" % self.blackref_method_cmdline)
                             result[CALC_BLACKREF_APPLIED] = False
-                            self.blackref_method.reference = self.scan_data
+                            if self.blackref_annotation_in_scan:
+                                self.blackref_method.reference = self.scan_data
+                            else:
+                                self.blackref_method.reference = self.blackref_data
                             self.blackref_method.annotation = self.blackref_annotation
                             self.norm_data = self.blackref_method.apply(self.norm_data)
                             result[CALC_BLACKREF_APPLIED] = True
@@ -620,7 +629,10 @@ class DataManager:
                         if self.whiteref_annotation is not None:
                             self.log("Applying white reference method: %s" % self.whiteref_method_cmdline)
                             result[CALC_WHITEREF_APPLIED] = False
-                            self.whiteref_method.reference = self.scan_data
+                            if self.whiteref_annotation_in_scan:
+                                self.whiteref_method.reference = self.scan_data
+                            else:
+                                self.whiteref_method.reference = self.whiteref_data
                             self.whiteref_method.annotation = self.whiteref_annotation
                             self.norm_data = self.whiteref_method.apply(self.norm_data)
                             result[CALC_WHITEREF_APPLIED] = True
@@ -706,6 +718,22 @@ class DataManager:
             result += "D:" + self._calc_norm_data_indicator(not d[CALC_DIMENSIONS_DIFFER]) + " "
         result = result.strip()
         return result
+
+    def calc_norm_data_indicator_help(self):
+        """
+        Returns a help string for the result of calc_norm_data_indicator.
+
+        :return: the help string
+        :rtype: str
+        """
+        result = [
+            "I: black/white ref initialized",
+            "B: black ref applied",
+            "W: white ref applied",
+            "P: preprocessor(s) applied",
+            "D: dimensions same/✔ or differ/❌"
+        ]
+        return "\n".join(result)
 
     def set_normalization(self, normalization):
         """
@@ -846,7 +874,7 @@ class DataManager:
         self.pixels.from_dict(d["pixels"])
         self.metadata.from_json(d["metadata"])
 
-    def export_sub_images(self, path, prefix, contours, raw):
+    def export_sub_images(self, path, prefix, contours, raw, fname_pattern=SUB_IMAGE_PATTERN):
         """
         Exports the sub-images defined in the contours as ENVI files.
         Stores them in the specified directory with the specified prefix (and the label as suffix).
@@ -859,17 +887,27 @@ class DataManager:
         :type contours: list
         :param raw: whether to export the raw images or the normalized ones
         :type raw: bool
+        :param fname_pattern: the file name pattern to use, available placeholders {PREFIX}|{LABEL}|{LEFT}|{TOP}|{RIGHT}|{BOTTOM}|{INDEX}|{RAW}
         :return: None if successful, otherwise error message
         :rtype: str
         """
         result = None
         for i, contour in enumerate(contours, start=1):
-            # TODO filename pattern
-            path_envi = os.path.join(path, prefix + "-" + contour.label + ".hdr")
+            bbox = contour.bbox()
+            # apply filename pattern
+            fname = fname_pattern
+            fname = fname.replace("{INDEX}", str(i))
+            fname = fname.replace("{PREFIX}", prefix)
+            fname = fname.replace("{LABEL}", contour.label)
+            fname = fname.replace("{LEFT}", str(bbox.left))
+            fname = fname.replace("{RIGHT}", str(bbox.right))
+            fname = fname.replace("{TOP}", str(bbox.top))
+            fname = fname.replace("{BOTTOM}", str(bbox.bottom))
+            fname = fname.replace("{RAW}", str(raw))
+            path_envi = os.path.join(path, fname)
             path_meta = os.path.splitext(path_envi)[0] + "-meta.json"
             self.log("Exporting sub-image #%d to: %s" % (i, path_envi))
             try:
-                bbox = contour.bbox()
                 data = self.scan_data
                 meta = {
                     "scan_file": self.scan_file,

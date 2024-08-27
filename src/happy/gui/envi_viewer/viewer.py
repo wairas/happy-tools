@@ -24,6 +24,7 @@ from happy.data.normalization import SimpleNormalization
 from happy.data import LABEL_WHITEREF, LABEL_BLACKREF
 from happy.data import DataManager, CALC_DIMENSIONS_DIFFER
 from happy.data.annotations import Contour, BRUSH_SHAPES, tableau_colors, MASK_PREFIX
+from happy.gui import ToolTip
 from happy.gui.dialog import asklist
 from happy.gui.envi_viewer import SamManager, SessionManager, PROPERTIES
 from happy.gui.envi_viewer import ANNOTATION_MODES, ANNOTATION_MODE_POLYGONS, ANNOTATION_MODE_PIXELS, generate_color_key
@@ -193,6 +194,9 @@ class ViewerApp:
         self.drag_update_interval = 0.1
         self.drag_start = None
         self.shift_pressed = False
+
+        # tooltips
+        self.label_calc_norm_data_tooltip = ToolTip(self.label_calc_norm_data, text=self.data.calc_norm_data_indicator_help(), wraplength=250)
 
     def run(self):
         self.mainwindow.mainloop()
@@ -666,6 +670,15 @@ class ViewerApp:
             self.data.pixels.zoom_x = width / self.data.scan_data.shape[1]
             self.data.pixels.zoom_y = height / self.data.scan_data.shape[0]
 
+    def update_title(self):
+        """
+        Updates the title of the main window.
+        """
+        title = "ENVI Viewer"
+        if self.data.scan_file is not None:
+            title += ": " + os.path.basename(self.data.scan_file)
+        self.mainwindow.title(title)
+
     def update_image(self):
         """
         Updates the image.
@@ -693,23 +706,44 @@ class ViewerApp:
         if self.data.scan_file is None:
             info += "-none-"
         else:
-            info += self.data.scan_file + "\n" + str(self.data.scan_data.shape)
+            info += "- file: " + self.data.scan_file + "\n- shape: " + str(self.data.scan_data.shape)
+
         # black
-        info += "\n\nBlack reference:\n"
-        if self.data.blackref_file is None:
-            info += "-none-"
+        info += "\n\nBlack reference:"
+        if self.data.has_blackref():
+            if self.data.blackref_file is not None:
+                info += "\n- file: " + self.data.blackref_file + "\n- shape: " + str(self.data.blackref_data.shape)
+            ann = None
+            if self.data.contours.has_annotations():
+                contours = self.data.contours.get_contours(LABEL_BLACKREF)
+                if len(contours) == 1:
+                    ann = str(contours[0].bbox())
+            if self.data.blackref_annotation is not None:
+                ann = str(self.data.blackref_annotation)
+            if ann is None:
+                ann = "-none-"
+            info += "\n- bbox: " + ann
         else:
-            info += self.data.blackref_file + "\n" + str(self.data.blackref_data.shape)
+            info += "\n-none-"
+
         # white
-        info += "\n\nWhite reference:\n"
-        if self.data.whiteref_file is not None:
-            info += self.data.whiteref_file + "\n" + str(self.data.whiteref_data.shape)
+        info += "\n\nWhite reference:"
+        if self.data.has_whiteref():
+            if self.data.whiteref_file is not None:
+                info += "\n- file:" + self.data.whiteref_file + "\n- shape:" + str(self.data.whiteref_data.shape)
+            ann = None
+            if self.data.contours.has_annotations():
+                contours = self.data.contours.get_contours(LABEL_WHITEREF)
+                if len(contours) == 1:
+                    ann = str(contours[0].bbox())
+            if self.data.whiteref_annotation is not None:
+                ann = str(self.data.whiteref_annotation)
+            if ann is None:
+                ann = "-none-"
+            info += "\n- bbox: " + ann
         else:
-            contours = self.data.contours.get_contours(LABEL_WHITEREF)
-            if len(contours) == 1:
-                info += str(contours[0].bbox())
-            else:
-                info += "-none-"
+            info += "\n-none-"
+
         # wave lengths
         info += "\n\nWave lengths:\n"
         if len(self.data.get_wavelengths()) == 0:
@@ -742,6 +776,7 @@ class ViewerApp:
         if self.ignore_updates:
             return
         self.start_busy()
+        self.update_title()
         self.update_image()
         self.update_info()
         self.stop_busy()
@@ -1198,6 +1233,37 @@ class ViewerApp:
             self.session.last_blackref_dir = os.path.dirname(filename)
             self.load_blackref(filename, do_update=True)
 
+    def on_file_import_blackref_annotations(self, event=None):
+        """
+        Allows the user to select annotations for the black reference ENVI file.
+        """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+        if not self.data.has_blackref():
+            messagebox.showerror("Error", "Please load a black reference file first!")
+            return
+
+        filename = self.open_annotation_file('Import ref polygon annotations', "opex", self.session.last_blackref_dir)
+        if filename is None:
+            return
+        self.log("Importing black ref OPEX JSON annotations: %s" % filename)
+        preds = ObjectPredictions.load_json_from_file(filename)
+        if len(self.state_predefined_labels.get()) > 0:
+            blackref_obj = None
+            for obj in preds.objects:
+                if obj.label == LABEL_BLACKREF:
+                    blackref_obj = obj
+                    break
+            if blackref_obj is None:
+                messagebox.showwarning(
+                    "Error",
+                    "Failed to locate label '%s' in black reference annotations:\n%s" % (LABEL_BLACKREF, filename))
+                return
+            ann = (blackref_obj.bbox.top, blackref_obj.bbox.left, blackref_obj.bbox.bottom, blackref_obj.bbox.right)
+            self.data.set_blackref_annotation(ann, False)
+            self.update()
+
     def on_file_clear_whiteref(self, event=None):
         if self.data.has_whiteref():
             self.log("Clearing white reference")
@@ -1217,6 +1283,37 @@ class ViewerApp:
         if filename is not None:
             self.session.last_whiteref_dir = os.path.dirname(filename)
             self.load_whiteref(filename, do_update=True)
+
+    def on_file_import_whiteref_annotations(self, event=None):
+        """
+        Allows the user to select annotations for the white reference ENVI file.
+        """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+        if not self.data.has_whiteref():
+            messagebox.showerror("Error", "Please load a white reference file first!")
+            return
+
+        filename = self.open_annotation_file('Import white ref polygon annotations', "opex", self.session.last_whiteref_dir)
+        if filename is None:
+            return
+        self.log("Importing white ref OPEX JSON annotations: %s" % filename)
+        preds = ObjectPredictions.load_json_from_file(filename)
+        if len(self.state_predefined_labels.get()) > 0:
+            whiteref_obj = None
+            for obj in preds.objects:
+                if obj.label == LABEL_WHITEREF:
+                    whiteref_obj = obj
+                    break
+            if whiteref_obj is None:
+                messagebox.showwarning(
+                    "Error",
+                    "Failed to locate label '%s' in white reference annotations:\n%s" % (LABEL_WHITEREF, filename))
+                return
+            ann = (whiteref_obj.bbox.top, whiteref_obj.bbox.left, whiteref_obj.bbox.bottom, whiteref_obj.bbox.right)
+            self.data.set_whiteref_annotation(ann, False)
+            self.update()
 
     def on_file_import_pixel_annotations_click(self, event=None):
         """

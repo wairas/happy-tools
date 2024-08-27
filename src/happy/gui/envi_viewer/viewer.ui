@@ -45,6 +45,12 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_file_open_blackref_annotations" named="True">
+                    <property name="command" type="command" cbtype="simple">on_file_import_blackref_annotations</property>
+                    <property name="label" translatable="yes">Import black ref annotations...</property>
+                  </object>
+                </child>
+                <child>
                   <object class="tk.Menuitem.Separator" id="separator4" />
                 </child>
                 <child>
@@ -57,6 +63,12 @@
                   <object class="tk.Menuitem.Command" id="command_file_open_whiteref" named="True">
                     <property name="command" type="command" cbtype="simple">on_file_open_whiteref</property>
                     <property name="label" translatable="yes">Open white reference...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_file_open_whiteref_annotations" named="True">
+                    <property name="command" type="command" cbtype="simple">on_file_import_whiteref_annotations</property>
+                    <property name="label" translatable="yes">Import white ref annotations...</property>
                   </object>
                 </child>
                 <child>
