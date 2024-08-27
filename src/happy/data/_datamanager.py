@@ -1030,6 +1030,15 @@ class DataManager:
         else:
             result += "\n-none-"
 
+        # the calculated data
+        result += "\n\nCalculated:"
+        if self.norm_data is None:
+            result += "\n-none-"
+        else:
+            result += "\n- shape: " + str(self.norm_data.shape)
+            result += "\n- min: " + str(np.min(self.norm_data))
+            result += "\n- max: " + str(np.max(self.norm_data))
+
         # wave lengths
         result += "\n\nWave lengths:\n"
         if len(self.get_wavelengths()) == 0:
