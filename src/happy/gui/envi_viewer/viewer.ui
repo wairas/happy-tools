@@ -820,6 +820,31 @@
                                             </layout>
                                           </object>
                                         </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label_file_name_pattern" named="True">
+                                            <property name="text" translatable="yes">Sub-images pattern</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">6</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_file_name_pattern" named="True">
+                                            <property name="text" translatable="yes">{PREFIX}-{LABEL}.hdr</property>
+                                            <property name="textvariable">string:state_sub_images_file_name_pattern</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">6</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
                                       </object>
                                     </child>
                                   </object>

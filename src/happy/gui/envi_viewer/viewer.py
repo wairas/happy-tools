@@ -22,7 +22,7 @@ from ttkSimpleDialog import ttkSimpleDialog
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
 from happy.data.normalization import SimpleNormalization
-from happy.data import LABEL_WHITEREF, LABEL_BLACKREF
+from happy.data import LABEL_WHITEREF, LABEL_BLACKREF, SUB_IMAGE_PATTERN
 from happy.data import DataManager, CALC_DIMENSIONS_DIFFER
 from happy.data.annotations import Contour, BRUSH_SHAPES, tableau_colors, MASK_PREFIX
 from happy.gui import ToolTip
@@ -72,6 +72,7 @@ class ViewerApp:
         self.state_check_scan_dimensions = None
         self.state_annotation_color = None
         self.state_predefined_labels = None
+        self.state_sub_images_file_name_pattern = None
         self.state_redis_host = None
         self.state_redis_port = None
         self.state_redis_pw = None
@@ -116,6 +117,7 @@ class ViewerApp:
         self.checkbutton_check_scan_dimenions = builder.get_object("checkbutton_check_scan_dimensions", master)
         self.entry_annotation_color = builder.get_object("entry_annotation_color", master)
         self.entry_predefined_labels = builder.get_object("entry_predefined_labels", master)
+        self.entry_file_name_pattern = builder.get_object("entry_file_name_pattern", master)
         self.entry_redis_host = builder.get_object("entry_redis_host", master)
         self.entry_redis_port = builder.get_object("entry_redis_port", master)
         self.entry_redis_in = builder.get_object("entry_redis_in", master)
@@ -202,6 +204,7 @@ class ViewerApp:
 
         # tooltips
         self.label_calc_norm_data_tooltip = ToolTip(self.label_calc_norm_data, text=self.data.calc_norm_data_indicator_help(), wraplength=250)
+        self.entry_file_name_pattern_tooltip = ToolTip(self.entry_file_name_pattern, text=self.data.sub_images_fname_pattern_help(), wraplength=750)
 
     def run(self):
         self.mainwindow.mainloop()
@@ -910,6 +913,7 @@ class ViewerApp:
         self.session.scale_b = self.state_scale_b.get()
         self.session.annotation_color = self.state_annotation_color.get()
         self.session.predefined_labels = self.state_predefined_labels.get()
+        self.session.sub_images_file_name_pattern = self.state_sub_images_file_name_pattern.get()
         self.session.redis_host = self.state_redis_host.get()
         self.session.redis_port = self.state_redis_port.get()
         self.session.redis_pw = self.state_redis_pw.get()
@@ -956,6 +960,7 @@ class ViewerApp:
         self.state_scale_b.set(self.session.scale_b)
         self.state_annotation_color.set(self.session.annotation_color)
         self.state_predefined_labels.set(self.session.predefined_labels)
+        self.state_sub_images_file_name_pattern.set(self.session.sub_images_file_name_pattern)
         self.state_redis_host.set(self.session.redis_host)
         self.state_redis_port.set(self.session.redis_port)
         self.state_redis_pw.set(self.session.redis_pw)
@@ -1489,7 +1494,7 @@ class ViewerApp:
             prefix = "scan"
         else:
             prefix = os.path.splitext(os.path.basename(self.data.scan_file))[0]
-        msg = self.data.export_sub_images(export_dir, prefix, contours, self.session.export_raw_sub_images)
+        msg = self.data.export_sub_images(export_dir, prefix, contours, self.session.export_raw_sub_images, fname_pattern=self.state_sub_images_file_name_pattern.get())
         if msg is not None:
             messagebox.showerror("Error", "Failed to export sub-images to %s:\n%s" % (export_dir, msg))
 

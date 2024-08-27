@@ -1,5 +1,6 @@
 from happy.gui.session import AbstractSessionManager
 from happy.data.annotations import BRUSH_SHAPE_ROUND
+from happy.data import SUB_IMAGE_PATTERN
 from ._annotations import ANNOTATION_MODE_POLYGONS
 
 
@@ -18,6 +19,7 @@ PROPERTIES = [
     "scale_b",
     "annotation_color",
     "predefined_labels",
+    "sub_images_file_name_pattern",
     "redis_host",
     "redis_port",
     "redis_pw",
@@ -97,6 +99,7 @@ class SessionManager(AbstractSessionManager):
         self.export_sub_images_path = None
         self.export_sub_images_label_regexp = None
         self.export_raw_sub_images = False
+        self.sub_images_file_name_pattern = SUB_IMAGE_PATTERN
         self.zoom = -1
         self.normalization = ""
         self.annotation_mode = ANNOTATION_MODE_POLYGONS
