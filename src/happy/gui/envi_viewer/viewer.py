@@ -694,8 +694,10 @@ class ViewerApp:
         if self.ignore_updates:
             return
         success = self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
-        if (CALC_DIMENSIONS_DIFFER in success) and success[CALC_DIMENSIONS_DIFFER]:
+        if self.data.norm_data is not None:
             self.set_data_dimensions(self.data.norm_data.shape, do_update=False)
+        elif self.data.scan_data is not None:
+            self.set_data_dimensions(self.data.scan_data.shape, do_update=False)
         self.update_info()
         # make visible in UI
         if len(success) > 0:
