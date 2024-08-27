@@ -4,7 +4,6 @@ import os
 import spectral.io.envi as envi
 import traceback
 
-from collections import OrderedDict
 from typing import List, Dict, Optional
 
 from PIL import Image
