@@ -13,9 +13,8 @@ from happy.models.sklearn import create_model, CLASSIFICATION_MODEL_MAP
 from happy.pixel_selectors import MultiSelector, PixelSelector
 from happy.preprocessors import Preprocessor, MultiPreprocessor
 from happy.splitters import DataSplits
-from happy.writers import CSVTrainingDataWriter
+from happy.writers.base import CSVTrainingDataWriter, EnviWriter
 from happy.models.segmentation import create_false_color_image, create_prediction_image
-from happy.writers import EnviWriter
 from happy.data import determine_label_indices, check_labels
 
 
