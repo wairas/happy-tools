@@ -1004,7 +1004,7 @@ class DataManager:
                 ann = str(self.blackref_annotation)
             if ann is None:
                 ann = "-none-"
-            result += "\n- bbox: " + ann
+            result += "\n- annotation: " + ann
         else:
             result += "\n-none-"
 
@@ -1026,7 +1026,7 @@ class DataManager:
                 ann = str(self.whiteref_annotation)
             if ann is None:
                 ann = "-none-"
-            result += "\n- bbox: " + ann
+            result += "\n- annotation: " + ann
         else:
             result += "\n-none-"
 
