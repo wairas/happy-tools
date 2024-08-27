@@ -700,74 +700,8 @@ class ViewerApp:
         """
         Updates the information.
         """
-        info = ""
-        # scan
-        info += "Scan:\n"
-        if self.data.scan_file is None:
-            info += "-none-"
-        else:
-            info += "- file: " + self.data.scan_file + "\n- shape: " + str(self.data.scan_data.shape)
-
-        # black
-        info += "\n\nBlack reference:"
-        if self.data.has_blackref():
-            if self.data.blackref_file is not None:
-                info += "\n- file: " + self.data.blackref_file + "\n- shape: " + str(self.data.blackref_data.shape)
-            ann = None
-            if self.data.contours.has_annotations():
-                contours = self.data.contours.get_contours(LABEL_BLACKREF)
-                if len(contours) == 1:
-                    ann = str(contours[0].bbox())
-            if self.data.blackref_annotation is not None:
-                ann = str(self.data.blackref_annotation)
-            if ann is None:
-                ann = "-none-"
-            info += "\n- bbox: " + ann
-        else:
-            info += "\n-none-"
-
-        # white
-        info += "\n\nWhite reference:"
-        if self.data.has_whiteref():
-            if self.data.whiteref_file is not None:
-                info += "\n- file:" + self.data.whiteref_file + "\n- shape:" + str(self.data.whiteref_data.shape)
-            ann = None
-            if self.data.contours.has_annotations():
-                contours = self.data.contours.get_contours(LABEL_WHITEREF)
-                if len(contours) == 1:
-                    ann = str(contours[0].bbox())
-            if self.data.whiteref_annotation is not None:
-                ann = str(self.data.whiteref_annotation)
-            if ann is None:
-                ann = "-none-"
-            info += "\n- bbox: " + ann
-        else:
-            info += "\n-none-"
-
-        # wave lengths
-        info += "\n\nWave lengths:\n"
-        if len(self.data.get_wavelengths()) == 0:
-            info += "-none-"
-        else:
-            info += "index\twave length\n"
-            for i in self.data.get_wavelengths():
-                if i in self.data.get_wavelengths():
-                    info += str(i) + "\t" + self.data.get_wavelengths()[i] + "\n"
-        # other metadata
-        info += "\n\nOther meta-data:\n"
-        if not self.data.has_scan():
-            info += "-none-"
-        else:
-            metadata = self.data.scan_img.metadata
-            for k in metadata:
-                if k == "wavelength":
-                    continue
-                else:
-                    info += "- %s: %s\n" % (k, str(metadata[k]))
-
-        # update
         self.text_info.delete(1.0, tk.END)
-        self.text_info.insert(tk.END, info)
+        self.text_info.insert(tk.END, self.data.info())
 
     def update(self):
         """
@@ -2140,17 +2074,6 @@ class ViewerApp:
         plt.title("Spectra")
         plt.legend()
         plt.show()
-
-    def on_view_statistics_click(self, event=None):
-        if not self.data.has_scan():
-            messagebox.showerror("Error", "Please load a scan file first!")
-            return
-
-        stats = self.data.statistics()
-        stats_text = ""
-        for k in stats:
-            stats_text += "%s: %s\n" % (str(k), str(stats[k]))
-        messagebox.showinfo("Statistics", stats_text)
 
     def on_view_zoom_click(self, event=None):
         if (event is not None) and (event.startswith("command_view_zoom_")):

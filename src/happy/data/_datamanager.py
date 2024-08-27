@@ -8,7 +8,7 @@ from collections import OrderedDict
 from typing import List, Dict, Optional
 
 from PIL import Image
-from happy.data import HappyData
+from happy.data import HappyData, LABEL_WHITEREF, LABEL_BLACKREF
 from happy.data.annotations import ContoursManager, Contour, MetaDataManager, PixelManager, MarkersManager
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
@@ -948,21 +948,87 @@ class DataManager:
 
         return result
 
-    def statistics(self):
+    def info(self):
         """
-        Generates general statistics on the current data.
+        Generates information about the currently loaded data.
+        
+        :return: the generated data
+        :rtype: str 
+        """
+        result = ""
 
-        :return: the statistics
-        :rtype: OrderedDict
-        """
-        result = OrderedDict()
-        if self.has_scan():
-            result["scan.min"] = np.min(self.scan_data)
-            result["scan.max"] = np.max(self.scan_data)
+        # scan
+        result += "Scan:"
+        if self.scan_file is None:
+            result += "\n-none-"
+        else:
+            result += "\n- file: " + self.scan_file
+            result += "\n- shape: " + str(self.scan_data.shape)
+            result += "\n- min: " + str(np.min(self.scan_data))
+            result += "\n- max: " + str(np.max(self.scan_data))
+
+        # black
+        result += "\n\nBlack reference:"
         if self.has_blackref():
-            result["blackref.min"] = np.min(self.blackref_data)
-            result["blackref.max"] = np.max(self.blackref_data)
+            if self.blackref_file is not None:
+                result += "\n- file: " + self.blackref_file
+            if self.blackref_data is not None:
+                result += "\n- shape: " + str(self.blackref_data.shape)
+                result += "\n- min: " + str(np.min(self.blackref_data))
+                result += "\n- max: " + str(np.max(self.blackref_data))
+            ann = None
+            if self.contours.has_annotations():
+                contours = self.contours.get_contours(LABEL_BLACKREF)
+                if len(contours) == 1:
+                    ann = str(contours[0].bbox())
+            if self.blackref_annotation is not None:
+                ann = str(self.blackref_annotation)
+            if ann is None:
+                ann = "-none-"
+            result += "\n- bbox: " + ann
+        else:
+            result += "\n-none-"
+
+        # white
+        result += "\n\nWhite reference:"
         if self.has_whiteref():
-            result["whiteref.min"] = np.min(self.whiteref_data)
-            result["whiteref.max"] = np.max(self.whiteref_data)
+            if self.whiteref_file is not None:
+                result += "\n- file:" + self.whiteref_file
+            if self.whiteref_data is not None:
+                result += "\n- shape:" + str(self.whiteref_data.shape)
+                result += "\n- min: " + str(np.min(self.whiteref_data))
+                result += "\n- max: " + str(np.max(self.whiteref_data))
+            ann = None
+            if self.contours.has_annotations():
+                contours = self.contours.get_contours(LABEL_WHITEREF)
+                if len(contours) == 1:
+                    ann = str(contours[0].bbox())
+            if self.whiteref_annotation is not None:
+                ann = str(self.whiteref_annotation)
+            if ann is None:
+                ann = "-none-"
+            result += "\n- bbox: " + ann
+        else:
+            result += "\n-none-"
+
+        # wave lengths
+        result += "\n\nWave lengths:\n"
+        if len(self.get_wavelengths()) == 0:
+            result += "-none-"
+        else:
+            result += "index\twave length\n"
+            for i in self.get_wavelengths():
+                if i in self.get_wavelengths():
+                    result += str(i) + "\t" + self.get_wavelengths()[i] + "\n"
+        # other metadata
+        result += "\n\nOther meta-data:\n"
+        if not self.has_scan():
+            result += "-none-"
+        else:
+            metadata = self.scan_img.metadata
+            for k in metadata:
+                if k == "wavelength":
+                    continue
+                else:
+                    result += "- %s: %s\n" % (k, str(metadata[k]))
         return result
