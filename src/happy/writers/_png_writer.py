@@ -1,7 +1,7 @@
 import argparse
 import json
 import os
-from typing import Tuple
+from typing import Tuple, Optional
 from happy.data import HappyData, DataManager
 from happy.data.normalization import SimpleNormalization
 from ._happydata_writer import HappyDataWriter, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, output_pattern_help
@@ -52,7 +52,7 @@ class PNGWriter(HappyDataWriter):
         self._normalization = ns.normalization
         self._suppress_metadata = ns.suppress_metadata
 
-    def rgb(self, rgb: Tuple[int]):
+    def rgb(self, rgb: Tuple[int, int, int]):
         """
         Sets the RGB values to use.
 
@@ -62,6 +62,15 @@ class PNGWriter(HappyDataWriter):
         self._red_channel = rgb[0]
         self._green_channel = rgb[1]
         self._blue_channel = rgb[2]
+
+    def normalization(self, norm: Optional[str]):
+        """
+        Sets the normalization method to use.
+
+        :param norm: the commandline of the normalization plugin
+        :type norm: str or None
+        """
+        self._normalization = norm
 
     def _write_item(self, happy_data, datatype_mapping=None):
         def log(msg):
