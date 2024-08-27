@@ -1,6 +1,4 @@
-import json
 import numpy as np
-import os
 import spectral.io.envi as envi
 import traceback
 
@@ -892,80 +890,6 @@ class DataManager:
         """
         return "Available placeholders: {PREFIX}|{LABEL}|{LEFT}|{TOP}|{RIGHT}|{BOTTOM}|{INDEX}|{RAW}\n" \
             + "Default: " + SUB_IMAGE_PATTERN
-
-    def export_sub_images(self, path, prefix, contours, raw, fname_pattern=SUB_IMAGE_PATTERN):
-        """
-        Exports the sub-images defined in the contours as ENVI files.
-        Stores them in the specified directory with the specified prefix (and the label as suffix).
-
-        :param path: the directory to store the sub-images in
-        :type path: str
-        :param prefix: the name prefix for the sub-images, label and extension gets appended
-        :type prefix: str
-        :param contours: the list of absolute contours to export
-        :type contours: list
-        :param raw: whether to export the raw images or the normalized ones
-        :type raw: bool
-        :param fname_pattern: the file name pattern to use, available placeholders {PREFIX}|{LABEL}|{LEFT}|{TOP}|{RIGHT}|{BOTTOM}|{INDEX}|{RAW}
-        :return: None if successful, otherwise error message
-        :rtype: str
-        """
-        result = None
-        for i, contour in enumerate(contours, start=1):
-            bbox = contour.bbox()
-            # apply filename pattern
-            fname = fname_pattern
-            fname = fname.replace("{INDEX}", str(i))
-            fname = fname.replace("{PREFIX}", prefix)
-            fname = fname.replace("{LABEL}", contour.label)
-            fname = fname.replace("{LEFT}", str(bbox.left))
-            fname = fname.replace("{RIGHT}", str(bbox.right))
-            fname = fname.replace("{TOP}", str(bbox.top))
-            fname = fname.replace("{BOTTOM}", str(bbox.bottom))
-            fname = fname.replace("{RAW}", str(raw))
-            path_envi = os.path.join(path, fname)
-            path_meta = os.path.splitext(path_envi)[0] + "-meta.json"
-            self.log("Exporting sub-image #%d to: %s" % (i, path_envi))
-            try:
-                data = self.scan_data
-                meta = {
-                    "scan_file": self.scan_file,
-                    "raw": True,
-                    "label": contour.label,
-                    "region": {
-                        "top": bbox.top,
-                        "left": bbox.left,
-                        "bottom": bbox.bottom,
-                        "right": bbox.right
-                    }
-                }
-                if self.preprocessors_cmdline is not None:
-                    meta["preprocessors"] = self.preprocessors_cmdline
-                if not raw:
-                    if self.norm_data is None:
-                        raw = True
-                        self.log("No normalized data available, using raw instead!")
-                    else:
-                        data = self.norm_data
-                        meta["raw"] = False
-                        if self.has_blackref():
-                            meta["blackref_locator"] = self.blackref_locator_cmdline
-                            meta["blackref_method"] = self.blackref_method_cmdline
-                            meta["blackref_file"] = self.blackref_file
-                        if self.has_whiteref():
-                            meta["whiteref_locator"] = self.whiteref_locator_cmdline
-                            meta["whiteref_method"] = self.whiteref_method_cmdline
-                            meta["whiteref_file"] = self.whiteref_file
-                sub_data = data[bbox.top:bbox.bottom+1, bbox.left:bbox.right+1, :]
-                envi.save_image(path_envi, sub_data, force=True)
-                self.log("Saving meta-data #%d to: %s" % (i, path_meta))
-                with open(path_meta, "w") as fp:
-                    json.dump(meta, fp, indent=2)
-            except:
-                result = "Failed to export sub-image #%d to: %s\n%s" % (i, path_envi, traceback.format_exc())
-                self.log(result)
-
-        return result
 
     def info(self):
         """

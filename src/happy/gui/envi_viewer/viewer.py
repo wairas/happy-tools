@@ -22,8 +22,8 @@ from ttkSimpleDialog import ttkSimpleDialog
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
 from happy.data.normalization import SimpleNormalization
-from happy.data import LABEL_WHITEREF, LABEL_BLACKREF, SUB_IMAGE_PATTERN
-from happy.data import DataManager, CALC_DIMENSIONS_DIFFER
+from happy.data import LABEL_WHITEREF, LABEL_BLACKREF
+from happy.data import DataManager, export_sub_images
 from happy.data.annotations import Contour, BRUSH_SHAPES, tableau_colors, MASK_PREFIX
 from happy.gui import ToolTip
 from happy.gui.dialog import asklist
@@ -31,6 +31,7 @@ from happy.gui.envi_viewer import SamManager, SessionManager, PROPERTIES
 from happy.gui.envi_viewer import ANNOTATION_MODES, ANNOTATION_MODE_POLYGONS, ANNOTATION_MODE_PIXELS, generate_color_key
 from happy.gui.envi_viewer.annotations import AnnotationsDialog
 from happy.gui.envi_viewer.image import ImageDialog
+from happy.gui.envi_viewer.sub_images import show_sub_images_dialog, KEY_OUTPUT_DIR, KEY_LABEL_REGEXP, KEY_OUTPUT_FORMAT, KEY_RAW_SPECTRA
 from happy.gui import UndoManager, remove_modifiers
 from opex import ObjectPredictions
 
@@ -72,7 +73,6 @@ class ViewerApp:
         self.state_check_scan_dimensions = None
         self.state_annotation_color = None
         self.state_predefined_labels = None
-        self.state_sub_images_file_name_pattern = None
         self.state_redis_host = None
         self.state_redis_port = None
         self.state_redis_pw = None
@@ -88,7 +88,6 @@ class ViewerApp:
         self.state_export_overlay_annotations = None
         self.state_export_keep_aspectratio = None
         self.state_export_enforce_mask_prefix = None
-        self.state_export_raw_sub_images = None
         self.state_black_ref_locator = None
         self.state_black_ref_method = None
         self.state_white_ref_locator = None
@@ -117,7 +116,6 @@ class ViewerApp:
         self.checkbutton_check_scan_dimenions = builder.get_object("checkbutton_check_scan_dimensions", master)
         self.entry_annotation_color = builder.get_object("entry_annotation_color", master)
         self.entry_predefined_labels = builder.get_object("entry_predefined_labels", master)
-        self.entry_file_name_pattern = builder.get_object("entry_file_name_pattern", master)
         self.entry_redis_host = builder.get_object("entry_redis_host", master)
         self.entry_redis_port = builder.get_object("entry_redis_port", master)
         self.entry_redis_in = builder.get_object("entry_redis_in", master)
@@ -204,7 +202,6 @@ class ViewerApp:
 
         # tooltips
         self.label_calc_norm_data_tooltip = ToolTip(self.label_calc_norm_data, text=self.data.calc_norm_data_indicator_help(), wraplength=250)
-        self.entry_file_name_pattern_tooltip = ToolTip(self.entry_file_name_pattern, text=self.data.sub_images_fname_pattern_help(), wraplength=750)
 
     def run(self):
         self.mainwindow.mainloop()
@@ -915,7 +912,6 @@ class ViewerApp:
         self.session.scale_b = self.state_scale_b.get()
         self.session.annotation_color = self.state_annotation_color.get()
         self.session.predefined_labels = self.state_predefined_labels.get()
-        self.session.sub_images_file_name_pattern = self.state_sub_images_file_name_pattern.get()
         self.session.redis_host = self.state_redis_host.get()
         self.session.redis_port = self.state_redis_port.get()
         self.session.redis_pw = self.state_redis_pw.get()
@@ -933,7 +929,6 @@ class ViewerApp:
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
         self.session.export_keep_aspectratio = self.state_export_keep_aspectratio.get() == 1
         self.session.export_enforce_mask_prefix = self.state_export_enforce_mask_prefix.get() == 1
-        self.session.export_raw_sub_images = self.state_export_raw_sub_images.get() == 1
         self.session.normalization = self.state_normalization.get()
         self.session.annotation_mode = self.annotation_mode
         self.session.brush_shape = self.data.pixels.brush_shape
@@ -962,7 +957,6 @@ class ViewerApp:
         self.state_scale_b.set(self.session.scale_b)
         self.state_annotation_color.set(self.session.annotation_color)
         self.state_predefined_labels.set(self.session.predefined_labels)
-        self.state_sub_images_file_name_pattern.set(self.session.sub_images_file_name_pattern)
         self.state_redis_host.set(self.session.redis_host)
         self.state_redis_port.set(self.session.redis_port)
         self.state_redis_pw.set(self.session.redis_pw)
@@ -981,7 +975,6 @@ class ViewerApp:
         self.state_export_overlay_annotations.set(1 if self.session.export_overlay_annotations else 0)
         self.state_export_keep_aspectratio.set(1 if self.session.export_keep_aspectratio else 0)
         self.state_export_enforce_mask_prefix.set(1 if self.session.export_enforce_mask_prefix else 0)
-        self.state_export_raw_sub_images.set(1 if self.session.export_raw_sub_images else 0)
         self.state_normalization.set(self.session.normalization)
         self.data.pixels.brush_shape = self.session.brush_shape
         self.data.pixels.invert_cursor = self.session.invert_cursor
@@ -1455,51 +1448,28 @@ class ViewerApp:
             messagebox.showerror("Error", "Please create polygon annotations first!")
             return
 
-        if self.session.export_keep_aspectratio:
-            dims = self.data.dims()
-        else:
-            dims = self.get_image_canvas_dims()
-        if dims is None:
+        params = {
+            KEY_OUTPUT_DIR: self.session.export_sub_images_path,
+            KEY_LABEL_REGEXP: self.session.export_sub_images_label_regexp,
+            KEY_OUTPUT_FORMAT: self.session.export_sub_images_output_format,
+            KEY_RAW_SPECTRA: self.session.export_sub_images_raw,
+        }
+        params = show_sub_images_dialog(self.mainwindow, params)
+        if params is None:
             return
-        dims = self.fit_image_into_dims(dims[0], dims[1], self.session.export_keep_aspectratio)
-
-        # select output dir
-        export_dir = fd.askdirectory(initialdir=self.session.export_sub_images_path, parent=self.mainwindow)
-        if (export_dir is None) or (len(export_dir) == 0):
-            return
-        self.session.export_sub_images_path = export_dir
-
-        # select subset of contours
-        label_regexp = self.session.export_sub_images_label_regexp
-        if label_regexp is None:
-            label_regexp = ""
-        label_regexp = ttkSimpleDialog.askstring(
-            "Label regexp",
-            "Please enter regular expression to select subset of labels (empty for all):",
-            initialvalue=label_regexp,
-            parent=self.mainwindow)
-        if label_regexp is None:
-            return
-        if len(label_regexp.strip()) == 0:
-            label_regexp = None
-        self.session.export_sub_images_label_regexp = label_regexp
-        if label_regexp is None:
-            all = self.data.contours.to_absolute(dims[0], dims[1])
-            contours = []
-            for l in all:
-                contours.extend(l)
-        else:
-            matches = self.data.contours.get_contours_regexp(label_regexp)
-            contours = [x.to_absolute(dims[0], dims[1]) for x in matches]
+        self.session.export_sub_images_path = params[KEY_OUTPUT_DIR]
+        self.session.export_sub_images_label_regexp = params[KEY_LABEL_REGEXP]
+        self.session.export_sub_images_output_format = params[KEY_OUTPUT_FORMAT]
+        self.session.export_sub_images_raw = params[KEY_RAW_SPECTRA]
 
         # export sub-images
-        if self.data.scan_file is None:
-            prefix = "scan"
-        else:
-            prefix = os.path.splitext(os.path.basename(self.data.scan_file))[0]
-        msg = self.data.export_sub_images(export_dir, prefix, contours, self.session.export_raw_sub_images, fname_pattern=self.state_sub_images_file_name_pattern.get())
+        rgb = (int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
+        msg = export_sub_images(self.data, params[KEY_OUTPUT_DIR], params[KEY_LABEL_REGEXP], params[KEY_RAW_SPECTRA],
+                                output_format=params[KEY_OUTPUT_FORMAT], rgb=rgb)
         if msg is not None:
-            messagebox.showerror("Error", "Failed to export sub-images to %s:\n%s" % (export_dir, msg))
+            messagebox.showerror("Error", "Failed to export sub-images to %s:\n%s" % (str(params[KEY_OUTPUT_DIR]), msg))
+        else:
+            self.log("Sub-images exported.")
 
     def on_file_export_to_scan_dir_click(self, event=None):
         self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
@@ -1512,9 +1482,6 @@ class ViewerApp:
 
     def on_file_export_enforce_mask_prefix(self, event=None):
         self.session.export_enforce_mask_prefix = self.state_export_enforce_mask_prefix.get() == 1
-
-    def on_file_export_raw_sub_images(self, event=None):
-        self.session.export_raw_sub_images = self.state_export_raw_sub_images.get() == 1
 
     def on_file_session_open(self, event=None):
         """

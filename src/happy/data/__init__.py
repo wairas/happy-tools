@@ -5,3 +5,4 @@ from ._mask_labels import locate_mask_files, check_labels, determine_label_indic
 from ._sample_id_handler import SampleIDHandler
 from ._datamanager import DataManager, CALC_DIMENSIONS_DIFFER, CALC_PREPROCESSORS_APPLIED, CALC_BLACKREF_APPLIED, \
     CALC_WHITEREF_APPLIED, SUB_IMAGE_PATTERN
+from ._sub_images import export_sub_images

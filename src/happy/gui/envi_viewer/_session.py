@@ -19,7 +19,6 @@ PROPERTIES = [
     "scale_b",
     "annotation_color",
     "predefined_labels",
-    "sub_images_file_name_pattern",
     "redis_host",
     "redis_port",
     "redis_pw",
@@ -40,6 +39,8 @@ PROPERTIES = [
     "export_enforce_mask_prefix",
     "export_sub_images_path",
     "export_sub_images_label_regexp",
+    "export_sub_images_output_format",
+    "export_sub_images_raw",
     "zoom",
     "normalization",
     "annotation_mode",
@@ -98,8 +99,8 @@ class SessionManager(AbstractSessionManager):
         self.export_enforce_mask_prefix = True
         self.export_sub_images_path = None
         self.export_sub_images_label_regexp = None
-        self.export_raw_sub_images = False
-        self.sub_images_file_name_pattern = SUB_IMAGE_PATTERN
+        self.export_sub_images_output_format = None
+        self.export_sub_images_raw = False
         self.zoom = -1
         self.normalization = ""
         self.annotation_mode = ANNOTATION_MODE_POLYGONS
