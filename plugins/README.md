@@ -42,6 +42,7 @@
 * [snv](snv.md)
 * [std-scaler](std-scaler.md)
 * [subtract](subtract.md)
+* [subtract-annotation-avg](subtract-annotation-avg.md)
 * [wavelength-subset](wavelength-subset.md)
 
 ## HAPPY data writers

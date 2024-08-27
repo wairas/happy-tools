@@ -1,4 +1,5 @@
 import abc
+import argparse
 import os
 
 from typing import List, Optional
@@ -7,6 +8,7 @@ from seppl import split_args, split_cmdline, args_to_objects
 from happy.base.core import PluginWithLogging
 from happy.data import HappyData
 from happy.base.registry import REGISTRY
+from opex import ObjectPredictions
 
 
 class Preprocessor(PluginWithLogging, abc.ABC):
@@ -120,3 +122,71 @@ def apply_preprocessor(happy_data: HappyData, method: 'Preprocessor') -> List[Ha
         item.add_preprocessing_note(processing_note)
 
     return new_happy_data
+
+
+class AbstractOPEXAnnotationsBasedPreprocessor(Preprocessor, abc.ABC):
+    """
+    Ancestor for methods that use an annotation rectangle.
+    """
+
+    def __init__(self):
+        """
+        Basic initialization of the black reference method.
+        """
+        super().__init__()
+        self.params["annotations"] = None
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        """
+        Creates an argument parser.
+
+        :return: the parser
+        :rtype: argparse.ArgumentParser
+        """
+        parser = super()._create_argparser()
+        parser.add_argument("-f", "--file", metavar="FILE", type=str, help="The OPEX JSON file with annotations", required=False)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        """
+        Initializes the object with the arguments of the parsed namespace.
+
+        :param ns: the parsed arguments
+        :type ns: argparse.Namespace
+        """
+        super()._apply_args(ns)
+        self.params["annotations"] = None
+        if ns.file is not None:
+            anns = ObjectPredictions.load_json_from_file(ns.file)
+            self.params["annotations"] = anns
+
+    @property
+    def annotations(self):
+        """
+        Returns the current OPEX annotations.
+
+        :return: the OPEX annotations
+        :rtype: ObjectPredictions
+        """
+        return self.params["annotations"]
+
+    @annotations.setter
+    def annotations(self, anns):
+        """
+        Sets the OPEX annotations to use.
+
+        :param anns: the OPEX annotations to use
+        :type anns: ObjectPredictions
+        """
+        self.params["annotations"] = anns
+
+    def _initialize(self):
+        """
+        Hook method for initializing the black reference method.
+        """
+        super()._initialize()
+        if self.params["annotations"] is None:
+            self.logger().error("No OPEX annotations set!")
+        else:
+            if not isinstance(self.params["annotations"], ObjectPredictions):
+                raise Exception("Annotations are not of type %s: %s" % (str(ObjectPredictions), str(type(self.params["annotation"]))))

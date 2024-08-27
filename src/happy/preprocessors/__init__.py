@@ -1,5 +1,5 @@
 from ._utils import check_ragged_data, remove_ragged_data, print_shape
-from ._preprocessor import Preprocessor, apply_preprocessor
+from ._preprocessor import Preprocessor, apply_preprocessor, AbstractOPEXAnnotationsBasedPreprocessor
 from ._crop import CropPreprocessor
 from ._derivative import DerivativePreprocessor
 from ._downsample import DownsamplePreprocessor
@@ -13,4 +13,5 @@ from ._sni import SpectralNoiseInterpolator
 from ._snv import SNVPreprocessor
 from ._std_scaler import StandardScalerPreprocessor
 from ._subtract import SubtractPreprocessor
+from ._subtract_annotation_avg import SubtractAnnotationAveragePreprocessor
 from ._wavelength_subset import WavelengthSubsetPreprocessor

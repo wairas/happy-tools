@@ -1,6 +1,6 @@
 import argparse
 
-from typing import List
+from typing import List, Optional
 
 from happy.preprocessors import Preprocessor
 from happy.data import HappyData
@@ -25,6 +25,16 @@ class MultiPreprocessor(Preprocessor):
         if ns.preprocessors is not None:
             preprocessor_list = Preprocessor.parse_preprocessors(ns.preprocessors)
         self.params["preprocessor_list"] = preprocessor_list
+
+    @property
+    def preprocessor_list(self) -> Optional[List[Preprocessor]]:
+        """
+        Returns the current preprocessor list.
+
+        :return: the list of preprocessors
+        :rtype: list or None
+        """
+        return self.params["preprocessor_list"]
 
     def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
         happy_data_list = [happy_data]

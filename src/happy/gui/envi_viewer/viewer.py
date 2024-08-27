@@ -1327,6 +1327,7 @@ class ViewerApp:
                     "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
         self.undo_manager.add_undo("Importing polygon annotations", self.get_undo_state())
         self.data.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
+        self.data.reset_norm_data()
         self.update_image()
 
     def on_file_export_image_click(self, event=None):

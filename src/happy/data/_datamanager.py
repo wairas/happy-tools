@@ -13,7 +13,7 @@ from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotatio
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
 from happy.data.normalization import AbstractNormalization, SimpleNormalization, AbstractOPEXAnnotationBasedNormalization
-from happy.preprocessors import MultiPreprocessor, Preprocessor
+from happy.preprocessors import MultiPreprocessor, Preprocessor, AbstractOPEXAnnotationsBasedPreprocessor
 from seppl import get_class_name
 from opex import BBox, ObjectPredictions
 
@@ -657,6 +657,12 @@ class DataManager:
                 if success and self.preprocessors is not None:
                     self.log("Applying preprocessing: %s" % self.preprocessors_cmdline)
                     result[CALC_PREPROCESSORS_APPLIED] = False
+                    # set annotations
+                    if self.contours.has_annotations():
+                        anns = self.contours.to_opex(*self.dims())
+                        for preproc in self.preprocessors.preprocessor_list:
+                            if isinstance(preproc, AbstractOPEXAnnotationsBasedPreprocessor):
+                                preproc.annotations = anns
                     wl = self.get_wavelengths_list()
                     happy_data = HappyData("envi-viewer", "1", self.norm_data, {}, {}, wavenumbers=wl)
                     self.preprocessors.fit(happy_data)
