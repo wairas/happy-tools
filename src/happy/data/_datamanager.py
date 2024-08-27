@@ -906,7 +906,7 @@ class DataManager:
             result += "\n-none-"
         else:
             result += "\n- file: " + self.scan_file
-            result += "\n- shape: " + str(self.scan_data.shape)
+            result += "\n- dims (H,W,C): " + str(self.scan_data.shape)
             result += "\n- min: " + str(np.min(self.scan_data))
             result += "\n- max: " + str(np.max(self.scan_data))
 
@@ -916,7 +916,7 @@ class DataManager:
             if self.blackref_file is not None:
                 result += "\n- file: " + self.blackref_file
             if self.blackref_data is not None:
-                result += "\n- shape: " + str(self.blackref_data.shape)
+                result += "\n- dims (H,W,C): " + str(self.blackref_data.shape)
                 result += "\n- min: " + str(np.min(self.blackref_data))
                 result += "\n- max: " + str(np.max(self.blackref_data))
             ann = None
@@ -938,7 +938,7 @@ class DataManager:
             if self.whiteref_file is not None:
                 result += "\n- file:" + self.whiteref_file
             if self.whiteref_data is not None:
-                result += "\n- shape:" + str(self.whiteref_data.shape)
+                result += "\n- dims (H,W,C):" + str(self.whiteref_data.shape)
                 result += "\n- min: " + str(np.min(self.whiteref_data))
                 result += "\n- max: " + str(np.max(self.whiteref_data))
             ann = None
@@ -959,7 +959,7 @@ class DataManager:
         if self.norm_data is None:
             result += "\n-none-"
         else:
-            result += "\n- shape: " + str(self.norm_data.shape)
+            result += "\n- dims (H,W,C): " + str(self.norm_data.shape)
             result += "\n- min: " + str(np.min(self.norm_data))
             result += "\n- max: " + str(np.max(self.norm_data))
 
