@@ -95,6 +95,10 @@ class DataManager:
         self.clear_scan()
         self.clear_blackref()
         self.clear_whiteref()
+        self.markers.clear()
+        self.contours.clear()
+        self.metadata.clear()
+        self.pixels.clear()
 
     def has_scan(self):
         """
