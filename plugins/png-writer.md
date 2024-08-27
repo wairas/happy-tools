@@ -6,6 +6,7 @@ Generates PNG images from the data.
 usage: png-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                   [-A LOGGER_NAME] -b BASE_DIR [-R INT] [-G INT] [-B INT]
                   [-W INT] [-H INT] [-N PLUGIN] [-o OUTPUT]
+                  [--suppress_metadata]
 
 Generates PNG images from the data.
 
@@ -38,4 +39,6 @@ optional arguments:
                         placeholders are available for the output pattern:
                         {BASEDIR}, {SAMPLEID}, {REPEAT} (default:
                         {BASEDIR}/{SAMPLEID}.{REPEAT}.png)
+  --suppress_metadata   Whether to suppress the output of the meta-data
+                        (default: False)
 ```
