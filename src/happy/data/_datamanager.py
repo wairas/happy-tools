@@ -964,7 +964,7 @@ class DataManager:
             result += "\n- max: " + str(np.max(self.norm_data))
 
         # wave lengths
-        result += "\n\nWave lengths:\n"
+        result += "\n\nWave lengths of scan:\n"
         if len(self.get_wavelengths()) == 0:
             result += "-none-"
         else:
@@ -973,7 +973,7 @@ class DataManager:
                 if i in self.get_wavelengths():
                     result += str(i) + "\t" + self.get_wavelengths()[i] + "\n"
         # other metadata
-        result += "\n\nOther meta-data:\n"
+        result += "\n\nOther meta-data of scan:\n"
         if not self.has_scan():
             result += "-none-"
         else:
