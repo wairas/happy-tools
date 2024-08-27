@@ -12,6 +12,7 @@ import sys
 import traceback
 import tkinter as tk
 import tkinter.ttk as ttk
+import webbrowser
 
 from datetime import datetime
 from PIL import ImageTk, Image
@@ -43,6 +44,10 @@ DIMENSIONS = "H: %d, W: %d, C: %d"
 logger = logging.getLogger(PROG)
 
 LOG_TIMESTAMP_FORMAT = "[%H:%M:%S.%f]"
+
+URL_PROJECT = "https://hsi.eng.waikato.ac.nz/"
+URL_TOOLS = "https://github.com/wairas/happy-tools"
+URL_PLUGINS = "https://github.com/wairas/happy-tools/tree/main/plugins"
 
 
 class ViewerApp:
@@ -2114,6 +2119,15 @@ class ViewerApp:
         w = self.mainwindow.winfo_screenwidth() // 2
         h = self.mainwindow.winfo_height()
         self.mainwindow.geometry("%dx%d" % (w, h))
+
+    def on_help_project_click(self, event=None):
+        webbrowser.open(URL_PROJECT)
+
+    def on_help_tools_click(self, event=None):
+        webbrowser.open(URL_TOOLS)
+
+    def on_help_plugins_click(self, event=None):
+        webbrowser.open(URL_PLUGINS)
 
     def on_button_sam_connect_click(self, event=None):
         if self.sam.is_connected():
