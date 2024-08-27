@@ -46,6 +46,7 @@
 * [wavelength-subset](wavelength-subset.md)
 
 ## HAPPY data writers
+* [envi-writer](envi-writer.md)
 * [happy-writer](happy-writer.md)
 * [matlab-writer](matlab-writer.md)
 * [png-writer](png-writer.md)
