@@ -1641,7 +1641,7 @@ class ViewerApp:
     def on_label_r_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
             title="Red channel",
-            prompt="Please enter the channel to use as Red:",
+            prompt="Please enter the channel to use as Red (0-%d):" % (self.data.get_num_bands_norm() - 1),
             initialvalue=self.state_scale_r.get(),
             parent=self.mainwindow)
         if new_channel is not None:
@@ -1650,7 +1650,7 @@ class ViewerApp:
     def on_label_g_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
             title="Green channel",
-            prompt="Please enter the channel to use as Green:",
+            prompt="Please enter the channel to use as Green (0-%d):" % (self.data.get_num_bands_norm() - 1),
             initialvalue=self.state_scale_g.get(),
             parent=self.mainwindow)
         if new_channel is not None:
@@ -1659,7 +1659,7 @@ class ViewerApp:
     def on_label_b_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
             title="Blue channel",
-            prompt="Please enter the channel to use as Blue:",
+            prompt="Please enter the channel to use as Blue (0-%d):" % (self.data.get_num_bands_norm() - 1),
             initialvalue=self.state_scale_b.get(),
             parent=self.mainwindow)
         if new_channel is not None:
