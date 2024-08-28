@@ -24,7 +24,7 @@ from wai.logging import add_logging_level, set_logging_level
 from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
-from happy.gui import URL_PROJECT, URL_TOOLS
+from happy.gui import URL_PROJECT, URL_TOOLS, show_busy_cursor, show_normal_cursor
 
 PROG = "happy-data-viewer"
 
@@ -143,17 +143,14 @@ class ViewerApp:
     def start_busy(self):
         """
         Displays the hourglass cursor.
-        https://www.tcl.tk/man/tcl8.4/TkCmd/cursors.html
         """
-        self.mainwindow.config(cursor="watch")
-        self.mainwindow.update()
+        show_busy_cursor(self.mainwindow)
 
     def stop_busy(self):
         """
         Displays the normal cursor.
         """
-        self.mainwindow.config(cursor="")
-        self.mainwindow.update()
+        show_normal_cursor(self.mainwindow)
 
     def load(self, path, sample, region, metadata_key):
         """
@@ -345,8 +342,9 @@ class ViewerApp:
 
         # Continue with loading and displaying HappyData...
         self.updating = False  # Allow updates after loading
-        self.update_plot()
         self.stop_busy()
+
+        self.update_plot()
 
     def update_metadata_combobox(self, metadata_keys):
         """
@@ -383,7 +381,13 @@ class ViewerApp:
 
         return rgb_image
 
-    def update_plot(self):
+    def update_plot(self, show_busy=True):
+        """
+        Updates the plot.
+
+        :param show_busy: whether to show the busy cursor
+        :type show_busy: bool
+        """
         if self.updating:
             return
         if self.stored_happy_data is None:
@@ -398,6 +402,8 @@ class ViewerApp:
                 lambda: self.update_plot())
             return
 
+        if show_busy:
+            self.start_busy()
         self.updating = True
 
         if self.rgb_image is None:
@@ -451,6 +457,8 @@ class ViewerApp:
         self.canvas.config(width=new_width, height=new_height)
 
         self.updating = False
+        if show_busy:
+            self.stop_busy()
 
     def map_metadata_to_rgb(self, metadata_values):
         """

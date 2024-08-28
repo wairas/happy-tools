@@ -35,7 +35,7 @@ from happy.gui.envi_viewer.annotations import AnnotationsDialog
 from happy.gui.envi_viewer.image import ImageDialog
 from happy.gui.envi_viewer.sub_images import show_sub_images_dialog, KEY_OUTPUT_DIR, KEY_LABEL_REGEXP, \
     KEY_OUTPUT_FORMAT, KEY_RAW_SPECTRA
-from happy.gui import UndoManager, remove_modifiers
+from happy.gui import UndoManager, remove_modifiers, show_busy_cursor, show_normal_cursor
 from opex import ObjectPredictions
 
 PROG = "happy-envi-viewer"
@@ -263,19 +263,16 @@ class ViewerApp:
     def start_busy(self):
         """
         Displays the hourglass cursor.
-        https://www.tcl.tk/man/tcl8.4/TkCmd/cursors.html
         """
-        self.mainwindow.config(cursor="watch")
-        self.mainwindow.update()
+        show_busy_cursor(self.mainwindow)
         self.busy = True
 
     def stop_busy(self):
         """
         Displays the normal cursor.
         """
+        show_normal_cursor(self.mainwindow)
         self.busy = False
-        self.mainwindow.config(cursor="")
-        self.mainwindow.update()
 
     def available(self, annotation_mode, show_error=True, action=None):
         """

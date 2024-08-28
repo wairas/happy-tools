@@ -1,3 +1,4 @@
+from ._cursor_utils import show_busy_cursor, show_normal_cursor
 from ._modifiers import remove_modifiers
 from ._threads import monitor_thread
 from ._tooltip import ToolTip

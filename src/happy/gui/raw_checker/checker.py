@@ -16,7 +16,7 @@ from happy.console.raw_check.process import OUTPUT_FORMATS, OUTPUT_FORMAT_TEXT, 
     output_results, locate_capture_dirs, check_dir
 from happy.gui.dialog import asklist
 from happy.gui.raw_checker import SessionManager, PROPERTIES
-from happy.gui import URL_PROJECT, URL_TOOLS
+from happy.gui import URL_PROJECT, URL_TOOLS, show_busy_cursor, show_normal_cursor
 
 PROG = "happy-raw-checker"
 
@@ -128,10 +128,23 @@ class CheckerApp:
     def on_help_tools_click(self, event=None):
         webbrowser.open(URL_TOOLS)
 
+    def start_busy(self):
+        """
+        Displays the hourglass cursor.
+        """
+        show_busy_cursor(self.mainwindow)
+
+    def stop_busy(self):
+        """
+        Displays the normal cursor.
+        """
+        show_normal_cursor(self.mainwindow)
+
     def run_check(self):
         if self.session.raw_dir is None:
             return
 
+        self.start_busy()
         capture_dirs = []
         locate_capture_dirs(self.session.raw_dir, capture_dirs, recursive=True)
         capture_dirs = sorted(capture_dirs)
@@ -146,6 +159,7 @@ class CheckerApp:
             output = "-No output generated-"
         self.texbox_output.delete("1.0", tk.END)
         self.texbox_output.insert(tk.END, output)
+        self.stop_busy()
 
     def run(self):
         self.mainwindow.mainloop()
