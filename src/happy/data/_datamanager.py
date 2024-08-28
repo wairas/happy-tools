@@ -186,10 +186,11 @@ class DataManager:
 
         if self.wavelengths is None:
             self.wavelengths = dict()
-            metadata = self.scan_img.metadata
-            if "wavelength" in metadata:
-                for i in range(len(metadata["wavelength"])):
-                    self.wavelengths[i] = metadata["wavelength"][i]
+            if self.scan_img is not None:
+                metadata = self.scan_img.metadata
+                if "wavelength" in metadata:
+                    for i in range(len(metadata["wavelength"])):
+                        self.wavelengths[i] = metadata["wavelength"][i]
 
         return self.wavelengths
 
@@ -916,6 +917,8 @@ class DataManager:
         :return: the sub-image of the scan, None if no scan
         """
         if not self.has_scan():
+            return None
+        if self.scan_img is None:
             return None
 
         h, w, _ = self.scan_data.shape
