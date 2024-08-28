@@ -26,6 +26,7 @@
 * [norm-simple](norm-simple.md)
 
 ## HAPPY data readers
+* [envi-reader](envi-reader.md)
 * [happy-reader](happy-reader.md)
 * [matlab-reader](matlab-reader.md)
 
@@ -49,6 +50,7 @@
 ## HAPPY data writers
 * [envi-writer](envi-writer.md)
 * [happy-writer](happy-writer.md)
+* [jpg-writer](jpg-writer.md)
 * [matlab-writer](matlab-writer.md)
 * [png-writer](png-writer.md)
 
