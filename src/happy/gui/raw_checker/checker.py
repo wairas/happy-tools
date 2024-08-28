@@ -5,6 +5,7 @@ import os
 import pathlib
 import tkinter as tk
 import traceback
+import webbrowser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 
@@ -15,6 +16,7 @@ from happy.console.raw_check.process import OUTPUT_FORMATS, OUTPUT_FORMAT_TEXT, 
     output_results, locate_capture_dirs, check_dir
 from happy.gui.dialog import asklist
 from happy.gui.raw_checker import SessionManager, PROPERTIES
+from happy.gui import URL_PROJECT, URL_TOOLS
 
 PROG = "happy-raw-checker"
 
@@ -119,6 +121,12 @@ class CheckerApp:
             return
         self.session.output_format = output_format
         self.run_check()
+
+    def on_help_project_click(self, event=None):
+        webbrowser.open(URL_PROJECT)
+
+    def on_help_tools_click(self, event=None):
+        webbrowser.open(URL_TOOLS)
 
     def run_check(self):
         if self.session.raw_dir is None:
