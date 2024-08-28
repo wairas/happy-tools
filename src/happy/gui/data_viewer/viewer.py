@@ -9,6 +9,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import traceback
 import webbrowser
+from threading import Thread
 from tkinter import filedialog as fd
 from tkinter import messagebox
 
@@ -32,6 +33,61 @@ PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "viewer.ui"
 
 logger = logging.getLogger(PROG)
+
+
+def perform_plot_update(app, canvas_width, canvas_height, show_busy):
+    """
+    Calculates the updated plot.
+
+    :param app: the ViewerApp instance
+    :param canvas_width: the width of the canvas
+    :type canvas_width: int
+    :param canvas_height: the height of the canvas
+    :type canvas_height: int
+    :param show_busy: whether to update the busy cursor
+    :type show_busy: bool
+    """
+    if app.rgb_image is None:
+        app.rgb_image = app.convert_to_rgb(app.stored_happy_data)
+
+    rgb_image = app.rgb_image
+
+    if app.session.selected_metadata_key is not None:
+        if app.combined_image is None:
+            # Convert metadata RGB colors to a NumPy array
+            overlay_image = app.metadata_rgb_colors
+            # Apply transparency based on opacity slider value
+            overlay_alpha = float(app.scale_opacity.get() / 100)  # Scale to 0-255
+            # Convert hyperspectral RGB image to float
+            rgb_image_float = np.array(rgb_image).astype(float) / 255.0
+            # Combine hyperspectral image with the overlay image
+            combined_image = (1.0 - overlay_alpha) * rgb_image_float + (overlay_image * overlay_alpha)
+            # Clip values to ensure they are within [0, 1]
+            combined_image = np.clip(combined_image, 0, 1)
+            # Convert the combined image to uint8
+            combined_image_uint8 = (combined_image * 255).astype(np.uint8)
+            # Create an Image object from the combined image
+            app.combined_image = Image.fromarray(combined_image_uint8)
+        rgb_image = app.combined_image
+
+    # Calculate aspect ratio of the image
+    width, height = rgb_image.size
+    aspect_ratio = width / height
+
+    # Calculate new dimensions while maintaining aspect ratio
+    if canvas_width / aspect_ratio < canvas_height:
+        new_width = canvas_width
+        new_height = int(new_width / aspect_ratio)
+    else:
+        new_height = canvas_height
+        new_width = int(new_height * aspect_ratio)
+
+    # Resize the image using PIL
+    rgb_image = rgb_image.resize((new_width, new_height), Image.LANCZOS)
+
+    # Create a new PhotoImage object from the resized PIL image
+    resized_image = ImageTk.PhotoImage(rgb_image)
+    app.mainwindow.after(100, app.display_updated_plot, resized_image, new_width, new_height, show_busy)
 
 
 class ViewerApp:
@@ -406,47 +462,10 @@ class ViewerApp:
             self.start_busy()
         self.updating = True
 
-        if self.rgb_image is None:
-            self.rgb_image = self.convert_to_rgb(self.stored_happy_data)
+        thread = Thread(target=perform_plot_update, args=(self, canvas_width, canvas_height, show_busy))
+        thread.start()
 
-        rgb_image = self.rgb_image
-
-        if self.session.selected_metadata_key is not None:
-            if self.combined_image is None:
-                # Convert metadata RGB colors to a NumPy array
-                overlay_image = self.metadata_rgb_colors
-                # Apply transparency based on opacity slider value
-                overlay_alpha = float(self.scale_opacity.get() / 100)  # Scale to 0-255
-                # Convert hyperspectral RGB image to float
-                rgb_image_float = np.array(rgb_image).astype(float) / 255.0
-                # Combine hyperspectral image with the overlay image
-                combined_image = (1.0 - overlay_alpha) * rgb_image_float + (overlay_image * overlay_alpha)
-                # Clip values to ensure they are within [0, 1]
-                combined_image = np.clip(combined_image, 0, 1)
-                # Convert the combined image to uint8
-                combined_image_uint8 = (combined_image * 255).astype(np.uint8)
-                # Create an Image object from the combined image
-                self.combined_image = Image.fromarray(combined_image_uint8)
-            rgb_image = self.combined_image
-
-        # Calculate aspect ratio of the image
-        width, height = rgb_image.size
-        aspect_ratio = width / height
-
-        # Calculate new dimensions while maintaining aspect ratio
-        if canvas_width / aspect_ratio < canvas_height:
-            new_width = canvas_width
-            new_height = int(new_width / aspect_ratio)
-        else:
-            new_height = canvas_height
-            new_width = int(new_height * aspect_ratio)
-
-        # Resize the image using PIL
-        rgb_image = rgb_image.resize((new_width, new_height), Image.LANCZOS)
-
-        # Create a new PhotoImage object from the resized PIL image
-        resized_image = ImageTk.PhotoImage(rgb_image)
-
+    def display_updated_plot(self, resized_image, width, height, show_busy):
         self.canvas.delete("all")  # Clear previous content
 
         # Place the resized image on the canvas
@@ -454,7 +473,7 @@ class ViewerApp:
         self.canvas.photo = resized_image  # Store a reference to prevent garbage collection
 
         # Update canvas size
-        self.canvas.config(width=new_width, height=new_height)
+        self.canvas.config(width=width, height=height)
 
         self.updating = False
         if show_busy:
@@ -525,7 +544,7 @@ class ViewerApp:
         self.update_plot()
 
     def on_window_resize(self, event):
-        self.update_plot()
+        self.update_plot(show_busy=False)
 
     def on_file_open_dir_click(self):
         sel_dir = fd.askdirectory(
@@ -592,25 +611,25 @@ class ViewerApp:
 
     def on_scale_opacity_changed(self, scale_value):
         self.combined_image = None
-        self.update_plot()
+        self.update_plot(show_busy=False)
 
     def on_scale_r_changed(self, scale_value):
         self.label_r_value.configure(text=str(self.state_scale_r.get()))
         self.rgb_image = None
         self.combined_image = None
-        self.update_plot()
+        self.update_plot(show_busy=False)
 
     def on_scale_g_changed(self, scale_value):
         self.label_g_value.configure(text=str(self.state_scale_g.get()))
         self.rgb_image = None
         self.combined_image = None
-        self.update_plot()
+        self.update_plot(show_busy=False)
 
     def on_scale_b_changed(self, scale_value):
         self.label_b_value.configure(text=str(self.state_scale_b.get()))
         self.rgb_image = None
         self.combined_image = None
-        self.update_plot()
+        self.update_plot(show_busy=False)
 
     def on_label_r_click(self, event=None):
         new_channel = ttkSimpleDialog.askinteger(
