@@ -2155,6 +2155,7 @@ def main(args=None):
     parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on", default=None, required=False)
     parser.add_argument("--redis_out", metavar="CHANNEL", type=str, help="The channel that SAM is broadcasting the detections on", default=None, required=False)
     parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host", required=False, default=None)
+    parser.add_argument("--no_redis_connect", action="store_true", help="whether to not immediately connect to the Redis host", required=False, default=None)
     parser.add_argument("--marker_size", metavar="INT", help="The size in pixels for the SAM points", default=None, type=int, required=False)
     parser.add_argument("--marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)", default=None, required=False)
     parser.add_argument("--min_obj_size", metavar="INT", help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=None, type=int, required=False)

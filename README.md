@@ -63,9 +63,9 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [--predefined_labels LIST] [--redis_host HOST]
                          [--redis_port PORT] [--redis_pw PASSWORD]
                          [--redis_in CHANNEL] [--redis_out CHANNEL]
-                         [--redis_connect] [--marker_size INT]
-                         [--marker_color HEXCOLOR] [--min_obj_size INT]
-                         [--black_ref_locator LOCATOR]
+                         [--redis_connect] [--no_redis_connect]
+                         [--marker_size INT] [--marker_color HEXCOLOR]
+                         [--min_obj_size INT] [--black_ref_locator LOCATOR]
                          [--black_ref_method METHOD]
                          [--white_ref_locator LOCATOR]
                          [--white_ref_method METHOD]
@@ -133,6 +133,8 @@ optional arguments:
   --redis_out CHANNEL   The channel that SAM is broadcasting the detections on
                         (default: None)
   --redis_connect       whether to immediately connect to the Redis host
+                        (default: None)
+  --no_redis_connect    whether to not immediately connect to the Redis host
                         (default: None)
   --marker_size INT     The size in pixels for the SAM points (default: None)
   --marker_color HEXCOLOR
