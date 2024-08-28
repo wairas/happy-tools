@@ -86,6 +86,21 @@ class DataManager:
         else:
             print(msg)
 
+    def log_data(self, msg, data):
+        """
+        Outputs the message with some stats about the data.
+
+        :param msg: the message to output
+        :type msg: str
+        :param data: the numpy array to output stats for
+        """
+        if data is None:
+            self.log(msg + ": None")
+        else:
+            dmin = np.min(data)
+            dmax = np.max(data)
+            self.log(msg + ": min=%f, max=%f, shape=%s" % (float(dmin), float(dmax), str(data.shape)))
+
     def clear_all(self):
         """
         Clears all scans/annotations.
@@ -238,6 +253,7 @@ class DataManager:
         self.whiteref_file = None
         self.whiteref_img = None
         self.whiteref_data = None
+        self.whiteref_annotation = None
         self.reset_norm_data()
 
     def set_whiteref_method(self, method):
@@ -343,6 +359,7 @@ class DataManager:
         self.blackref_file = None
         self.blackref_img = None
         self.blackref_data = None
+        self.blackref_annotation = None
         self.reset_norm_data()
 
     def set_blackref_locator(self, locator):
@@ -497,6 +514,8 @@ class DataManager:
                 else:
                     raise Exception("Unhandled output of black reference locator %s: %s" % (self.blackref_locator.name(), get_class_name(ref)))
 
+        self.log_data("Black reference initialized", self.blackref_data)
+
     def can_init_whiteref_data(self):
         """
         Whether whiteref data can be initialized
@@ -541,6 +560,8 @@ class DataManager:
                 else:
                     raise Exception("Unhandled output of white reference locator %s: %s" % (self.whiteref_locator.name(), get_class_name(ref)))
 
+        self.log_data("White reference initialized", self.whiteref_data)
+
     def dims(self):
         """
         Returns the dimensions of the loaded data.
@@ -568,6 +589,8 @@ class DataManager:
         if self.scan_data is not None:
             self.log("Calculation: start")
             success = True
+
+            self.log_data("Scan", self.scan_data)
 
             # init blackref
             try:
@@ -618,6 +641,8 @@ class DataManager:
                         self.blackref_method.reference = self.blackref_data
                         self.norm_data = self.blackref_method.apply(self.norm_data)
                         result[CALC_BLACKREF_APPLIED] = True
+
+                    self.log_data("Black reference applied: %s" % str((CALC_BLACKREF_APPLIED in result) and result[CALC_BLACKREF_APPLIED]), self.norm_data)
             except:
                 success = False
                 self.log("Calculation: failed with exception:")
@@ -645,6 +670,8 @@ class DataManager:
                         self.whiteref_method.reference = self.whiteref_data
                         self.norm_data = self.whiteref_method.apply(self.norm_data)
                         result[CALC_WHITEREF_APPLIED] = True
+
+                    self.log_data("White reference applied: %s" % str((CALC_WHITEREF_APPLIED in result) and result[CALC_WHITEREF_APPLIED]), self.norm_data)
             except:
                 success = False
                 self.log("Calculation: failed with exception:")
@@ -675,6 +702,8 @@ class DataManager:
                     else:
                         self.log("Preprocessing: preprocessors did not generate just a single output, but: %d" % len(new_happy_data))
                     result[CALC_PREPROCESSORS_APPLIED] = True
+
+                    self.log_data("Preprocessing applied: %s" % str((CALC_PREPROCESSORS_APPLIED in result) and result[CALC_PREPROCESSORS_APPLIED]), self.norm_data)
             except:
                 success = False
                 self.log("Calculation: failed with exception:")
