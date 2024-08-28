@@ -26,6 +26,16 @@ class HappyDataReader(PluginWithLogging, abc.ABC):
     def _initialize(self):
         self._initialized = True
 
+    def update_base_dir(self, base_dir: str):
+        """
+        Sets the new base directory to use. Unsets the initialized state.
+
+        :param base_dir: the new base directory
+        :type base_dir: str
+        """
+        self.base_dir = base_dir
+        self._initialized = False
+
     def _get_sample_ids(self) -> List[str]:
         raise NotImplementedError()
 

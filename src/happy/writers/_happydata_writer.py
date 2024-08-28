@@ -45,6 +45,16 @@ class HappyDataWriter(PluginWithLogging, abc.ABC):
     def _initialize(self):
         self._initialized = True
 
+    def update_base_dir(self, base_dir: str):
+        """
+        Sets the new base directory to use. Unsets the initialized state.
+
+        :param base_dir: the new base directory
+        :type base_dir: str
+        """
+        self.base_dir = base_dir
+        self._initialized = False
+
     def _expand_output(self, output, sample_id, region_id):
         result = output.replace(PH_BASEDIR, self.base_dir)
         result = result.replace(PH_SAMPLEID, sample_id)
