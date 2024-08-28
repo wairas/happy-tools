@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import os
 import pathlib
 import pygubu
+import queue
 import subprocess
 import sys
 import traceback
@@ -31,7 +32,8 @@ from happy.gui.envi_viewer import SamManager, SessionManager, PROPERTIES
 from happy.gui.envi_viewer import ANNOTATION_MODES, ANNOTATION_MODE_POLYGONS, ANNOTATION_MODE_PIXELS, generate_color_key
 from happy.gui.envi_viewer.annotations import AnnotationsDialog
 from happy.gui.envi_viewer.image import ImageDialog
-from happy.gui.envi_viewer.sub_images import show_sub_images_dialog, KEY_OUTPUT_DIR, KEY_LABEL_REGEXP, KEY_OUTPUT_FORMAT, KEY_RAW_SPECTRA
+from happy.gui.envi_viewer.sub_images import show_sub_images_dialog, KEY_OUTPUT_DIR, KEY_LABEL_REGEXP, \
+    KEY_OUTPUT_FORMAT, KEY_RAW_SPECTRA
 from happy.gui import UndoManager, remove_modifiers
 from opex import ObjectPredictions
 
@@ -50,6 +52,27 @@ URL_PROJECT = "https://hsi.eng.waikato.ac.nz/"
 URL_TOOLS = "https://github.com/wairas/happy-tools"
 URL_PLUGINS = "https://github.com/wairas/happy-tools/tree/main/plugins"
 
+log_queue = queue.Queue()
+""" queue for logging messages from the DataManager instance. """
+
+
+def check_log_queue(app, q):
+    """
+    Checks whether there are any messages in the log_queue and logs any messages via the app.
+
+    :param app: the viewer app to use for logging
+    :param q: the queue to check
+    :type q: queue.Queue
+    """
+    try:
+        while app.running:
+            result = q.get_nowait()
+            app.log(result)
+    except queue.Empty:
+        pass
+    if app.running:
+        app.mainwindow.after(100, check_log_queue, app, q)
+
 
 class ViewerApp:
     def __init__(self, master=None):
@@ -62,6 +85,7 @@ class ViewerApp:
         builder.connect_callbacks(self)
         self.mainwindow.iconphoto(False, tk.PhotoImage(file=str(PROJECT_PATH) + '/../../logo.png'))
         self.mainwindow.bind("<Configure>", self.on_window_resize)
+        self.mainwindow.protocol("WM_DELETE_WINDOW", self.on_window_closing)
 
         # setting theme
         style = ttk.Style(self.mainwindow)
@@ -186,7 +210,7 @@ class ViewerApp:
         # init some vars
         self.photo_scan = None
         self.session = SessionManager(log_method=self.log)
-        self.data = DataManager(log_method=self.log)
+        self.data = DataManager(log_method=self.queue_log)
         self.last_dims = None
         self.last_wavelengths = None
         self.sam = SamManager()
@@ -199,12 +223,18 @@ class ViewerApp:
         self.drag_update_interval = 0.1
         self.drag_start = None
         self.shift_pressed = False
+        self.running = True
 
         # tooltips
-        self.label_calc_norm_data_tooltip = ToolTip(self.label_calc_norm_data, text=self.data.calc_norm_data_indicator_help(), wraplength=250)
+        self.label_calc_norm_data_tooltip = ToolTip(self.label_calc_norm_data,
+                                                    text=self.data.calc_norm_data_indicator_help(), wraplength=250)
 
     def run(self):
+        check_log_queue(self, log_queue)
         self.mainwindow.mainloop()
+
+    def on_window_closing(self, event=None):
+        self.running = False
 
     def log(self, msg):
         """
@@ -217,6 +247,15 @@ class ViewerApp:
             logger.info(msg)
             if hasattr(self, "text_log") and (self.text_log is not None):
                 self.text_log.insert(tk.END, "\n" + datetime.now().strftime(LOG_TIMESTAMP_FORMAT) + " " + msg)
+
+    def queue_log(self, msg):
+        """
+        Queues the log messages.
+
+        :param msg: the message to queue/log
+        :type msg: str
+        """
+        log_queue.put(msg)
 
     def start_busy(self):
         """
@@ -257,7 +296,7 @@ class ViewerApp:
     def open_envi_file(self, title, initial_dir):
         """
         Allows the user to select an ENVI file.
-        
+
         :param title: the title for the open dialog
         :type title: str
         :param initial_dir: the initial directory in use
@@ -346,7 +385,7 @@ class ViewerApp:
     def save_file(self, title, file_type, initial_dir, scan=None):
         """
         Allows the user to select a PNG file for saving an image.
-         
+
         :param title: the title to use for the save dialog
         :type title: str
         :param file_type: the type of file to save (png|envi|opex)
@@ -424,12 +463,14 @@ class ViewerApp:
         if self.session.check_scan_dimensions:
             if (self.last_dims is not None) and (self.data.has_scan()):
                 if self.last_dims != self.data.scan_data.shape:
-                    warning = "Different data dimensions detected: last=%s, new=%s" % (str(self.last_dims), str(self.data.scan_data.shape))
+                    warning = "Different data dimensions detected: last=%s, new=%s" % (
+                    str(self.last_dims), str(self.data.scan_data.shape))
                     messagebox.showwarning("Different dimensions", warning)
                 elif self.last_wavelengths != self.data.get_wavelengths():
                     self.log("Last wavelengths: %s" % str(self.last_wavelengths))
                     self.log("Current wavelengths: %s" % str(self.data.get_wavelengths()))
-                    messagebox.showwarning("Different wavelengths", "Different wavelengths detected (see console for last/current)!")
+                    messagebox.showwarning("Different wavelengths",
+                                           "Different wavelengths detected (see console for last/current)!")
 
         # configure scales
         self.set_data_dimensions(self.data.scan_data.shape, do_update=False)
@@ -656,7 +697,8 @@ class ViewerApp:
         height = dims[1]
         image = self.get_scaled_image(width, height)
         if image is not None:
-            image_markers = self.data.markers.to_overlay(width, height, int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            image_markers = self.data.markers.to_overlay(width, height, int(self.entry_marker_size.get()),
+                                                         self.entry_marker_color.get())
             if image_markers is not None:
                 image.paste(image_markers, (0, 0), image_markers)
             if self.session.show_polygon_annotations:
@@ -690,7 +732,8 @@ class ViewerApp:
         """
         if self.ignore_updates:
             return
-        success = self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
+        success = self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()),
+                                         int(self.blue_scale.get()))
         if self.data.norm_data is not None:
             self.set_data_dimensions(self.data.norm_data.shape, do_update=False)
         elif self.data.scan_data is not None:
@@ -765,7 +808,7 @@ class ViewerApp:
     def set_redis_connection(self, host, port, pw, send, receive):
         """
         Sets the redis connection parameters.
-        
+
         :param host: the redis host
         :type host: str
         :param port: the redis port
@@ -799,7 +842,8 @@ class ViewerApp:
         """
         if min_obj_size < -1:
             min_obj_size = -1
-        self.log("Setting SAM options: marker_size=%d marker_color=%s min_obj_size=%d" % (marker_size, marker_color, min_obj_size))
+        self.log("Setting SAM options: marker_size=%d marker_color=%s min_obj_size=%d" % (
+        marker_size, marker_color, min_obj_size))
         self.state_marker_size.set(marker_size)
         self.state_marker_color.set(marker_color)
         self.state_min_obj_size.set(min_obj_size)
@@ -810,6 +854,9 @@ class ViewerApp:
 
         :param event: the event that triggered the adding
         """
+        if not self.data.has_scan():
+            return
+
         self.undo_manager.add_undo("Adding marker", self.get_undo_state())
         x = self.image_canvas.canvasx(event.x) / self.photo_scan.width()
         y = self.image_canvas.canvasy(event.y) / self.photo_scan.height()
@@ -1239,7 +1286,8 @@ class ViewerApp:
             messagebox.showerror("Error", "Please load a white reference file first!")
             return
 
-        filename = self.open_annotation_file('Import white ref polygon annotations', "opex", self.session.last_whiteref_dir)
+        filename = self.open_annotation_file('Import white ref polygon annotations', "opex",
+                                             self.session.last_whiteref_dir)
         if filename is None:
             return
         self.log("Importing white ref OPEX JSON annotations: %s" % filename)
@@ -1295,7 +1343,8 @@ class ViewerApp:
                     if len(self.data.pixels.unique_values()) != len(cur_labels):
                         messagebox.showwarning(
                             "Warning",
-                            "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (self.state_predefined_labels.get(), ",".join(cur_labels)))
+                            "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (
+                            self.state_predefined_labels.get(), ",".join(cur_labels)))
             else:
                 messagebox.showwarning("Error", msg)
         self.update_image()
@@ -1324,7 +1373,8 @@ class ViewerApp:
                 missing_labels = sorted(list(missing_labels))
                 messagebox.showwarning(
                     "Warning",
-                    "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
+                    "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
+                        missing_labels))
         self.undo_manager.add_undo("Importing polygon annotations", self.get_undo_state())
         self.data.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
         self.data.reset_norm_data()
@@ -1352,7 +1402,8 @@ class ViewerApp:
         # include annotations?
         if self.session.export_overlay_annotations:
             # markers
-            image_markers = self.data.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()), self.entry_marker_color.get())
+            image_markers = self.data.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()),
+                                                         self.entry_marker_color.get())
             if image_markers is not None:
                 image.paste(image_markers, (0, 0), image_markers)
             # polygons
@@ -1532,6 +1583,7 @@ class ViewerApp:
             self.session.save(filename)
 
     def on_file_close_click(self, event=None):
+        self.running = False
         self.state_to_session()
         self.session.save()
         self.mainwindow.quit()
@@ -1963,13 +2015,14 @@ class ViewerApp:
         if label is None:
             index = ttkSimpleDialog.askinteger(
                 title="Enter label index", prompt="Please enter the index of the label (> 0):",
-                initialvalue=index+1)
+                initialvalue=index + 1)
             if index is not None:
                 if (index > 0) and (index <= 255):
                     self.data.pixels.label = index
                     self.data.pixels.update_label_map(index, str(index))
                 else:
-                    messagebox.showerror("Incorrect label index", "The label index must be >0 and <=255, provided: %d" % index)
+                    messagebox.showerror("Incorrect label index",
+                                         "The label index must be >0 and <=255, provided: %d" % index)
         else:
             label = asklist(
                 title="Choose label", prompt="Please select the label to annotate:",
@@ -2077,7 +2130,8 @@ class ViewerApp:
         curr_zoom = self.session.zoom
         if curr_zoom <= 0:
             curr_zoom = -1
-        new_zoom = ttkSimpleDialog.askinteger("Zoom", "Please enter new zoom (in %; -1 for best fit):", initialvalue=curr_zoom)
+        new_zoom = ttkSimpleDialog.askinteger("Zoom", "Please enter new zoom (in %; -1 for best fit):",
+                                              initialvalue=curr_zoom)
         if new_zoom is not None:
             if new_zoom <= 0:
                 new_zoom = -1
@@ -2117,7 +2171,8 @@ class ViewerApp:
             self.label_redis_connection.configure(text="Disconnected")
         else:
             self.log("Connecting SAM...")
-            if self.sam.connect(host=self.state_redis_host.get(), port=self.state_redis_port.get(), pw=self.state_redis_pw.get()):
+            if self.sam.connect(host=self.state_redis_host.get(), port=self.state_redis_port.get(),
+                                pw=self.state_redis_pw.get()):
                 self.label_redis_connection.configure(text="Connected")
                 self.button_sam_connect.configure(text="Disconnect")
             else:
@@ -2140,38 +2195,82 @@ def main(args=None):
         prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--scan", type=str, help="Path to the scan file (ENVI format)", required=False)
-    parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)", required=False)
-    parser.add_argument("-w", "--white_reference", type=str, help="Path to the white reference file (ENVI format)", required=False)
-    parser.add_argument("-r", "--scale_r", metavar="INT", help="the wave length to use for the red channel", default=None, type=int, required=False)
-    parser.add_argument("-g", "--scale_g", metavar="INT", help="the wave length to use for the green channel", default=None, type=int, required=False)
-    parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel", default=None, type=int, required=False)
-    parser.add_argument("--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False, default=None)
-    parser.add_argument("--no_autodetect_channels", action="store_true", help="whether to turn off auto-detection of channels from meta-data", required=False, default=None)
-    parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False, default=None)
-    parser.add_argument("--no_keep_aspectratio", action="store_true", help="whether to not keep the aspect ratio", required=False, default=None)
-    parser.add_argument("--check_scan_dimensions", action="store_true", help="whether to compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
-    parser.add_argument("--no_check_scan_dimensions", action="store_true", help="whether to not compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
-    parser.add_argument("--export_to_scan_dir", action="store_true", help="whether to export images to the scan directory rather than the last one used", required=False, default=None)
-    parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default=None, required=False)
-    parser.add_argument("--predefined_labels", metavar="LIST", help="the comma-separated list of labels to use", default=None, required=False)
-    parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default=None, required=False)
-    parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=None, required=False)
-    parser.add_argument("--redis_pw", metavar="PASSWORD", type=str, help="The password to use with the Redis server", default=None, required=False)
-    parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on", default=None, required=False)
-    parser.add_argument("--redis_out", metavar="CHANNEL", type=str, help="The channel that SAM is broadcasting the detections on", default=None, required=False)
-    parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host", required=False, default=None)
-    parser.add_argument("--no_redis_connect", action="store_true", help="whether to not immediately connect to the Redis host", required=False, default=None)
-    parser.add_argument("--marker_size", metavar="INT", help="The size in pixels for the SAM points", default=None, type=int, required=False)
-    parser.add_argument("--marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)", default=None, required=False)
-    parser.add_argument("--min_obj_size", metavar="INT", help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=None, type=int, required=False)
-    parser.add_argument("--black_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating black references, eg rl-manual", default=None, required=False)
-    parser.add_argument("--black_ref_method", metavar="METHOD", help="the black reference method to use for applying black references, eg br-same-size", default=None, required=False)
-    parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual", default=None, required=False)
-    parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
-    parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
-    parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
-    parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%%) or -1 for automatic fit", default=-1, type=int, required=False)
-    parser.add_argument("--normalization", metavar="PLUGIN", help="the normalization plugin and its options to use", default=SimpleNormalization().name(), type=str, required=False)
+    parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)",
+                        required=False)
+    parser.add_argument("-w", "--white_reference", type=str, help="Path to the white reference file (ENVI format)",
+                        required=False)
+    parser.add_argument("-r", "--scale_r", metavar="INT", help="the wave length to use for the red channel",
+                        default=None, type=int, required=False)
+    parser.add_argument("-g", "--scale_g", metavar="INT", help="the wave length to use for the green channel",
+                        default=None, type=int, required=False)
+    parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel",
+                        default=None, type=int, required=False)
+    parser.add_argument("--autodetect_channels", action="store_true",
+                        help="whether to determine the channels from the meta-data (overrides the manually specified channels)",
+                        required=False, default=None)
+    parser.add_argument("--no_autodetect_channels", action="store_true",
+                        help="whether to turn off auto-detection of channels from meta-data", required=False,
+                        default=None)
+    parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio",
+                        required=False, default=None)
+    parser.add_argument("--no_keep_aspectratio", action="store_true", help="whether to not keep the aspect ratio",
+                        required=False, default=None)
+    parser.add_argument("--check_scan_dimensions", action="store_true",
+                        help="whether to compare the dimensions of subsequently loaded scans and output a warning if they differ",
+                        required=False, default=None)
+    parser.add_argument("--no_check_scan_dimensions", action="store_true",
+                        help="whether to not compare the dimensions of subsequently loaded scans and output a warning if they differ",
+                        required=False, default=None)
+    parser.add_argument("--export_to_scan_dir", action="store_true",
+                        help="whether to export images to the scan directory rather than the last one used",
+                        required=False, default=None)
+    parser.add_argument("--annotation_color", metavar="HEXCOLOR",
+                        help="the color to use for the annotations like contours (hex color)", default=None,
+                        required=False)
+    parser.add_argument("--predefined_labels", metavar="LIST", help="the comma-separated list of labels to use",
+                        default=None, required=False)
+    parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)",
+                        default=None, required=False)
+    parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on",
+                        default=None, required=False)
+    parser.add_argument("--redis_pw", metavar="PASSWORD", type=str, help="The password to use with the Redis server",
+                        default=None, required=False)
+    parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on",
+                        default=None, required=False)
+    parser.add_argument("--redis_out", metavar="CHANNEL", type=str,
+                        help="The channel that SAM is broadcasting the detections on", default=None, required=False)
+    parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host",
+                        required=False, default=None)
+    parser.add_argument("--no_redis_connect", action="store_true",
+                        help="whether to not immediately connect to the Redis host", required=False, default=None)
+    parser.add_argument("--marker_size", metavar="INT", help="The size in pixels for the SAM points", default=None,
+                        type=int, required=False)
+    parser.add_argument("--marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)",
+                        default=None, required=False)
+    parser.add_argument("--min_obj_size", metavar="INT",
+                        help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=None,
+                        type=int, required=False)
+    parser.add_argument("--black_ref_locator", metavar="LOCATOR",
+                        help="the reference locator scheme to use for locating black references, eg rl-manual",
+                        default=None, required=False)
+    parser.add_argument("--black_ref_method", metavar="METHOD",
+                        help="the black reference method to use for applying black references, eg br-same-size",
+                        default=None, required=False)
+    parser.add_argument("--white_ref_locator", metavar="LOCATOR",
+                        help="the reference locator scheme to use for locating whites references, eg rl-manual",
+                        default=None, required=False)
+    parser.add_argument("--white_ref_method", metavar="METHOD",
+                        help="the white reference method to use for applying white references, eg wr-same-size",
+                        default=None, required=False)
+    parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan",
+                        default=None, required=False)
+    parser.add_argument("--log_timestamp_format", metavar="FORMAT",
+                        help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes",
+                        default=LOG_TIMESTAMP_FORMAT, required=False)
+    parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%%) or -1 for automatic fit",
+                        default=-1, type=int, required=False)
+    parser.add_argument("--normalization", metavar="PLUGIN", help="the normalization plugin and its options to use",
+                        default=SimpleNormalization().name(), type=str, required=False)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
@@ -2194,7 +2293,8 @@ def main(args=None):
 
     if not app.session.autodetect_channels:
         app.set_wavelengths(app.session.scale_r, app.session.scale_g, app.session.scale_b)
-    app.set_redis_connection(app.session.redis_host, app.session.redis_port, app.session.redis_pw, app.session.redis_in, app.session.redis_out)
+    app.set_redis_connection(app.session.redis_host, app.session.redis_port, app.session.redis_pw, app.session.redis_in,
+                             app.session.redis_out)
     if app.session.redis_connect:
         app.button_sam_connect.invoke()
     if parsed.scan is not None:
