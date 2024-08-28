@@ -3,9 +3,11 @@ import argparse
 import logging
 import os
 import pathlib
+import queue
 import tkinter as tk
 import traceback
 import webbrowser
+from threading import Thread
 from tkinter import filedialog as fd
 from tkinter import messagebox
 
@@ -24,6 +26,50 @@ PROJECT_PATH = pathlib.Path(__file__).parent
 PROJECT_UI = PROJECT_PATH / "checker.ui"
 
 logger = logging.getLogger(PROG)
+
+log_queue = queue.Queue()
+""" queue for logging messages from the DataManager instance. """
+
+
+def check_log_queue(app, q):
+    """
+    Checks whether there are any messages in the log_queue and logs any messages via the app.
+
+    :param app: the viewer app to use for logging
+    :param q: the queue to check
+    :type q: queue.Queue
+    """
+    try:
+        while app.running:
+            result = q.get_nowait()
+            app.log(result)
+    except queue.Empty:
+        pass
+    if app.running:
+        app.mainwindow.after(100, check_log_queue, app, q)
+
+
+def perform_check(app):
+    """
+    Runs the actual check in a thread.
+
+    :param app: the CheckerApp instance
+    """
+    capture_dirs = []
+    locate_capture_dirs(app.session.raw_dir, capture_dirs, recursive=True)
+    capture_dirs = sorted(capture_dirs)
+    log_queue.put("Found # capture dirs: %d" % len(capture_dirs))
+    results = []
+    for capture_dir in capture_dirs:
+        results.append(check_dir(capture_dir))
+
+    # generate output
+    output = output_results(results, output_format=app.session.output_format, use_stdout=False, return_results=True)
+    if output is None:
+        output = "-No output generated-"
+
+    # display
+    app.mainwindow.after(100, app.display_check_results, output)
 
 
 class CheckerApp:
@@ -145,18 +191,11 @@ class CheckerApp:
             return
 
         self.start_busy()
-        capture_dirs = []
-        locate_capture_dirs(self.session.raw_dir, capture_dirs, recursive=True)
-        capture_dirs = sorted(capture_dirs)
-        self.log("Found # capture dirs: %d" % len(capture_dirs))
-        results = []
-        for capture_dir in capture_dirs:
-            results.append(check_dir(capture_dir))
+        self.texbox_output.delete("1.0", tk.END)
+        thread = Thread(target=perform_check, args=(self,))
+        thread.start()
 
-        # generate output
-        output = output_results(results, output_format=self.session.output_format, use_stdout=False, return_results=True)
-        if output is None:
-            output = "-No output generated-"
+    def display_check_results(self, output):
         self.texbox_output.delete("1.0", tk.END)
         self.texbox_output.insert(tk.END, output)
         self.stop_busy()
