@@ -457,8 +457,8 @@ usage: happy-process-data reader [preprocessor(s)] writer [-h|--help|--help-all|
 Processes data using the specified pipeline.
 
 readers: happy-reader, matlab-reader
-preprocessors: crop, derivative, down-sample, extract-regions, multi-pp, pca, pad, pass-through, snv, sni, std-scaler, subtract, wavelength-subset
-writers: happy-writer, matlab-writer, png-writer
+preprocessors: crop, derivative, divide-annotation-avg, down-sample, extract-regions, multi-pp, pca, pad, pass-through, snv, sni, std-scaler, subtract-annotation-avg, subtract, wavelength-subset
+writers: envi-writer, happy-writer, matlab-writer, png-writer
 
 optional arguments:
   -h, --help            show this help message and exit
