@@ -1,9 +1,12 @@
 import argparse
 import logging
+import os
+import re
 import sys
 import traceback
 
 from seppl import split_args, args_to_objects, get_class_name, is_help_requested
+from seppl.io import locate_files
 from wai.logging import set_logging_level, add_logging_level
 from happy.base.app import init_app
 from happy.base.registry import REGISTRY, print_help, print_help_all
@@ -50,6 +53,15 @@ def main():
             print("  -h, --help            show this help message and exit")
             print("  --help-all            show the help for all plugins and exit")
             print("  --help-plugin NAME    show the help for plugin NAME and exit")
+            print("  -i [INPUT [INPUT ...]], --input [INPUT [INPUT ...]]")
+            print("                        Optional path to the file(s) to process in batch mode;")
+            print("                        glob syntax is supported (default: None)")
+            print("  -I [INPUT_LIST [INPUT_LIST ...]], --input_list [INPUT_LIST [INPUT_LIST ...]]")
+            print("                        Optional path to the text file(s) listing the files to")
+            print("                        process in batch mode (default: None)")
+            print("  -e REGEXP, --exclude REGEXP")
+            print("                        Regular expression for excluding files from batch processing;")
+            print("                        gets applied to full file path")
             print("  -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}")
             print("                        The logging level to use. (default: WARN)")
             print("")
@@ -65,6 +77,9 @@ def main():
     objs = args_to_objects(split, plugins, allow_global_options=True)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", type=str, required=False, nargs="*")
+    parser.add_argument("-I", "--input_list", type=str, required=False, nargs="*")
+    parser.add_argument("-e", "--exclude", metavar="REGEXP", type=str, default=None, required=False)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(split[""] if ("" in split) else [])
     set_logging_level(logger, parsed.logging_level)
@@ -72,6 +87,18 @@ def main():
     # check pipeline
     if len(objs) < 2:
         raise Exception("At least a reader and a writer need to be defined!")
+
+    # batch processing?
+    batch_files = [None]
+    if (parsed.input is not None) or (parsed.input_list is not None):
+        files = locate_files(parsed.input, parsed.input_list, recursive=True, fail_if_empty=True)
+        if parsed.exclude is not None:
+            batch_files = []
+            for f in files:
+                if re.search(parsed.exclude, f) is not None:
+                    batch_files.append(f)
+        else:
+            batch_files = files
 
     # reader
     if not isinstance(objs[0], HappyDataReader):
@@ -95,16 +122,22 @@ def main():
         preprocessors = MultiPreprocessor(preprocessor_list=objs)
 
     # execute pipeline
-    sample_ids = reader.get_sample_ids()
-    for i, sample_id in enumerate(sample_ids, start=1):
-        logger.info("Processing %d/%d: %s" % (i, len(sample_ids), sample_id))
-        data_list = reader.load_data(sample_id)
-        for data in data_list:
-            if preprocessors is not None:
-                processed = apply_preprocessor(data, preprocessors)
-                writer.write_data(processed)
-            else:
-                writer.write_data(data)
+    for f in batch_files:
+        if f is not None:
+            if not os.path.isdir(f):
+                f = os.path.dirname(f)
+            logger.info("Setting base dir: %s" % f)
+            reader.update_base_dir(f)
+        sample_ids = reader.get_sample_ids()
+        for i, sample_id in enumerate(sample_ids, start=1):
+            logger.info("Processing %d/%d: %s" % (i, len(sample_ids), sample_id))
+            data_list = reader.load_data(sample_id)
+            for data in data_list:
+                if preprocessors is not None:
+                    processed = apply_preprocessor(data, preprocessors)
+                    writer.write_data(processed)
+                else:
+                    writer.write_data(data)
 
 
 def sys_main() -> int:
