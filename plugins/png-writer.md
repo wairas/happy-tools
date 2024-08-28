@@ -1,6 +1,7 @@
 # png-writer
 
 Generates PNG images from the data.
+DEPRECATED: Use 'image-writer' instead.
 
 ```
 usage: png-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
@@ -8,7 +9,7 @@ usage: png-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                   [-W INT] [-H INT] [-N PLUGIN] [-o OUTPUT]
                   [--suppress_metadata]
 
-Generates PNG images from the data.
+Generates PNG images from the data. DEPRECATED: Use 'image-writer' instead.
 
 optional arguments:
   -h, --help            show this help message and exit

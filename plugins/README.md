@@ -50,7 +50,7 @@
 ## HAPPY data writers
 * [envi-writer](envi-writer.md)
 * [happy-writer](happy-writer.md)
-* [jpg-writer](jpg-writer.md)
+* [image-writer](image-writer.md)
 * [matlab-writer](matlab-writer.md)
 * [png-writer](png-writer.md)
 

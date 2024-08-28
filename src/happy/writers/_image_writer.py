@@ -4,7 +4,7 @@ import os
 from typing import Tuple, Optional
 from happy.data import HappyData, DataManager
 from happy.data.normalization import SimpleNormalization
-from ._happydata_writer import HappyDataWriter, output_pattern_help
+from ._happydata_writer import HappyDataWriter, output_pattern_help, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
 
 
 class ImageWriter(HappyDataWriter):
@@ -20,8 +20,14 @@ class ImageWriter(HappyDataWriter):
         self._normalization = None
         self._suppress_metadata = False
 
+    def name(self) -> str:
+        return "image-writer"
+
+    def description(self) -> str:
+        return "Generates images from the data. The type of image is determined by the extension of the output files pattern."
+
     def _get_default_output(self):
-        raise NotImplementedError()
+        return PH_BASEDIR + "/" + PH_SAMPLEID + "." + PH_REPEAT + ".png"
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()

@@ -1,14 +1,15 @@
-# jpg-writer
+# image-writer
 
-Generates JPEG images from the data.
+Generates images from the data. The type of image is determined by the extension of the output files pattern.
 
 ```
-usage: jpg-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                  [-A LOGGER_NAME] -b BASE_DIR [-R INT] [-G INT] [-B INT]
-                  [-W INT] [-H INT] [-N PLUGIN] [-o OUTPUT]
-                  [--suppress_metadata]
+usage: image-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                    [-A LOGGER_NAME] -b BASE_DIR [-R INT] [-G INT] [-B INT]
+                    [-W INT] [-H INT] [-N PLUGIN] [-o OUTPUT]
+                    [--suppress_metadata]
 
-Generates JPEG images from the data.
+Generates images from the data. The type of image is determined by the
+extension of the output files pattern.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -38,7 +39,7 @@ optional arguments:
                         The pattern for the output files; The following
                         placeholders are available for the output pattern:
                         {BASEDIR}, {SAMPLEID}, {REPEAT} (default:
-                        {BASEDIR}/{SAMPLEID}.{REPEAT}.jpg)
+                        {BASEDIR}/{SAMPLEID}.{REPEAT}.png)
   --suppress_metadata   Whether to suppress the output of the meta-data
                         (default: False)
 ```
