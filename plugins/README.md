@@ -32,6 +32,7 @@
 ## HAPPY data preprocessors
 * [crop](crop.md)
 * [derivative](derivative.md)
+* [divide-annotation-avg](divide-annotation-avg.md)
 * [down-sample](down-sample.md)
 * [extract-regions](extract-regions.md)
 * [multi-pp](multi-pp.md)

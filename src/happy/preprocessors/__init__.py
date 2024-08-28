@@ -2,6 +2,7 @@ from ._utils import check_ragged_data, remove_ragged_data, print_shape
 from ._preprocessor import Preprocessor, apply_preprocessor, AbstractOPEXAnnotationsBasedPreprocessor
 from ._crop import CropPreprocessor
 from ._derivative import DerivativePreprocessor
+from ._divide_annotation_avg import DivideAnnotationAveragePreprocessor
 from ._downsample import DownsamplePreprocessor
 from ._extract_regions import ExtractRegionsPreprocessor
 from ._multi import MultiPreprocessor

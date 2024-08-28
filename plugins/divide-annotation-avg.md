@@ -1,13 +1,13 @@
-# subtract-annotation-avg
+# divide-annotation-avg
 
-Calculates the average spectrum from the specified annotation (uses outer bbox) and subtracts it from the data passing through.
+Calculates the average spectrum from the specified annotation (uses outer bbox) and the data passing through is divided by it.
 
 ```
-usage: subtract-annotation-avg [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                               [-A LOGGER_NAME] [-f FILE] [--label LABEL]
+usage: divide-annotation-avg [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                             [-A LOGGER_NAME] [-f FILE] [--label LABEL]
 
 Calculates the average spectrum from the specified annotation (uses outer
-bbox) and subtracts it from the data passing through.
+bbox) and the data passing through is divided by it.
 
 optional arguments:
   -h, --help            show this help message and exit

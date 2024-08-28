@@ -7,13 +7,13 @@ from ._preprocessor import AbstractOPEXAnnotationsBasedPreprocessor
 from happy.data import HappyData
 
 
-class SubtractAnnotationAveragePreprocessor(AbstractOPEXAnnotationsBasedPreprocessor):
+class DivideAnnotationAveragePreprocessor(AbstractOPEXAnnotationsBasedPreprocessor):
 
     def name(self) -> str:
-        return "subtract-annotation-avg"
+        return "divide-annotation-avg"
 
     def description(self) -> str:
-        return "Calculates the average spectrum from the specified annotation (uses outer bbox) and subtracts it from the data passing through."
+        return "Calculates the average spectrum from the specified annotation (uses outer bbox) and the data passing through is divided by it."
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
@@ -26,7 +26,7 @@ class SubtractAnnotationAveragePreprocessor(AbstractOPEXAnnotationsBasedPreproce
 
     def _do_apply(self, happy_data: HappyData) -> List[HappyData]:
         if self.params["annotations"] is None:
-            self.logger().error("No annotations, cannot subtract annotation average!")
+            self.logger().error("No annotations, cannot divide annotation average!")
             return [happy_data]
 
         if self.params["label"] is None:
@@ -45,5 +45,5 @@ class SubtractAnnotationAveragePreprocessor(AbstractOPEXAnnotationsBasedPreproce
         # compute average
         z_list = [happy_data.get_spectrum(x, y) for x in range(bbox.left, bbox.right + 1) for y in range(bbox.top, bbox.bottom + 1)]
         avg = np.mean(z_list, axis=0)
-        new_data = happy_data.data - avg
+        new_data = happy_data.data / avg
         return [happy_data.copy(data=new_data)]
