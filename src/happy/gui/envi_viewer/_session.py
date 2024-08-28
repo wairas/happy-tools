@@ -1,6 +1,5 @@
 from happy.gui.session import AbstractSessionManager
 from happy.data.annotations import BRUSH_SHAPE_ROUND
-from happy.data import SUB_IMAGE_PATTERN
 from ._annotations import ANNOTATION_MODE_POLYGONS
 
 
