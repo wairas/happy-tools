@@ -62,6 +62,7 @@ class DataManager:
         self.norm_data = None
         self.display_image = None
         self.wavelengths = None
+        self.wavelengths_norm = None
         self.preprocessors = None
         self.preprocessors_cmdline = None
         self.normalization = SimpleNormalization()
@@ -205,7 +206,7 @@ class DataManager:
             result.append(float(wl[k]))
         return result
 
-    def set_wavelengths_list(self, wl: Optional[List]):
+    def update_wavelengths(self, wl: Optional[List]):
         """
         Uses the wavelengths from the list.
 
@@ -220,6 +221,48 @@ class DataManager:
             for i in range(self.get_num_bands_norm()):
                 wl_dict[i] = str(i)
         self.wavelengths = wl_dict
+
+    def get_wavelengths_norm(self) -> Optional[Dict]:
+        """
+        Returns the indexed processed wave lengths.
+
+        :return: the dictionary of the wave band / wave length association, None if not available
+        :rtype: dict or None
+        """
+        return self.wavelengths_norm
+
+    def get_wavelengths_norm_list(self) -> Optional[List[float]]:
+        """
+        Returns the processed wavelengths as list rather than a dictionary.
+
+        :return: the wavelengths, None if not available
+        :rtype: list or None
+        """
+        if self.get_wavelengths_norm() is None:
+            return None
+
+        result = []
+        wl = self.get_wavelengths_norm()
+        for k in wl:
+            result.append(float(wl[k]))
+        return result
+
+    def update_wavelengths_norm(self, wl: Optional[List]):
+        """
+        Uses the wavelengths from the list for the processed ones.
+
+        :param wl: the list of wavelengths to use; auto-generates dummy ones if None
+        :type wl: list
+        """
+        wl_dict = dict()
+        if wl is not None:
+            for i in range(len(wl)):
+                wl_dict[i] = str(wl[i])
+        else:
+            if self.norm_data is not None:
+                for i in range(self.norm_data.shape[2]):
+                    wl_dict[i] = str(i)
+        self.wavelengths_norm = wl_dict
 
     def load_contours(self, path):
         """
@@ -467,6 +510,7 @@ class DataManager:
         Resets the normalized data, forcing a recalculation.
         """
         self.norm_data = None
+        self.wavelengths_norm = None
 
     def can_init_blackref_data(self):
         """
@@ -616,6 +660,7 @@ class DataManager:
 
             if success:
                 self.norm_data = self.scan_data
+                self.update_wavelengths_norm(self.get_wavelengths_list())
 
             # apply black reference
             try:
@@ -630,6 +675,7 @@ class DataManager:
                                 self.blackref_method.reference = self.blackref_data
                             self.blackref_method.annotation = self.blackref_annotation
                             self.norm_data = self.blackref_method.apply(self.norm_data)
+                            self.update_wavelengths_norm(self.get_wavelengths_list())
                             result[CALC_BLACKREF_APPLIED] = True
                         else:
                             self.log("No annotations available, cannot apply black reference method: %s" % self.blackref_method_cmdline)
@@ -638,6 +684,7 @@ class DataManager:
                         result[CALC_BLACKREF_APPLIED] = False
                         self.blackref_method.reference = self.blackref_data
                         self.norm_data = self.blackref_method.apply(self.norm_data)
+                        self.update_wavelengths_norm(self.get_wavelengths_list())
                         result[CALC_BLACKREF_APPLIED] = True
 
                     self.log_data("Black reference applied: %s" % str((CALC_BLACKREF_APPLIED in result) and result[CALC_BLACKREF_APPLIED]), self.norm_data)
@@ -659,6 +706,7 @@ class DataManager:
                                 self.whiteref_method.reference = self.whiteref_data
                             self.whiteref_method.annotation = self.whiteref_annotation
                             self.norm_data = self.whiteref_method.apply(self.norm_data)
+                            self.update_wavelengths_norm(self.get_wavelengths_list())
                             result[CALC_WHITEREF_APPLIED] = True
                         else:
                             self.log("No annotations available, cannot apply white reference method: %s" % self.whiteref_method_cmdline)
@@ -667,6 +715,7 @@ class DataManager:
                         result[CALC_WHITEREF_APPLIED] = False
                         self.whiteref_method.reference = self.whiteref_data
                         self.norm_data = self.whiteref_method.apply(self.norm_data)
+                        self.update_wavelengths_norm(self.get_wavelengths_list())
                         result[CALC_WHITEREF_APPLIED] = True
 
                     self.log_data("White reference applied: %s" % str((CALC_WHITEREF_APPLIED in result) and result[CALC_WHITEREF_APPLIED]), self.norm_data)
@@ -694,9 +743,9 @@ class DataManager:
                         self.norm_data = new_happy_data[0].data
                         if new_happy_data[0].wavenumbers is not None:
                             if wl != new_happy_data[0].wavenumbers:
-                                self.set_wavelengths_list(new_happy_data[0].wavenumbers)
+                                self.update_wavelengths_norm(new_happy_data[0].wavenumbers)
                         else:
-                            self.set_wavelengths_list(None)
+                            self.update_wavelengths_norm(None)
                     else:
                         self.log("Preprocessing: preprocessors did not generate just a single output, but: %d" % len(new_happy_data))
                     result[CALC_PREPROCESSORS_APPLIED] = True

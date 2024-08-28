@@ -1125,10 +1125,15 @@ class ViewerApp:
         :return: the generated text
         :rtype: str
         """
-        if not self.data.has_scan():
+        wl = None
+        if self.data.norm_data is not None:
+            wl = self.data.get_wavelengths_norm_list()
+        elif self.data.has_scan():
+            wl = self.data.get_wavelengths_list()
+        if wl is None:
             return str(index)
         try:
-            return str(index) + ": " + str(self.data.get_wavelengths()[index])
+            return str(index) + ": " + str(wl[index])
         except:
             return str(index)
 

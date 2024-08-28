@@ -100,13 +100,7 @@ def envi_to_happy(cont_ann: AnnotationFiles, output_dir, datamanager, dry_run=Fa
     datamanager.load_contours(cont_ann.opex)
     datamanager.calc_norm_data()
 
-    wavenumbers = None
-    wl_dict = datamanager.get_wavelengths()
-    if len(wl_dict) > 0:
-        wavenumbers = []
-        for k in wl_dict:
-            wavenumbers.append(wl_dict[k])
-
+    wavenumbers = datamanager.get_wavelengths_norm_list()
     sample_id = get_sample_id(cont_ann.png)
     data = HappyData(sample_id, DEFAULT_REGION_ID, datamanager.norm_data, {}, {}, wavenumbers=wavenumbers)
     if not dry_run:
