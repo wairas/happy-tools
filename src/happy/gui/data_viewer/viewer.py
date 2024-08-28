@@ -8,6 +8,7 @@ import sys
 import tkinter as tk
 import tkinter.ttk as ttk
 import traceback
+import webbrowser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 
@@ -23,6 +24,7 @@ from wai.logging import add_logging_level, set_logging_level
 from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
+from happy.gui import URL_PROJECT, URL_TOOLS
 
 PROG = "happy-data-viewer"
 
@@ -573,6 +575,12 @@ class ViewerApp:
         w = self.mainwindow.winfo_screenwidth() // 2
         h = self.mainwindow.winfo_height()
         self.mainwindow.geometry("%dx%d" % (w, h))
+
+    def on_help_project_click(self, event=None):
+        webbrowser.open(URL_PROJECT)
+
+    def on_help_tools_click(self, event=None):
+        webbrowser.open(URL_TOOLS)
 
     def on_scale_opacity_changed(self, scale_value):
         self.combined_image = None
