@@ -27,7 +27,7 @@ from happy.data.normalization import SimpleNormalization
 from happy.data import LABEL_WHITEREF, LABEL_BLACKREF
 from happy.data import DataManager, export_sub_images
 from happy.data.annotations import Contour, BRUSH_SHAPES, tableau_colors, MASK_PREFIX
-from happy.gui import ToolTip
+from happy.gui import ToolTip, URL_PROJECT, URL_TOOLS, URL_PLUGINS
 from happy.gui.dialog import asklist
 from happy.gui.envi_viewer import SamManager, SessionManager, PROPERTIES
 from happy.gui.envi_viewer import ANNOTATION_MODES, ANNOTATION_MODE_POLYGONS, ANNOTATION_MODE_PIXELS, generate_color_key
@@ -48,10 +48,6 @@ DIMENSIONS = "H: %d, W: %d, C: %d"
 logger = logging.getLogger(PROG)
 
 LOG_TIMESTAMP_FORMAT = "[%H:%M:%S.%f]"
-
-URL_PROJECT = "https://hsi.eng.waikato.ac.nz/"
-URL_TOOLS = "https://github.com/wairas/happy-tools"
-URL_PLUGINS = "https://github.com/wairas/happy-tools/tree/main/plugins"
 
 log_queue = queue.Queue()
 """ queue for logging messages from the DataManager instance. """
