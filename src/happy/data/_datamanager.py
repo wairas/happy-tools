@@ -23,8 +23,6 @@ CALC_WHITEREF_APPLIED = "whiteref_applied"
 CALC_PREPROCESSORS_APPLIED = "preprocessors_applied"
 CALC_DIMENSIONS_DIFFER = "dimensions_differ"
 
-SUB_IMAGE_PATTERN = "{PREFIX}-{LABEL}.hdr"
-
 
 class DataManager:
     """
@@ -909,16 +907,6 @@ class DataManager:
         self.contours.from_json(d["contours"])
         self.pixels.from_dict(d["pixels"])
         self.metadata.from_json(d["metadata"])
-
-    def sub_images_fname_pattern_help(self):
-        """
-        Returns a help string for the fname_pattern used for the sub-images export.
-
-        :return: the help string
-        :rtype: str
-        """
-        return "Available placeholders: {PREFIX}|{LABEL}|{LEFT}|{TOP}|{RIGHT}|{BOTTOM}|{INDEX}|{RAW}\n" \
-            + "Default: " + SUB_IMAGE_PATTERN
 
     def info(self):
         """
