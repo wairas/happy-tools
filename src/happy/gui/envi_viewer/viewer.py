@@ -17,6 +17,7 @@ import webbrowser
 
 from datetime import datetime
 from PIL import ImageTk, Image
+from threading import Thread
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from ttkSimpleDialog import ttkSimpleDialog
@@ -72,6 +73,11 @@ def check_log_queue(app, q):
         pass
     if app.running:
         app.mainwindow.after(100, check_log_queue, app, q)
+
+
+def perform_image_update(app, rgb):
+    success = app.data.update_image(rgb[0], rgb[1], rgb[2])
+    app.mainwindow.after(100, app.display_updated_image, success)
 
 
 class ViewerApp:
@@ -224,6 +230,7 @@ class ViewerApp:
         self.drag_start = None
         self.shift_pressed = False
         self.running = True
+        self.busy = False
 
         # tooltips
         self.label_calc_norm_data_tooltip = ToolTip(self.label_calc_norm_data,
@@ -264,11 +271,13 @@ class ViewerApp:
         """
         self.mainwindow.config(cursor="watch")
         self.mainwindow.update()
+        self.busy = True
 
     def stop_busy(self):
         """
         Displays the normal cursor.
         """
+        self.busy = False
         self.mainwindow.config(cursor="")
         self.mainwindow.update()
 
@@ -726,14 +735,19 @@ class ViewerApp:
             title += ": " + os.path.basename(self.data.scan_file)
         self.mainwindow.title(title)
 
-    def update_image(self):
+    def update_image(self, show_busy=True):
         """
         Updates the image.
         """
         if self.ignore_updates:
             return
-        success = self.data.update_image(int(self.red_scale.get()), int(self.green_scale.get()),
-                                         int(self.blue_scale.get()))
+        if show_busy:
+            self.start_busy()
+        rgb = (int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
+        thread = Thread(target=perform_image_update, args=(self, rgb))
+        thread.start()
+
+    def display_updated_image(self, success):
         if self.data.norm_data is not None:
             self.set_data_dimensions(self.data.norm_data.shape, do_update=False)
         elif self.data.scan_data is not None:
@@ -745,6 +759,7 @@ class ViewerApp:
             self.log("calc_norm_data steps: " + str(success))
         self.resize_image_canvas()
         self.log("")
+        self.stop_busy()
 
     def update_info(self):
         """
@@ -759,11 +774,9 @@ class ViewerApp:
         """
         if self.ignore_updates:
             return
-        self.start_busy()
         self.update_title()
         self.update_image()
         self.update_info()
-        self.stop_busy()
 
     def set_keep_aspectratio(self, value):
         """
@@ -1601,17 +1614,17 @@ class ViewerApp:
     def on_scale_r_changed(self, event):
         self.red_scale_value.configure(text=self.scale_to_text(self.state_scale_r.get()))
         self.session.scale_r = self.state_scale_r.get()
-        self.update_image()
+        self.update_image(show_busy=False)
 
     def on_scale_g_changed(self, event):
         self.green_scale_value.configure(text=self.scale_to_text(self.state_scale_g.get()))
         self.session.scale_g = self.state_scale_g.get()
-        self.update_image()
+        self.update_image(show_busy=False)
 
     def on_scale_b_changed(self, event):
         self.blue_scale_value.configure(text=self.scale_to_text(self.state_scale_b.get()))
         self.session.scale_b = self.state_scale_b.get()
-        self.update_image()
+        self.update_image(show_busy=False)
 
     def on_window_resize(self, event):
         self.resize_image_canvas()
