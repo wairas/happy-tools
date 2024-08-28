@@ -3,7 +3,7 @@ import os
 import json
 import numpy as np
 from ._happydata_reader import HappyDataReader
-from ._envi_reader import EnviReader
+from happy.readers.spectra import EnviReader
 from happy.data import HappyData, MASK_MAP
 import spectral.io.envi as envi
 
