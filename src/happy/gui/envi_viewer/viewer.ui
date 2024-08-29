@@ -440,21 +440,21 @@
                     <property name="label" translatable="yes">Options</property>
                     <property name="tearoff">false</property>
                     <child>
-                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_view_show_polygons" named="True">
-                        <property name="command" type="command" cbtype="simple">on_view_show_polygons</property>
-                        <property name="label" translatable="yes">Show polygon annotations</property>
-                        <property name="offvalue">0</property>
-                        <property name="onvalue">1</property>
-                        <property name="variable">int:state_view_show_polygons</property>
-                      </object>
-                    </child>
-                    <child>
                       <object class="tk.Menuitem.Checkbutton" id="checkbutton_view_show_pixels" named="True">
                         <property name="command" type="command" cbtype="simple">on_view_show_pixels</property>
                         <property name="label" translatable="yes">Show pixel annotations</property>
                         <property name="offvalue">0</property>
                         <property name="onvalue">1</property>
                         <property name="variable">int:state_view_show_pixels</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Checkbutton" id="checkbutton_view_show_polygons" named="True">
+                        <property name="command" type="command" cbtype="simple">on_view_show_polygons</property>
+                        <property name="label" translatable="yes">Show polygon annotations</property>
+                        <property name="offvalue">0</property>
+                        <property name="onvalue">1</property>
+                        <property name="variable">int:state_view_show_polygons</property>
                       </object>
                     </child>
                   </object>
