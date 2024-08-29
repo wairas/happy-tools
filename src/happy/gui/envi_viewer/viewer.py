@@ -383,7 +383,7 @@ class ViewerApp:
 
         :param title: the title to use for the save dialog
         :type title: str
-        :param file_type: the type of file to save (png|envi|opex)
+        :param file_type: the type of file to save (image|envi|opex)
         :type file_type: str
         :param initial_dir: the initial directory in use
         :type initial_dir: str
@@ -392,10 +392,11 @@ class ViewerApp:
         :return: the chosen filename, None if cancelled
         :rtype: str
         """
-        if file_type == "png":
+        if file_type == "image":
             ext = ".png"
             filetypes = (
                 ('PNG files', '*' + ext),
+                ('JPG files', '*.jpg'),
                 ('All files', '*.*')
             )
         elif file_type == "envi":
@@ -1412,7 +1413,7 @@ class ViewerApp:
             initial_dir = os.path.dirname(self.data.scan_file)
         else:
             initial_dir = self.session.last_image_dir
-        filename = self.save_file('Save image', "png", initial_dir, scan=self.session.last_scan_file)
+        filename = self.save_file('Save image', "image", initial_dir, scan=self.session.last_scan_file)
         if filename is not None:
             self.session.last_image_dir = os.path.dirname(filename)
             image.save(filename)
