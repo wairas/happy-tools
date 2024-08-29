@@ -107,6 +107,7 @@ class SamManager(RedisBased):
             "image": base64.encodebytes(image).decode("ascii"),
             "prompt": prompt,
         }
+        log("Sending data to SAM...")
         self.redis_connection.publish(channel_in, json.dumps(d))
 
         self.redis_pubsub = self.redis_connection.pubsub()
