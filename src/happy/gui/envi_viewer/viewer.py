@@ -1920,14 +1920,13 @@ class ViewerApp:
                          self.session.min_obj_size, self.log, self.on_sam_predictions)
 
     def on_polygons_clear_click(self, event=None):
-        self.undo_manager.add_undo("Clearing polygons/markers", self.get_undo_state())
+        self.undo_manager.add_undo("Clearing polygons", self.get_undo_state())
         if self.data.contours.has_annotations() or self.data.markers.has_points():
             self.data.contours.clear()
-            self.data.markers.clear()
             self.update_image()
-            self.log("Polygons/marker points cleared")
+            self.log("Polygons points cleared")
         else:
-            self.log("No polygons/marker points to clear")
+            self.log("No polygons points to clear")
 
     def on_polygons_color_click(self, event=None):
         if not self.available(ANNOTATION_MODE_POLYGONS, action="Setting polygon color"):
