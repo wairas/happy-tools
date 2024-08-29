@@ -162,7 +162,8 @@ class CheckerApp:
 
     def on_view_outputformat(self, event=None):
         output_format = asklist("Output format", "Please select the output format",
-                                OUTPUT_FORMATS, initialvalue=self.session.output_format)
+                                OUTPUT_FORMATS, initialvalue=self.session.output_format,
+                                parent=self.mainwindow)
         if (output_format is None) or (len(output_format) == 0):
             return
         self.session.output_format = output_format
