@@ -450,6 +450,22 @@ class PixelManager:
         """
         self._draw(points, False)
 
+    def add_polygons(self, contours_list):
+        """
+        Draws the polygons using the selected label.
+
+        :param contours_list: the list of polygons to draw (list of list of x/y tuples)
+        :type contours_list: list
+        """
+        label = self.label
+        r, g, b = self.palette[self.label - 1]
+        rgba = (r, g, b, self.alpha)
+        w, h = self._image_indexed.size
+        for contours in contours_list:
+            xy = [(xyn[0]*w, xyn[1]*h) for xyn in contours]
+            self._draw_indexed.polygon(xy, fill=label, outline=label)
+            self._draw_rgba.polygon(xy, fill=rgba, outline=rgba)
+
     def to_overlay(self, width, height):
         """
         Generates an overlay image.

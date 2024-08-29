@@ -262,6 +262,22 @@
                     <property name="label" translatable="yes">Color...</property>
                   </object>
                 </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator_sam" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_markers_min_object_size" named="True">
+                    <property name="command" type="command" cbtype="simple">on_markers_min_object_size_click</property>
+                    <property name="label" translatable="yes">Min. object size...</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_markers_run_sam" named="True">
+                    <property name="accelerator">Ctrl+S</property>
+                    <property name="command" type="command" cbtype="simple">on_markers_run_sam_click</property>
+                    <property name="label" translatable="yes">Run SAM</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
@@ -289,29 +305,10 @@
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Separator" id="separator8" />
-                </child>
-                <child>
                   <object class="tk.Menuitem.Command" id="command_polygons_add_polygon" named="True">
                     <property name="accelerator">Ctrl+P</property>
                     <property name="command" type="command" cbtype="simple">on_polygons_add_polygon_click</property>
                     <property name="label" translatable="yes">Add polygon</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Separator" id="separator_sam" />
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_polygons_min_object_size" named="True">
-                    <property name="command" type="command" cbtype="simple">on_polygons_min_object_size_click</property>
-                    <property name="label" translatable="yes">Min. object size...</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="tk.Menuitem.Command" id="command_polygons_run_sam" named="True">
-                    <property name="accelerator">Ctrl+S</property>
-                    <property name="command" type="command" cbtype="simple">on_polygons_run_sam_click</property>
-                    <property name="label" translatable="yes">Run SAM</property>
                   </object>
                 </child>
               </object>

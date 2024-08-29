@@ -175,10 +175,10 @@ class ViewerApp:
         self.mainwindow.bind("<Control-y>", self.on_edit_redo_click)
         # markers
         self.mainwindow.bind("<Alt-n>", self.on_markers_clear_click)
+        self.mainwindow.bind("<Control-s>", self.on_markers_run_sam_click)
         # polygons
         self.mainwindow.bind("<Control-n>", self.on_polygons_clear_click)
         self.mainwindow.bind("<Control-e>", self.on_polygons_modify_click)
-        self.mainwindow.bind("<Control-s>", self.on_polygons_run_sam_click)
         self.mainwindow.bind("<Control-p>", self.on_polygons_add_polygon_click)
         # pixels
         self.mainwindow.bind("<Control-N>", self.on_pixels_clear_click)
@@ -1631,6 +1631,10 @@ class ViewerApp:
             # no modifier -> add marker
             if state == 0x0000:
                 self.add_marker(event)
+            # CTRL -> clear markers
+            elif state == 0x0004:
+                self.clear_markers()
+                self.update_image(show_busy=False)
             # SHIFT or CTRL+SHIFT
             elif (state == 0x0001) or (state == 0x0005):
                 state += 0x0100
@@ -1863,36 +1867,7 @@ class ViewerApp:
         self.log("New marker color: %s" % color)
         self.update_image()
 
-    def on_polygons_clear_click(self, event=None):
-        self.undo_manager.add_undo("Clearing polygons/markers", self.get_undo_state())
-        if self.data.contours.has_annotations() or self.data.markers.has_points():
-            self.data.contours.clear()
-            self.data.markers.clear()
-            self.update_image()
-            self.log("Polygons/marker points cleared")
-        else:
-            self.log("No polygons/marker points to clear")
-
-    def on_polygons_color_click(self, event=None):
-        if not self.available(ANNOTATION_MODE_POLYGONS, action="Setting polygon color"):
-            return
-
-        color = ttkSimpleDialog.askstring("Polygon color", "Please enter color in hex notation (eg #ff0000):",
-                                           initialvalue=self.session.annotation_color,
-                                           parent=self.mainwindow)
-        if color is None:
-            return
-        if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color) is None:
-            messagebox.showerror("Polygon color", "Color must be in hex notation (#RRGGBB), provided: " % color)
-            return
-        self.session.annotation_color = color
-        self.log("New polygon color: %s" % color)
-        self.update_image()
-
-    def on_polygons_min_object_size_click(self, event=None):
-        if not self.available(ANNOTATION_MODE_POLYGONS, action="Setting minimum object size"):
-            return
-
+    def on_markers_min_object_size_click(self, event=None):
         size = ttkSimpleDialog.askinteger("Minimum object size", "Please enter minimum object size (>= 1):",
                                           initialvalue=self.session.min_obj_size,
                                           parent=self.mainwindow)
@@ -1906,60 +1881,7 @@ class ViewerApp:
         self.log("New minimum object size: %d" % size)
         self.update_image()
 
-    def on_polygon_annotations_updated(self, changed, deleted):
-        """
-        Gets called when Polygons -> Modify dialog gets accepted.
-
-        :param changed: the list of changed Contour objects
-        :type changed: list
-        :param deleted: the list of deleted Contour objects
-        :type deleted: list
-        """
-        if (len(deleted) == 0) and (len(changed) == 0):
-            return
-
-        self.undo_manager.add_undo("Editing annotations", self.get_undo_state())
-        if len(deleted) > 0:
-            self.log("Removing %d annotations" % len(deleted))
-            self.data.contours.remove(deleted)
-        if len(changed) > 0:
-            self.log("Updating labels for %d annotations" % len(changed))
-            for c in changed:
-                self.data.contours.update_label(c, c.label)
-        self.update_image()
-
-    def on_polygons_modify_click(self, event=None):
-        if not self.data.has_scan():
-            messagebox.showerror("Error", "Please load a scan file first!")
-            return
-        if len(self.data.contours.contours) == 0:
-            messagebox.showerror("Error", "Please add annotations first!")
-            return
-
-        dialog = AnnotationsDialog(self.mainwindow, self.data.contours,
-                                   self.data.scan_data.shape[1], self.data.scan_data.shape[0],
-                                   predefined_labels=self.get_predefined_labels())
-        dialog.show(self.on_polygon_annotations_updated)
-
-    def on_sam_predictions(self, contours, meta):
-        """
-        Gets called when predictions become available.
-
-        :param contours: the predicted (normalized) contours (list of list of x/y tuples)
-        :type contours: list
-        :param meta: meta-data of the predictions
-        :type meta: dict
-        """
-        self.undo_manager.add_undo("Adding SAM annotations", self.get_undo_state())
-        # remove markers
-        self.data.markers.clear()
-        # add contours
-        self.data.contours.add([Contour(points=x, meta=copy.copy(meta)) for x in contours])
-        # update contours/image
-        self.resize_image_canvas()
-        self.stop_busy()
-
-    def on_polygons_run_sam_click(self, event=None):
+    def on_markers_run_sam_click(self, event=None):
         if not self.sam.is_connected():
             messagebox.showerror("Error", "Not connected to Redis server, cannot communicate with SAM!")
             self.notebook.select(2)
@@ -1996,6 +1918,91 @@ class ViewerApp:
         self.sam.predict(content, points,
                          self.state_redis_in.get(), self.state_redis_out.get(),
                          self.session.min_obj_size, self.log, self.on_sam_predictions)
+
+    def on_polygons_clear_click(self, event=None):
+        self.undo_manager.add_undo("Clearing polygons/markers", self.get_undo_state())
+        if self.data.contours.has_annotations() or self.data.markers.has_points():
+            self.data.contours.clear()
+            self.data.markers.clear()
+            self.update_image()
+            self.log("Polygons/marker points cleared")
+        else:
+            self.log("No polygons/marker points to clear")
+
+    def on_polygons_color_click(self, event=None):
+        if not self.available(ANNOTATION_MODE_POLYGONS, action="Setting polygon color"):
+            return
+
+        color = ttkSimpleDialog.askstring("Polygon color", "Please enter color in hex notation (eg #ff0000):",
+                                           initialvalue=self.session.annotation_color,
+                                           parent=self.mainwindow)
+        if color is None:
+            return
+        if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color) is None:
+            messagebox.showerror("Polygon color", "Color must be in hex notation (#RRGGBB), provided: " % color)
+            return
+        self.session.annotation_color = color
+        self.log("New polygon color: %s" % color)
+        self.update_image()
+
+    def on_polygon_annotations_updated(self, changed, deleted):
+        """
+        Gets called when Polygons -> Modify dialog gets accepted.
+
+        :param changed: the list of changed Contour objects
+        :type changed: list
+        :param deleted: the list of deleted Contour objects
+        :type deleted: list
+        """
+        if (len(deleted) == 0) and (len(changed) == 0):
+            return
+
+        self.undo_manager.add_undo("Editing annotations", self.get_undo_state())
+        if len(deleted) > 0:
+            self.log("Removing %d annotations" % len(deleted))
+            self.data.contours.remove(deleted)
+        if len(changed) > 0:
+            self.log("Updating labels for %d annotations" % len(changed))
+            for c in changed:
+                self.data.contours.update_label(c, c.label)
+        self.update_image()
+
+    def on_polygons_modify_click(self, event=None):
+        if not self.available(ANNOTATION_MODE_POLYGONS, action="Modifying polygons"):
+            return
+
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+        if len(self.data.contours.contours) == 0:
+            messagebox.showerror("Error", "Please add annotations first!")
+            return
+
+        dialog = AnnotationsDialog(self.mainwindow, self.data.contours,
+                                   self.data.scan_data.shape[1], self.data.scan_data.shape[0],
+                                   predefined_labels=self.get_predefined_labels())
+        dialog.show(self.on_polygon_annotations_updated)
+
+    def on_sam_predictions(self, contours, meta):
+        """
+        Gets called when predictions become available.
+
+        :param contours: the predicted (normalized) contours (list of list of x/y tuples)
+        :type contours: list
+        :param meta: meta-data of the predictions
+        :type meta: dict
+        """
+        self.undo_manager.add_undo("Adding SAM annotations", self.get_undo_state())
+        # remove markers
+        self.data.markers.clear()
+        # add contours
+        if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
+            self.data.contours.add([Contour(points=x, meta=copy.copy(meta)) for x in contours])
+        else:
+            self.data.pixels.add_polygons(contours)
+        # update contours/image
+        self.resize_image_canvas()
+        self.stop_busy()
 
     def on_pixels_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing pixels", self.get_undo_state())
@@ -2089,7 +2096,7 @@ class ViewerApp:
         else:
             label = asklist(
                 title="Choose label", prompt="Please select the label to annotate:",
-                items=labels, initialvalue=label)
+                items=labels, initialvalue=label, parent=self.mainwindow)
             if label is not None:
                 index = labels.index(label) + 1
                 self.data.pixels.label = index
