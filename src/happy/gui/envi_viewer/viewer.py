@@ -1951,10 +1951,13 @@ class ViewerApp:
         :type meta: dict
         """
         self.undo_manager.add_undo("Adding SAM annotations", self.get_undo_state())
+        # remove markers
+        self.data.markers.clear()
         # add contours
         self.data.contours.add([Contour(points=x, meta=copy.copy(meta)) for x in contours])
         # update contours/image
         self.resize_image_canvas()
+        self.stop_busy()
 
     def on_polygons_run_sam_click(self, event=None):
         if not self.sam.is_connected():
@@ -1979,6 +1982,8 @@ class ViewerApp:
             messagebox.showerror("Error", "No image available!")
             return
 
+        self.start_busy()
+
         # image as bytes
         buf = io.BytesIO()
         img.save(buf, format='JPEG')
@@ -1986,7 +1991,6 @@ class ViewerApp:
 
         # absolute marker points
         points = self.data.markers.to_absolute(self.image_canvas.winfo_width(), self.image_canvas.winfo_height())
-        self.data.markers.clear()
 
         # predict contours
         self.sam.predict(content, points,
