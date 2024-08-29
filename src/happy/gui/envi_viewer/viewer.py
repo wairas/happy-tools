@@ -173,6 +173,7 @@ class ViewerApp:
         # edit
         self.mainwindow.bind("<Control-z>", self.on_edit_undo_click)
         self.mainwindow.bind("<Control-y>", self.on_edit_redo_click)
+        # markers
         self.mainwindow.bind("<Alt-n>", self.on_markers_clear_click)
         # polygons
         self.mainwindow.bind("<Control-n>", self.on_polygons_clear_click)
@@ -1617,6 +1618,7 @@ class ViewerApp:
             # CTRL -> clear markers
             elif state == 0x0004:
                 self.clear_markers()
+                self.update_image(show_busy=False)
             # SHIFT -> set label
             elif state == 0x0001:
                 self.set_label(event)
