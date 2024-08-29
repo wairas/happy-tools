@@ -74,7 +74,7 @@ def check_log_queue(app, q):
 
 def perform_image_update(app, rgb):
     success = app.data.update_image(rgb[0], rgb[1], rgb[2])
-    app.mainwindow.after(100, app.display_updated_image, success)
+    app.mainwindow.after(50, app.display_updated_image, success)
 
 
 class ViewerApp:
@@ -863,7 +863,7 @@ class ViewerApp:
         point = (x, y)
         self.data.markers.add(point)
         self.log("Marker point added: %s" % str(point))
-        self.update_image()
+        self.update_image(show_busy=False)
 
     def get_predefined_labels(self, insert_empty_label=True):
         """
@@ -920,7 +920,7 @@ class ViewerApp:
                 if (new_label == LABEL_WHITEREF) or (new_label == LABEL_BLACKREF):
                     self.data.reset_norm_data()
                 self.update_info()
-                self.update_image()
+                self.update_image(show_busy=False)
 
     def clear_markers(self):
         """
@@ -940,7 +940,7 @@ class ViewerApp:
             answer = messagebox.askquestion("Remove annotations", "Remove %d annotations?" % len(contours))
             if answer == messagebox.YES:
                 self.data.contours.remove(contours)
-            self.update_image()
+            self.update_image(show_busy=False)
 
     def state_to_session(self):
         """
@@ -2122,15 +2122,15 @@ class ViewerApp:
         self.data.contours.add([Contour(points=self.data.markers.points[:])])
         self.data.markers.clear()
         self.log("Polygon added")
-        self.update_image()
+        self.update_image(show_busy=False)
 
     def on_view_show_polygons(self, event=None):
         self.session.show_polygon_annotations = (self.state_view_show_polygons.get() == 1)
-        self.update_image()
+        self.update_image(show_busy=False)
 
     def on_view_show_pixels(self, event=None):
         self.session.show_pixel_annotations = (self.state_view_show_pixels.get() == 1)
-        self.update_image()
+        self.update_image(show_busy=False)
 
     def on_view_view_spectra_click(self, event=None):
         if not self.data.markers.has_points():
@@ -2173,13 +2173,13 @@ class ViewerApp:
             try:
                 zoom = int(event.replace("command_view_zoom_", ""))
                 self.session.zoom = zoom
-                self.update_image()
+                self.update_image(show_busy=False)
             except:
                 self.log("Failed to extract zoom from: %s" % event)
 
     def on_view_zoom_fit(self, event=None):
         self.session.zoom = -1
-        self.update_image()
+        self.update_image(show_busy=False)
 
     def on_view_zoom_custom(self, event=None):
         curr_zoom = self.session.zoom
@@ -2192,7 +2192,7 @@ class ViewerApp:
             if new_zoom <= 0:
                 new_zoom = -1
             self.session.zoom = new_zoom
-            self.update_image()
+            self.update_image(show_busy=False)
 
     def on_window_new_window_click(self, event=None):
         cmd = [sys.executable]
