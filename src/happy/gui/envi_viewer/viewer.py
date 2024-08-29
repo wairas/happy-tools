@@ -1986,7 +1986,7 @@ class ViewerApp:
         # predict contours
         self.sam.predict(content, points,
                          self.state_redis_in.get(), self.state_redis_out.get(),
-                         self.state_min_obj_size.get(), self.log, self.on_sam_predictions)
+                         self.session.min_obj_size, self.log, self.on_sam_predictions)
 
     def on_pixels_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing pixels", self.get_undo_state())
