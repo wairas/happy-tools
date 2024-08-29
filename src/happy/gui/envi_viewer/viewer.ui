@@ -222,19 +222,19 @@
                 <property name="label" translatable="yes">Mode</property>
                 <property name="tearoff">false</property>
                 <child>
-                  <object class="tk.Menuitem.Radiobutton" id="radiobutton_edit_annotation_mode_polygons" named="True">
-                    <property name="command" type="command" cbtype="simple">on_edit_annotation_mode_click</property>
+                  <object class="tk.Menuitem.Radiobutton" id="radiobutton_annotation_mode_polygons" named="True">
+                    <property name="command" type="command" cbtype="simple">on_annotation_mode_click</property>
                     <property name="label" translatable="yes">Polygons</property>
                     <property name="value">0</property>
-                    <property name="variable">int:state_edit_annotation_mode</property>
+                    <property name="variable">int:state_annotation_mode</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Radiobutton" id="radiobutton_edit_annotation_mode_pixels" named="True">
-                    <property name="command" type="command" cbtype="simple">on_edit_annotation_mode_click</property>
+                  <object class="tk.Menuitem.Radiobutton" id="radiobutton_annotation_mode_pixels" named="True">
+                    <property name="command" type="command" cbtype="simple">on_annotation_mode_click</property>
                     <property name="label" translatable="yes">Pixels</property>
                     <property name="value">1</property>
-                    <property name="variable">int:state_edit_annotation_mode</property>
+                    <property name="variable">int:state_annotation_mode</property>
                   </object>
                 </child>
               </object>
@@ -246,7 +246,7 @@
                 <child>
                   <object class="tk.Menuitem.Command" id="command_edit_clear_markers" named="True">
                     <property name="accelerator">Alt+N</property>
-                    <property name="command" type="command" cbtype="simple">on_edit_markers_clear_click</property>
+                    <property name="command" type="command" cbtype="simple">on_markers_clear_click</property>
                     <property name="label" translatable="yes">Clear</property>
                   </object>
                 </child>
@@ -406,26 +406,26 @@
                 <property name="label" translatable="yes">Meta-data</property>
                 <property name="tearoff">false</property>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_edit_metadata_clear" named="True">
-                    <property name="command" type="command" cbtype="simple">on_edit_metadata_clear_click</property>
+                  <object class="tk.Menuitem.Command" id="command_metadata_clear" named="True">
+                    <property name="command" type="command" cbtype="simple">on_metadata_clear_click</property>
                     <property name="label" translatable="yes">Clear</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_edit_metadata_set" named="True">
-                    <property name="command" type="command" cbtype="simple">on_edit_metadata_set_click</property>
+                  <object class="tk.Menuitem.Command" id="command_metadata_set" named="True">
+                    <property name="command" type="command" cbtype="simple">on_metadata_set_click</property>
                     <property name="label" translatable="yes">Set...</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_edit_metadata_remove" named="True">
-                    <property name="command" type="command" cbtype="simple">on_edit_metadata_remove_click</property>
+                  <object class="tk.Menuitem.Command" id="command_metadata_remove" named="True">
+                    <property name="command" type="command" cbtype="simple">on_metadata_remove_click</property>
                     <property name="label" translatable="yes">Remove...</property>
                   </object>
                 </child>
                 <child>
-                  <object class="tk.Menuitem.Command" id="command_edit_metadata_view" named="True">
-                    <property name="command" type="command" cbtype="simple">on_edit_metadata_view_click</property>
+                  <object class="tk.Menuitem.Command" id="command_metadata_view" named="True">
+                    <property name="command" type="command" cbtype="simple">on_metadata_view_click</property>
                     <property name="label" translatable="yes">View...</property>
                   </object>
                 </child>

@@ -116,7 +116,7 @@ class ViewerApp:
         self.state_white_ref_locator = None
         self.state_white_ref_method = None
         self.state_normalization = None
-        self.state_edit_annotation_mode = None
+        self.state_annotation_mode = None
         self.state_pixels_brush_shape = None
         self.state_pixels_brush_color = None
         self.state_view_show_polygons = None
@@ -1026,7 +1026,7 @@ class ViewerApp:
 
         # activate
         self.ignore_updates = True
-        self.state_edit_annotation_mode.set(ANNOTATION_MODES.index(self.session.annotation_mode))
+        self.state_annotation_mode.set(ANNOTATION_MODES.index(self.session.annotation_mode))
         self.switch_annotation_mode(self.session.annotation_mode)
         self.state_pixels_brush_shape.set(BRUSH_SHAPES.index(self.data.pixels.brush_shape))
         self.ignore_updates = False
@@ -1754,11 +1754,11 @@ class ViewerApp:
                 raise Exception("Unhandled annotation mode: %s" % self.annotation_mode)
             self.update_image()
 
-    def on_edit_annotation_mode_click(self, event=None):
-        mode = ANNOTATION_MODES[self.state_edit_annotation_mode.get()]
+    def on_annotation_mode_click(self, event=None):
+        mode = ANNOTATION_MODES[self.state_annotation_mode.get()]
         self.switch_annotation_mode(mode)
 
-    def on_edit_metadata_clear_click(self, event=None):
+    def on_metadata_clear_click(self, event=None):
         if not self.data.has_scan():
             messagebox.showinfo("Info", "No data present!")
             return
@@ -1767,7 +1767,7 @@ class ViewerApp:
         self.data.metadata.clear()
         self.log("Meta-data cleared")
 
-    def on_edit_metadata_set_click(self, event=None):
+    def on_metadata_set_click(self, event=None):
         if not self.data.has_scan():
             messagebox.showinfo("Info", "No data present!")
             return
@@ -1789,7 +1789,7 @@ class ViewerApp:
         self.log("Meta-data set: %s=%s" % (k, v))
         self.log("Meta-data:\n%s" % self.data.metadata.to_json())
 
-    def on_edit_metadata_remove_click(self, event=None):
+    def on_metadata_remove_click(self, event=None):
         if not self.data.has_scan():
             messagebox.showinfo("Info", "No data present!")
             return
@@ -1808,7 +1808,7 @@ class ViewerApp:
         else:
             self.log("Meta-data:\n%s" % self.data.metadata.to_json())
 
-    def on_edit_metadata_view_click(self, event=None):
+    def on_metadata_view_click(self, event=None):
         if not self.data.has_scan():
             messagebox.showinfo("Info", "No data present!")
             return
