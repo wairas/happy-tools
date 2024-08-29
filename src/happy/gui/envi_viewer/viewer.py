@@ -8,6 +8,7 @@ import os
 import pathlib
 import pygubu
 import queue
+import re
 import subprocess
 import sys
 import traceback
@@ -97,16 +98,12 @@ class ViewerApp:
         self.state_keep_aspectratio = None
         self.state_autodetect_channels = None
         self.state_check_scan_dimensions = None
-        self.state_annotation_color = None
         self.state_predefined_labels = None
         self.state_redis_host = None
         self.state_redis_port = None
         self.state_redis_pw = None
         self.state_redis_in = None
         self.state_redis_out = None
-        self.state_marker_size = None
-        self.state_marker_color = None
-        self.state_min_obj_size = None
         self.state_scale_r = None
         self.state_scale_g = None
         self.state_scale_b = None
@@ -140,15 +137,11 @@ class ViewerApp:
         self.checkbutton_autodetect_channels = builder.get_object("checkbutton_autodetect_channels", master)
         self.checkbutton_keep_aspectratio = builder.get_object("checkbutton_keep_aspectratio", master)
         self.checkbutton_check_scan_dimenions = builder.get_object("checkbutton_check_scan_dimensions", master)
-        self.entry_annotation_color = builder.get_object("entry_annotation_color", master)
         self.entry_predefined_labels = builder.get_object("entry_predefined_labels", master)
         self.entry_redis_host = builder.get_object("entry_redis_host", master)
         self.entry_redis_port = builder.get_object("entry_redis_port", master)
         self.entry_redis_in = builder.get_object("entry_redis_in", master)
         self.entry_redis_out = builder.get_object("entry_redis_out", master)
-        self.entry_marker_size = builder.get_object("entry_marker_size", master)
-        self.entry_marker_color = builder.get_object("entry_marker_color", master)
-        self.entry_min_obj_size = builder.get_object("entry_min_obj_size", master)
         self.label_redis_connection = builder.get_object("label_redis_connection", master)
         self.button_sam_connect = builder.get_object("button_sam_connect", master)
         self.entry_black_ref_locator = builder.get_object("entry_black_ref_locator", master)
@@ -180,7 +173,7 @@ class ViewerApp:
         # edit
         self.mainwindow.bind("<Control-z>", self.on_edit_undo_click)
         self.mainwindow.bind("<Control-y>", self.on_edit_redo_click)
-        self.mainwindow.bind("<Alt-n>", self.on_edit_markers_clear_click)
+        self.mainwindow.bind("<Alt-n>", self.on_markers_clear_click)
         # polygons
         self.mainwindow.bind("<Control-n>", self.on_polygons_clear_click)
         self.mainwindow.bind("<Control-e>", self.on_polygons_modify_click)
@@ -699,12 +692,12 @@ class ViewerApp:
         height = dims[1]
         image = self.get_scaled_image(width, height)
         if image is not None:
-            image_markers = self.data.markers.to_overlay(width, height, int(self.entry_marker_size.get()),
-                                                         self.entry_marker_color.get())
+            image_markers = self.data.markers.to_overlay(width, height, int(self.session.marker_size),
+                                                         self.session.marker_color)
             if image_markers is not None:
                 image.paste(image_markers, (0, 0), image_markers)
             if self.session.show_polygon_annotations:
-                image_contours = self.data.contours.to_overlay(width, height, self.entry_annotation_color.get())
+                image_contours = self.data.contours.to_overlay(width, height, self.session.annotation_color)
                 if image_contours is not None:
                     image.paste(image_contours, (0, 0), image_contours)
             if self.session.show_pixel_annotations:
@@ -809,7 +802,7 @@ class ViewerApp:
         :type color: str
         """
         self.log("Setting annotation color: %s" % color)
-        self.state_annotation_color.set(color)
+        self.session.annotation_color = color
 
     def set_redis_connection(self, host, port, pw, send, receive):
         """
@@ -850,9 +843,9 @@ class ViewerApp:
             min_obj_size = -1
         self.log("Setting SAM options: marker_size=%d marker_color=%s min_obj_size=%d" % (
         marker_size, marker_color, min_obj_size))
-        self.state_marker_size.set(marker_size)
-        self.state_marker_color.set(marker_color)
-        self.state_min_obj_size.set(min_obj_size)
+        self.session.marker_size.set(marker_size)
+        self.session.marker_color.set(marker_color)
+        self.session.min_obj_size.set(min_obj_size)
 
     def add_marker(self, event):
         """
@@ -963,16 +956,12 @@ class ViewerApp:
         self.session.scale_r = self.state_scale_r.get()
         self.session.scale_g = self.state_scale_g.get()
         self.session.scale_b = self.state_scale_b.get()
-        self.session.annotation_color = self.state_annotation_color.get()
         self.session.predefined_labels = self.state_predefined_labels.get()
         self.session.redis_host = self.state_redis_host.get()
         self.session.redis_port = self.state_redis_port.get()
         self.session.redis_pw = self.state_redis_pw.get()
         self.session.redis_in = self.state_redis_in.get()
         self.session.redis_out = self.state_redis_out.get()
-        self.session.marker_size = self.state_marker_size.get()
-        self.session.marker_color = self.state_marker_color.get()
-        self.session.min_obj_size = self.state_min_obj_size.get()
         self.session.black_ref_locator = self.state_black_ref_locator.get()
         self.session.black_ref_method = self.state_black_ref_method.get()
         self.session.white_ref_locator = self.state_white_ref_locator.get()
@@ -1008,16 +997,12 @@ class ViewerApp:
         self.state_scale_r.set(self.session.scale_r)
         self.state_scale_g.set(self.session.scale_g)
         self.state_scale_b.set(self.session.scale_b)
-        self.state_annotation_color.set(self.session.annotation_color)
         self.state_predefined_labels.set(self.session.predefined_labels)
         self.state_redis_host.set(self.session.redis_host)
         self.state_redis_port.set(self.session.redis_port)
         self.state_redis_pw.set(self.session.redis_pw)
         self.state_redis_in.set(self.session.redis_in)
         self.state_redis_out.set(self.session.redis_out)
-        self.state_marker_size.set(self.session.marker_size)
-        self.state_marker_color.set(self.session.marker_color)
-        self.state_min_obj_size.set(self.session.min_obj_size)
         self.state_black_ref_locator.set(self.session.black_ref_locator)
         self.state_black_ref_method.set(self.session.black_ref_method)
         self.state_white_ref_locator.set(self.session.white_ref_locator)
@@ -1408,12 +1393,12 @@ class ViewerApp:
         # include annotations?
         if self.session.export_overlay_annotations:
             # markers
-            image_markers = self.data.markers.to_overlay(dims[0], dims[1], int(self.entry_marker_size.get()),
-                                                         self.entry_marker_color.get())
+            image_markers = self.data.markers.to_overlay(dims[0], dims[1], int(self.session.marker_size),
+                                                         self.session.marker_color)
             if image_markers is not None:
                 image.paste(image_markers, (0, 0), image_markers)
             # polygons
-            image_contours = self.data.contours.to_overlay(dims[0], dims[1], self.entry_annotation_color.get())
+            image_contours = self.data.contours.to_overlay(dims[0], dims[1], self.session.annotation_color)
             if image_contours is not None:
                 image.paste(image_contours, (0, 0), image_contours)
             # pixels
@@ -1837,7 +1822,7 @@ class ViewerApp:
         self.log("Meta-data:\n%s" % self.data.metadata.to_json())
         messagebox.showinfo("Meta-data", "Current meta-data:\n\n%s" % s)
 
-    def on_edit_markers_clear_click(self, event=None):
+    def on_markers_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing markers", self.get_undo_state())
         if self.data.markers.has_points():
             self.data.markers.clear()
@@ -1845,6 +1830,33 @@ class ViewerApp:
             self.log("Marker points cleared")
         else:
             self.log("No marker points to clear")
+
+    def on_markers_size_click(self, event=None):
+        size = ttkSimpleDialog.askinteger("Marker size", "Please enter marker size (>= 1):",
+                                          initialvalue=self.session.marker_size,
+                                          parent=self.mainwindow)
+        if size is None:
+            return
+        size = int(size)
+        if size < 1:
+            messagebox.showerror("Marker size", "Marker size must be at least 1 pixel, provided: %d" % size)
+            return
+        self.session.marker_size = size
+        self.log("New marker size: %d" % size)
+        self.update_image()
+
+    def on_markers_color_click(self, event=None):
+        color = ttkSimpleDialog.askstring("Marker color", "Please enter color in hex notation (eg #ff0000):",
+                                           initialvalue=self.session.marker_color,
+                                           parent=self.mainwindow)
+        if color is None:
+            return
+        if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color) is None:
+            messagebox.showerror("Marker color", "Color must be in hex notation (#RRGGBB), provided: " % color)
+            return
+        self.session.marker_color = color
+        self.log("New marker color: %s" % color)
+        self.update_image()
 
     def on_polygons_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing polygons/markers", self.get_undo_state())
@@ -1855,6 +1867,39 @@ class ViewerApp:
             self.log("Polygons/marker points cleared")
         else:
             self.log("No polygons/marker points to clear")
+
+    def on_polygons_color_click(self, event=None):
+        if not self.available(ANNOTATION_MODE_POLYGONS, action="Setting polygon color"):
+            return
+
+        color = ttkSimpleDialog.askstring("Polygon color", "Please enter color in hex notation (eg #ff0000):",
+                                           initialvalue=self.session.annotation_color,
+                                           parent=self.mainwindow)
+        if color is None:
+            return
+        if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color) is None:
+            messagebox.showerror("Polygon color", "Color must be in hex notation (#RRGGBB), provided: " % color)
+            return
+        self.session.annotation_color = color
+        self.log("New polygon color: %s" % color)
+        self.update_image()
+
+    def on_polygons_min_object_size_click(self, event=None):
+        if not self.available(ANNOTATION_MODE_POLYGONS, action="Setting minimum object size"):
+            return
+
+        size = ttkSimpleDialog.askinteger("Minimum object size", "Please enter minimum object size (>= 1):",
+                                          initialvalue=self.session.min_obj_size,
+                                          parent=self.mainwindow)
+        if size is None:
+            return
+        size = int(size)
+        if size < 1:
+            messagebox.showerror("Minimum object size", "Minimum object size must be at least 1 pixel, provided: %d" % size)
+            return
+        self.session.min_obj_size = size
+        self.log("New minimum object size: %d" % size)
+        self.update_image()
 
     def on_polygon_annotations_updated(self, changed, deleted):
         """
@@ -1978,7 +2023,8 @@ class ViewerApp:
             return
 
         size = ttkSimpleDialog.askinteger("Brush size", "Please enter brush size (>= 1):",
-                                          initialvalue=self.data.pixels.brush_size)
+                                          initialvalue=self.data.pixels.brush_size,
+                                          parent=self.mainwindow)
         if size is None:
             return
         size = int(size)
@@ -1995,7 +2041,8 @@ class ViewerApp:
 
         alpha = ttkSimpleDialog.askinteger(
             "Transparency", "Please enter new alpha (0-255, 0: transparent, 255: opaque):",
-            initialvalue=self.data.pixels.alpha)
+            initialvalue=self.data.pixels.alpha,
+            parent=self.mainwindow)
         if alpha is None:
             return
         alpha = int(alpha)
@@ -2021,7 +2068,8 @@ class ViewerApp:
         if label is None:
             index = ttkSimpleDialog.askinteger(
                 title="Enter label index", prompt="Please enter the index of the label (> 0):",
-                initialvalue=index + 1)
+                initialvalue=index + 1,
+                parent=self.mainwindow)
             if index is not None:
                 if (index > 0) and (index <= 255):
                     self.data.pixels.label = index
@@ -2137,7 +2185,8 @@ class ViewerApp:
         if curr_zoom <= 0:
             curr_zoom = -1
         new_zoom = ttkSimpleDialog.askinteger("Zoom", "Please enter new zoom (in %; -1 for best fit):",
-                                              initialvalue=curr_zoom)
+                                              initialvalue=curr_zoom,
+                                              parent=self.mainwindow)
         if new_zoom is not None:
             if new_zoom <= 0:
                 new_zoom = -1
