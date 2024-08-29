@@ -1827,7 +1827,7 @@ class ViewerApp:
         self.undo_manager.add_undo("Clearing markers", self.get_undo_state())
         if self.data.markers.has_points():
             self.data.markers.clear()
-            self.update_image()
+            self.update_image(show_busy=False)
             self.log("Marker points cleared")
         else:
             self.log("No marker points to clear")
