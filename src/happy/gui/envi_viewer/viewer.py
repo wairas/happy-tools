@@ -916,6 +916,7 @@ class ViewerApp:
                     initialvalue="" if (len(labels) != 1) else list(labels)[0],
                     parent=self.mainwindow)
             if new_label is not None:
+                self.undo_manager.add_undo("Setting label", self.get_undo_state())
                 for contour in contours:
                     contour.label = new_label
                 if (new_label == LABEL_WHITEREF) or (new_label == LABEL_BLACKREF):
@@ -927,6 +928,7 @@ class ViewerApp:
         """
         Clears all markers.
         """
+        self.undo_manager.add_undo("Clearing markers", self.get_undo_state())
         self.data.markers.clear()
         self.log("Marker points cleared")
 
