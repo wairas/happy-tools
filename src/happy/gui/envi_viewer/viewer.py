@@ -180,6 +180,7 @@ class ViewerApp:
         self.mainwindow.bind("<Control-n>", self.on_polygons_clear_click)
         self.mainwindow.bind("<Control-e>", self.on_polygons_modify_click)
         self.mainwindow.bind("<Control-p>", self.on_polygons_add_polygon_click)
+        self.mainwindow.bind("<Control-r>", self.on_polygons_add_rectangle_click)
         # pixels
         self.mainwindow.bind("<Control-N>", self.on_pixels_clear_click)
         self.mainwindow.bind("<Control-B>", self.on_pixels_brush_size_click)
@@ -2136,6 +2137,28 @@ class ViewerApp:
         self.data.contours.add([Contour(points=self.data.markers.points[:])])
         self.data.markers.clear()
         self.log("Polygon added")
+        self.update_image(show_busy=False)
+
+    def on_polygons_add_rectangle_click(self, event=None):
+        if not self.available(ANNOTATION_MODE_POLYGONS, action="Adding rectangle"):
+            return
+
+        if len(self.data.markers.points) != 2:
+            messagebox.showerror("Error", "Exactly two marker points required for creating a rectangle (top-left and bottom-right corners)!")
+            return
+
+        points = []
+        tl = self.data.markers.points[0]
+        br = self.data.markers.points[1]
+        points.append(tl)
+        points.append((br[0], tl[1]))
+        points.append(br)
+        points.append((tl[0], br[1]))
+
+        self.undo_manager.add_undo("Adding rectangle", self.get_undo_state())
+        self.data.contours.add([Contour(points=points)])
+        self.data.markers.clear()
+        self.log("Rectangle added")
         self.update_image(show_busy=False)
 
     def on_view_show_polygons(self, event=None):

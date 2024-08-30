@@ -311,6 +311,13 @@
                     <property name="label" translatable="yes">Add polygon</property>
                   </object>
                 </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_polygons_add_rectangle" named="True">
+                    <property name="accelerator">Ctrl+R</property>
+                    <property name="command" type="command" cbtype="simple">on_polygons_add_rectangle_click</property>
+                    <property name="label" translatable="yes">Add rectangle</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
