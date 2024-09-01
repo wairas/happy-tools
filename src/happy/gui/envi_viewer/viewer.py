@@ -232,7 +232,7 @@ class ViewerApp:
         self.mainwindow.mainloop()
 
     def on_window_closing(self, event=None):
-        self.running = False
+        self.close_application()
 
     def log(self, msg):
         """
@@ -1579,10 +1579,7 @@ class ViewerApp:
             self.session.save(filename)
 
     def on_file_close_click(self, event=None):
-        self.running = False
-        self.state_to_session()
-        self.session.save()
-        self.mainwindow.quit()
+        self.close_application()
 
     def on_autodetect_channels_click(self):
         self.session.autodetect_channels = (self.state_autodetect_channels.get() == 1)
@@ -2275,6 +2272,15 @@ class ViewerApp:
 
     def on_button_log_clear_click(self, event=None):
         self.text_log.delete(1.0, tk.END)
+
+    def close_application(self):
+        """
+        Stores the session and closes the application.
+        """
+        self.running = False
+        self.state_to_session()
+        self.session.save()
+        self.mainwindow.quit()
 
 
 def main(args=None):
