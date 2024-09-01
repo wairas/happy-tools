@@ -7,10 +7,12 @@ from happy.data import HappyData
 PH_BASEDIR = "{BASEDIR}"
 PH_SAMPLEID = "{SAMPLEID}"
 PH_REPEAT = "{REPEAT}"
+PH_REGION = "{REGION}"
 PLACEHOLDERS_OUTPUT = [
     PH_BASEDIR,
     PH_SAMPLEID,
     PH_REPEAT,
+    PH_REGION,
 ]
 
 
@@ -59,6 +61,7 @@ class HappyDataWriter(PluginWithLogging, abc.ABC):
         result = output.replace(PH_BASEDIR, self.base_dir)
         result = result.replace(PH_SAMPLEID, sample_id)
         result = result.replace(PH_REPEAT, region_id)
+        result = result.replace(PH_REGION, region_id)
         return result
 
     def _write_data(self, happy_data_or_list, datatype_mapping=None):
