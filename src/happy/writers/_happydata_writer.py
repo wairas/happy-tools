@@ -57,13 +57,6 @@ class HappyDataWriter(PluginWithLogging, abc.ABC):
         self.base_dir = base_dir
         self._initialized = False
 
-    def _expand_output(self, output, sample_id, region_id):
-        result = output.replace(PH_BASEDIR, self.base_dir)
-        result = result.replace(PH_SAMPLEID, sample_id)
-        result = result.replace(PH_REPEAT, region_id)
-        result = result.replace(PH_REGION, region_id)
-        return result
-
     def _write_data(self, happy_data_or_list, datatype_mapping=None):
         raise NotImplementedError()
 
@@ -84,3 +77,44 @@ class HappyDataWriter(PluginWithLogging, abc.ABC):
             raise ValueError(msg)
 
         self._write_data(happy_data_or_list, datatype_mapping=datatype_mapping)
+
+
+class HappyDataWriterWithOutputPattern(HappyDataWriter, abc.ABC):
+    """
+    Writers that support custom output patterns.
+    """
+
+    def __init__(self, base_dir=None):
+        super().__init__(base_dir=base_dir)
+        self._output = self._get_default_output()
+
+    def _get_default_output(self):
+        raise NotImplementedError()
+
+    def _output_help(self):
+        return "The pattern for the output files; " + output_pattern_help()
+
+    def _create_argparser(self) -> argparse.ArgumentParser:
+        parser = super()._create_argparser()
+        parser.add_argument("-o", "--output", type=str, help=self._output_help(), default=self._get_default_output(), required=False)
+        return parser
+
+    def _apply_args(self, ns: argparse.Namespace):
+        super()._apply_args(ns)
+        self._output = ns.output
+
+    def _expand_output(self, output, sample_id, region_id):
+        result = output.replace(PH_BASEDIR, self.base_dir)
+        result = result.replace(PH_SAMPLEID, sample_id)
+        result = result.replace(PH_REPEAT, region_id)
+        result = result.replace(PH_REGION, region_id)
+        return result
+
+    def update_output(self, output: str):
+        """
+        For updating the output pattern programmatically.
+
+        :param output: the new output pattern
+        :type output: str
+        """
+        self._output = output

@@ -2,16 +2,16 @@ import argparse
 import json
 import os
 from typing import Tuple, Optional
+
 from happy.data import HappyData, DataManager
 from happy.data.normalization import SimpleNormalization
-from ._happydata_writer import HappyDataWriter, output_pattern_help, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
+from ._happydata_writer import HappyDataWriterWithOutputPattern, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
 
 
-class ImageWriter(HappyDataWriter):
+class ImageWriter(HappyDataWriterWithOutputPattern):
 
     def __init__(self, base_dir=None):
         super().__init__(base_dir=base_dir)
-        self._output = self._get_default_output()
         self._width = 0
         self._height = 0
         self._red_channel = 0
@@ -46,7 +46,6 @@ class ImageWriter(HappyDataWriter):
         parser.add_argument("-W", "--width", metavar="INT", help="The custom width to use for the image; <=0 for the default", default=0, type=int, required=False)
         parser.add_argument("-H", "--height", metavar="INT", help="The custom height to use for the image; <=0 for the default", default=0, type=int, required=False)
         parser.add_argument("-N", "--normalization", metavar="PLUGIN", help="The normalization plugin and its options to use", default=SimpleNormalization().name(), type=str, required=False)
-        parser.add_argument("-o", "--output", type=str, help="The pattern for the output files; " + output_pattern_help(), default=self._get_default_output(), required=False)
         parser.add_argument("--suppress_metadata", action="store_true", help="Whether to suppress the output of the meta-data", required=False)
         return parser
 
@@ -57,7 +56,6 @@ class ImageWriter(HappyDataWriter):
         self._blue_channel = ns.blue_channel
         self._width = ns.width
         self._height = ns.height
-        self._output = ns.output
         self._normalization = ns.normalization
         self._suppress_metadata = ns.suppress_metadata
 

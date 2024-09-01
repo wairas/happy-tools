@@ -1,19 +1,13 @@
-import argparse
-import numpy as np
 import os
-from happy.data import HappyData
-from ._happydata_writer import HappyDataWriter, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, output_pattern_help
+
+import numpy as np
 import scipy.io as sio
 
+from happy.data import HappyData
+from ._happydata_writer import HappyDataWriterWithOutputPattern, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
 
-DEFAULT_OUTPUT = PH_BASEDIR + "/" + PH_SAMPLEID + "." + PH_REPEAT + ".mat"
 
-
-class MatlabWriter(HappyDataWriter):
-
-    def __init__(self, base_dir=None):
-        super().__init__(base_dir=base_dir)
-        self._output = DEFAULT_OUTPUT
+class MatlabWriter(HappyDataWriterWithOutputPattern):
 
     def name(self) -> str:
         return "matlab-writer"
@@ -24,14 +18,8 @@ class MatlabWriter(HappyDataWriter):
                "'FinalMask': the pixel annotation mask, "\
                "'FinalMaskLabels': the mask pixel index -> label relation table"
 
-    def _create_argparser(self) -> argparse.ArgumentParser:
-        parser = super()._create_argparser()
-        parser.add_argument("-o", "--output", type=str, help="The pattern for the output files; " + output_pattern_help(), default=DEFAULT_OUTPUT, required=False)
-        return parser
-
-    def _apply_args(self, ns: argparse.Namespace):
-        super()._apply_args(ns)
-        self._output = ns.output
+    def _get_default_output(self):
+        return PH_BASEDIR + "/" + PH_SAMPLEID + "." + PH_REPEAT + ".mat"
 
     def _write_item(self, happy_data, datatype_mapping=None):
         sample_id = happy_data.sample_id

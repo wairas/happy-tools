@@ -1,19 +1,20 @@
 import argparse
 import csv
 import json
-import numpy as np
 import os
+
+import numpy as np
+
 from happy.data import HappyData
-from ._happydata_writer import HappyDataWriter, output_pattern_help, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, PH_REGION
+from ._happydata_writer import HappyDataWriterWithOutputPattern, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, PH_REGION
 
 DEFAULT_WAVE_NUMBER_PREFIX = "wave-"
 
 
-class CSVWriter(HappyDataWriter):
+class CSVWriter(HappyDataWriterWithOutputPattern):
 
     def __init__(self, base_dir=None):
         super().__init__(base_dir=base_dir)
-        self._output = self._get_default_output()
         self._wave_number_prefix = DEFAULT_WAVE_NUMBER_PREFIX
         self._output_wave_index = False
         self._suppress_metadata = False
@@ -32,7 +33,6 @@ class CSVWriter(HappyDataWriter):
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-o", "--output", type=str, help="The pattern for the output files; combines the repeats/regions if " + PH_REPEAT + " not present in output pattern; " + output_pattern_help(), default=self._get_default_output(), required=False)
         parser.add_argument("-w", "--wave_number_prefix", type=str, help="The prefix to use for the spectral columns", default=DEFAULT_WAVE_NUMBER_PREFIX, required=False)
         parser.add_argument("-i", "--output_wave_number_index", action="store_true", help="Whether to output the index of the wave number instead of the wave length", required=False)
         parser.add_argument("--suppress_metadata", action="store_true", help="Whether to suppress the output of the meta-data", required=False)
@@ -40,7 +40,6 @@ class CSVWriter(HappyDataWriter):
 
     def _apply_args(self, ns: argparse.Namespace):
         super()._apply_args(ns)
-        self._output = ns.output
         self._wave_number_prefix = ns.wave_number_prefix
         self._output_wave_index = ns.output_wave_index
         self._suppress_metadata = ns.suppress_metadata

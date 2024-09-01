@@ -4,8 +4,8 @@ Generates images from the data. The type of image is determined by the extension
 
 ```
 usage: image-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                    [-A LOGGER_NAME] -b BASE_DIR [-R INT] [-G INT] [-B INT]
-                    [-W INT] [-H INT] [-N PLUGIN] [-o OUTPUT]
+                    [-A LOGGER_NAME] -b BASE_DIR [-o OUTPUT] [-R INT] [-G INT]
+                    [-B INT] [-W INT] [-H INT] [-N PLUGIN]
                     [--suppress_metadata]
 
 Generates images from the data. The type of image is determined by the
@@ -19,6 +19,11 @@ optional arguments:
                         The custom name to use for the logger (default: None)
   -b BASE_DIR, --base_dir BASE_DIR
                         The base directory for the data (default: None)
+  -o OUTPUT, --output OUTPUT
+                        The pattern for the output files; The following
+                        placeholders are available for the output pattern:
+                        {BASEDIR}, {SAMPLEID}, {REPEAT}, {REGION} (default:
+                        {BASEDIR}/{SAMPLEID}.{REPEAT}.png)
   -R INT, --red_channel INT
                         The wave length to use for the red channel (default:
                         0)
@@ -35,11 +40,6 @@ optional arguments:
   -N PLUGIN, --normalization PLUGIN
                         The normalization plugin and its options to use
                         (default: norm-simple)
-  -o OUTPUT, --output OUTPUT
-                        The pattern for the output files; The following
-                        placeholders are available for the output pattern:
-                        {BASEDIR}, {SAMPLEID}, {REPEAT}, {REGION} (default:
-                        {BASEDIR}/{SAMPLEID}.{REPEAT}.png)
   --suppress_metadata   Whether to suppress the output of the meta-data
                         (default: False)
 ```

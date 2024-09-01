@@ -20,11 +20,10 @@ optional arguments:
   -b BASE_DIR, --base_dir BASE_DIR
                         The base directory for the data (default: None)
   -o OUTPUT, --output OUTPUT
-                        The pattern for the output files; combines the
-                        repeats/regions if {REPEAT} not present in output
-                        pattern; The following placeholders are available for
-                        the output pattern: {BASEDIR}, {SAMPLEID}, {REPEAT},
-                        {REGION} (default: {BASEDIR}/{SAMPLEID}.{REPEAT}.csv)
+                        The pattern for the output files; The following
+                        placeholders are available for the output pattern:
+                        {BASEDIR}, {SAMPLEID}, {REPEAT}, {REGION} (default:
+                        {BASEDIR}/{SAMPLEID}.{REPEAT}.csv)
   -w WAVE_NUMBER_PREFIX, --wave_number_prefix WAVE_NUMBER_PREFIX
                         The prefix to use for the spectral columns (default:
                         wave-)

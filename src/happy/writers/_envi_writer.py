@@ -1,20 +1,13 @@
-import argparse
 import json
 import os
+
 import spectral.io.envi as envi
 
 from happy.data import HappyData
-from ._happydata_writer import HappyDataWriter, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, output_pattern_help
+from ._happydata_writer import HappyDataWriterWithOutputPattern, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
 
 
-DEFAULT_OUTPUT = PH_BASEDIR + "/" + PH_SAMPLEID + "." + PH_REPEAT + ".hdr"
-
-
-class EnviWriter(HappyDataWriter):
-
-    def __init__(self, base_dir=None):
-        super().__init__(base_dir=base_dir)
-        self._output = DEFAULT_OUTPUT
+class EnviWriter(HappyDataWriterWithOutputPattern):
 
     def name(self) -> str:
         return "envi-writer"
@@ -22,14 +15,8 @@ class EnviWriter(HappyDataWriter):
     def description(self) -> str:
         return "Exports the data in ENVI format and the meta-data as JSON alongside."
 
-    def _create_argparser(self) -> argparse.ArgumentParser:
-        parser = super()._create_argparser()
-        parser.add_argument("-o", "--output", type=str, help="The pattern for the output files; " + output_pattern_help(), default=DEFAULT_OUTPUT, required=False)
-        return parser
-
-    def _apply_args(self, ns: argparse.Namespace):
-        super()._apply_args(ns)
-        self._output = ns.output
+    def _get_default_output(self):
+        return PH_BASEDIR + "/" + PH_SAMPLEID + "." + PH_REPEAT + ".hdr"
 
     def _write_item(self, happy_data, datatype_mapping=None):
         sample_id = happy_data.sample_id
