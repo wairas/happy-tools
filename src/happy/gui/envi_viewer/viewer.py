@@ -1670,6 +1670,8 @@ class ViewerApp:
 
     def on_image_drag(self, event=None):
         # started drag?
+        if self.annotation_mode != ANNOTATION_MODE_PIXELS:
+            return
         if self.drag_start is None:
             self.drag_start = datetime.now()
         state = remove_modifiers(event.state)
