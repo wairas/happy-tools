@@ -26,6 +26,15 @@ class ImageWriter(HappyDataWriter):
     def description(self) -> str:
         return "Generates images from the data. The type of image is determined by the extension of the output files pattern."
 
+    def update_extension(self, ext: str):
+        """
+        Uses the new image extension, e.g., .png or .jpg.
+
+        :param ext: the extension to use (incl dot).
+        :type ext: str
+        """
+        self._output = os.path.splitext(self._output)[0] + ext
+
     def _get_default_output(self):
         return PH_BASEDIR + "/" + PH_SAMPLEID + "." + PH_REPEAT + ".png"
 
