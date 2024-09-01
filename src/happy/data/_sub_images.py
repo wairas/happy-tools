@@ -1,7 +1,7 @@
 import os
 import traceback
 from happy.data import HappyData, DataManager
-from happy.writers import EnviWriter, HappyWriter, PNGWriter
+from happy.writers import EnviWriter, HappyWriter, ImageWriter, CSVWriter
 from typing import Optional, Tuple
 
 
@@ -19,7 +19,7 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
     :type label_regexp: str or None
     :param raw: whether to export the raw images or the normalized ones
     :type raw: bool
-    :param output_format: the file format to use (envi|happy|png)
+    :param output_format: the file format to use (envi|happy|png|jpg|csv)
     :param output_format: str
     :param rgb: the RGB tuple of integers
     :type rgb: tuple
@@ -89,9 +89,17 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
             elif output_format == "happy":
                 writer = HappyWriter(base_dir=path)
             elif output_format == "png":
-                writer = PNGWriter(base_dir=path)
+                writer = ImageWriter(base_dir=path)
                 writer.rgb(rgb)
+                writer.update_extension(".png")
                 writer.normalization(datamanager.normalization_cmdline)
+            elif output_format == "jpg":
+                writer = ImageWriter(base_dir=path)
+                writer.rgb(rgb)
+                writer.update_extension(".jpg")
+                writer.normalization(datamanager.normalization_cmdline)
+            elif output_format == "csv":
+                writer = CSVWriter(base_dir=path)
             else:
                 raise Exception("Unsupported output format: %s" % output_format)
             writer.logging_level = "INFO"

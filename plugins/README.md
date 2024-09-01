@@ -48,6 +48,7 @@
 * [wavelength-subset](wavelength-subset.md)
 
 ## HAPPY data writers
+* [csv-writer](csv-writer.md)
 * [envi-writer](envi-writer.md)
 * [happy-writer](happy-writer.md)
 * [image-writer](image-writer.md)

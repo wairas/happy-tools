@@ -77,7 +77,7 @@
         </child>
         <child>
           <object class="ttk.Combobox" id="combobox_output_format" named="True">
-            <property name="values">envi happy png</property>
+            <property name="values">envi happy png jpg csv</property>
             <layout manager="grid">
               <property name="column">1</property>
               <property name="padx">10</property>

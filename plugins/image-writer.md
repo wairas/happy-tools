@@ -38,7 +38,7 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         The pattern for the output files; The following
                         placeholders are available for the output pattern:
-                        {BASEDIR}, {SAMPLEID}, {REPEAT} (default:
+                        {BASEDIR}, {SAMPLEID}, {REPEAT}, {REGION} (default:
                         {BASEDIR}/{SAMPLEID}.{REPEAT}.png)
   --suppress_metadata   Whether to suppress the output of the meta-data
                         (default: False)
