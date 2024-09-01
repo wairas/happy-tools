@@ -1,12 +1,13 @@
 import os
 import traceback
 from happy.data import HappyData, DataManager
-from happy.writers import EnviWriter, HappyWriter, ImageWriter, CSVWriter
+from happy.writers import EnviWriter, HappyWriter, HappyDataWriterWithOutputPattern, ImageWriter, CSVWriter
 from typing import Optional, Tuple
 
 
 def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optional[str], raw: bool,
-                      output_format: str = "happy", rgb: Tuple[int, int, int] = None) -> Optional[str]:
+                      output_format: str = "happy", output_pattern: str = None,
+                      rgb: Tuple[int, int, int] = None) -> Optional[str]:
     """
     Exports the sub-images defined in the contours as ENVI files.
     Stores them in the specified directory with the specified prefix (and the label as suffix).
@@ -21,6 +22,8 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
     :type raw: bool
     :param output_format: the file format to use (envi|happy|png|jpg|csv)
     :param output_format: str
+    :param output_pattern: the optional pattern for generating the output
+    :type output_pattern: str or None
     :param rgb: the RGB tuple of integers
     :type rgb: tuple
     :return: None if successful, otherwise error message
@@ -49,6 +52,7 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
         contours = [x.to_absolute(dims[0], dims[1]) for x in matches]
 
     for i, contour in enumerate(contours, start=1):
+        datamanager.log("Exporting %d: %s" % (i, str(contour.label)))
         try:
             bbox = contour.bbox()
             data = datamanager.scan_data
@@ -103,6 +107,11 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
             else:
                 raise Exception("Unsupported output format: %s" % output_format)
             writer.logging_level = "INFO"
+            if (output_pattern is not None) and (len(output_pattern) > 0):
+                if isinstance(writer, HappyDataWriterWithOutputPattern):
+                    writer.update_output(output_pattern)
+                else:
+                    datamanager.log("Output format '%s' does not support a custom output pattern, ignored!" % output_format)
             writer.write_data(happy_data)
         except:
             result = "Failed to export sub-image #%d to: %s\n%s" % (i, path, traceback.format_exc())

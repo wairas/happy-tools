@@ -35,7 +35,7 @@ from happy.gui.envi_viewer import ANNOTATION_MODES, ANNOTATION_MODE_POLYGONS, AN
 from happy.gui.envi_viewer.annotations import AnnotationsDialog
 from happy.gui.envi_viewer.image import ImageDialog
 from happy.gui.envi_viewer.sub_images import show_sub_images_dialog, KEY_OUTPUT_DIR, KEY_LABEL_REGEXP, \
-    KEY_OUTPUT_FORMAT, KEY_RAW_SPECTRA
+    KEY_OUTPUT_FORMAT, KEY_RAW_SPECTRA, KEY_OUTPUT_PATTERN
 from happy.gui import UndoManager, remove_modifiers, show_busy_cursor, show_normal_cursor
 from opex import ObjectPredictions
 
@@ -1505,6 +1505,7 @@ class ViewerApp:
             KEY_LABEL_REGEXP: self.session.export_sub_images_label_regexp,
             KEY_OUTPUT_FORMAT: self.session.export_sub_images_output_format,
             KEY_RAW_SPECTRA: self.session.export_sub_images_raw,
+            KEY_OUTPUT_PATTERN: self.session.export_sub_images_output_pattern,
         }
         params = show_sub_images_dialog(self.mainwindow, params)
         if params is None:
@@ -1513,11 +1514,12 @@ class ViewerApp:
         self.session.export_sub_images_label_regexp = params[KEY_LABEL_REGEXP]
         self.session.export_sub_images_output_format = params[KEY_OUTPUT_FORMAT]
         self.session.export_sub_images_raw = params[KEY_RAW_SPECTRA]
+        self.session.export_sub_images_output_pattern = params[KEY_OUTPUT_PATTERN]
 
         # export sub-images
         rgb = (int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
         msg = export_sub_images(self.data, params[KEY_OUTPUT_DIR], params[KEY_LABEL_REGEXP], params[KEY_RAW_SPECTRA],
-                                output_format=params[KEY_OUTPUT_FORMAT], rgb=rgb)
+                                output_format=params[KEY_OUTPUT_FORMAT], output_pattern=params[KEY_OUTPUT_PATTERN], rgb=rgb)
         if msg is not None:
             messagebox.showerror("Error", "Failed to export sub-images to %s:\n%s" % (str(params[KEY_OUTPUT_DIR]), msg))
         else:

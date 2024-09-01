@@ -40,6 +40,7 @@ PROPERTIES = [
     "export_sub_images_label_regexp",
     "export_sub_images_output_format",
     "export_sub_images_raw",
+    "export_sub_images_output_pattern",
     "zoom",
     "normalization",
     "annotation_mode",
@@ -100,6 +101,7 @@ class SessionManager(AbstractSessionManager):
         self.export_sub_images_label_regexp = None
         self.export_sub_images_output_format = None
         self.export_sub_images_raw = False
+        self.export_sub_images_output_pattern = None
         self.zoom = -1
         self.normalization = ""
         self.annotation_mode = ANNOTATION_MODE_POLYGONS

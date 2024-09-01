@@ -112,12 +112,36 @@
           </object>
         </child>
         <child>
+          <object class="ttk.Label" id="label_output_pattern" named="True">
+            <property name="text" translatable="yes">Custom output pattern</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="padx">10</property>
+              <property name="pady">10</property>
+              <property name="row">5</property>
+              <property name="sticky">ew</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Entry" id="entry_output_pattern" named="True">
+            <property name="textvariable">string:state_output_pattern</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="padx">10</property>
+              <property name="pady">10</property>
+              <property name="row">5</property>
+              <property name="sticky">ew</property>
+            </layout>
+          </object>
+        </child>
+        <child>
           <object class="ttk.Frame" id="frame2">
             <property name="height">200</property>
             <property name="width">200</property>
             <layout manager="grid">
               <property name="column">1</property>
-              <property name="row">5</property>
+              <property name="row">6</property>
               <property name="sticky">e</property>
             </layout>
             <child>
