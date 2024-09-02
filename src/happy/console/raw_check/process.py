@@ -9,6 +9,7 @@ import traceback
 
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
+from happy.data.annotations import MASK_PREFIX
 from opex import ObjectPredictions
 from PIL import Image
 from tabulate import tabulate
@@ -18,17 +19,21 @@ PROG = "happy-raw-check"
 
 RESULT_FIELD_DIR = "dir"
 RESULT_FIELD_SAMPLE_ID = "sample_id"
-RESULT_FIELD_ANNOTATIONS = "annotations"
+RESULT_FIELD_POLYGON_ANNOTATIONS = "polygon-annotations"
+RESULT_FIELD_PIXEL_ANNOTATIONS = "pixel-annotations"
 RESULT_FIELD_SCREENSHOT = "screenshot"
 RESULT_FIELD_DARKREF = "darkref"
-RESULT_FIELD_LABELS = "labels"
+RESULT_FIELD_POLYGON_LABELS = "polygon-labels"
+RESULT_FIELD_PIXEL_LABELS = "pixel-labels"
 RESULT_FIELDS = [
     RESULT_FIELD_DIR,
     RESULT_FIELD_SAMPLE_ID,
-    RESULT_FIELD_ANNOTATIONS,
+    RESULT_FIELD_POLYGON_ANNOTATIONS,
+    RESULT_FIELD_PIXEL_ANNOTATIONS,
     RESULT_FIELD_SCREENSHOT,
     RESULT_FIELD_DARKREF,
-    RESULT_FIELD_LABELS,
+    RESULT_FIELD_POLYGON_LABELS,
+    RESULT_FIELD_PIXEL_LABELS,
 ]
 
 
@@ -104,10 +109,12 @@ def check_dir(path):
     result = {
         RESULT_FIELD_DIR: path,
         RESULT_FIELD_SAMPLE_ID: False,
-        RESULT_FIELD_ANNOTATIONS: False,
+        RESULT_FIELD_POLYGON_ANNOTATIONS: False,
+        RESULT_FIELD_PIXEL_ANNOTATIONS: False,
         RESULT_FIELD_SCREENSHOT: False,
         RESULT_FIELD_DARKREF: False,
-        RESULT_FIELD_LABELS: list(),
+        RESULT_FIELD_POLYGON_LABELS: list(),
+        RESULT_FIELD_PIXEL_LABELS: list(),
     }
 
     # sample ID
@@ -115,21 +122,34 @@ def check_dir(path):
     if sample_id is not None:
         result[RESULT_FIELD_SAMPLE_ID] = True
 
-        # annotations
+        # polygon annotations
         f = os.path.join(path, sample_id + ".json")
         if os.path.exists(f):
             try:
                 preds = ObjectPredictions.load_json_from_file(f)
-                result[RESULT_FIELD_ANNOTATIONS] = True
+                result[RESULT_FIELD_POLYGON_ANNOTATIONS] = True
                 labels = set()
                 for obj in preds.objects:
                     if " " in obj.label:
                         labels.add("'%s'" % obj.label)
                     else:
                         labels.add(obj.label)
-                result[RESULT_FIELD_LABELS] = sorted(list(labels))
+                result[RESULT_FIELD_POLYGON_LABELS] = sorted(list(labels))
             except:
                 pass
+
+        # pixel annotations
+        f = os.path.join(path, MASK_PREFIX + sample_id + ".hdr")
+        if os.path.exists(f):
+            result[RESULT_FIELD_PIXEL_ANNOTATIONS] = True
+            f = os.path.join(path, MASK_PREFIX + sample_id + ".json")
+            if os.path.exists(f):
+                try:
+                    with open(f, "r") as fp:
+                        label_map = json.load(fp)
+                    result[RESULT_FIELD_PIXEL_LABELS] = sorted(label_map.values())
+                except:
+                    pass
 
         # screenshot
         f = os.path.join(path, sample_id + ".png")
@@ -177,7 +197,9 @@ def output_results(results, output=None, output_format=OUTPUT_FORMAT_TEXT, retur
         for result in results:
             row = []
             for field in RESULT_FIELDS:
-                if field == RESULT_FIELD_LABELS:
+                if field == RESULT_FIELD_POLYGON_LABELS:
+                    row.append("|".join(result[field]))
+                elif field == RESULT_FIELD_PIXEL_LABELS:
                     row.append("|".join(result[field]))
                 else:
                     row.append(result[field])
@@ -201,7 +223,7 @@ def output_results(results, output=None, output_format=OUTPUT_FORMAT_TEXT, retur
             lines.append(result[RESULT_FIELD_DIR])
             for field in RESULT_FIELDS:
                 if field != RESULT_FIELD_DIR:
-                    if field == RESULT_FIELD_LABELS:
+                    if field == RESULT_FIELD_POLYGON_LABELS:
                         value = "|".join(result[field])
                     else:
                         value = str(result[field])
