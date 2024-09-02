@@ -910,13 +910,12 @@ class ViewerApp:
             items = self.get_predefined_labels()
             if items is not None:
                 label = "" if (len(labels) != 1) else list(labels)[0]
-                # if label not in items:
-                #     label = ""
                 new_label = asklist(
                     title="Object label",
                     prompt=text,
                     items=items,
                     initialvalue=label,
+                    strict=False,
                     parent=self.mainwindow)
             else:
                 new_label = ttkSimpleDialog.askstring(
