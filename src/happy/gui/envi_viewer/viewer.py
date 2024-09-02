@@ -1482,7 +1482,7 @@ class ViewerApp:
 
         if self.session.export_enforce_mask_prefix:
             if not os.path.basename(filename).startswith(MASK_PREFIX):
-                messagebox.showerror("Error", "Please pixel annotations filename must start with %s!" % MASK_PREFIX)
+                messagebox.showerror("Error", "Pixel annotations filename must start with %s!" % MASK_PREFIX)
                 return
 
         if self.data.pixels.save_envi(filename):
