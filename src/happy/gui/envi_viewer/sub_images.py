@@ -4,8 +4,8 @@ import pygubu
 import re
 from tkinter import messagebox
 from typing import Optional, Dict
-from happy.gui import ToolTip
-from happy.writers import output_pattern_help
+from happy.gui import ToolTip, URL_PLUGINS
+from happy.writers import HappyDataWriter
 
 
 PROJECT_PATH = pathlib.Path(__file__).parent
@@ -13,9 +13,8 @@ PROJECT_UI = PROJECT_PATH / "sub_images.ui"
 
 KEY_OUTPUT_DIR = "output_dir"
 KEY_LABEL_REGEXP = "label_regexp"
-KEY_OUTPUT_FORMAT = "output_format"
 KEY_RAW_SPECTRA = "raw_spectra"
-KEY_OUTPUT_PATTERN = "output_pattern"
+KEY_WRITER = "writer"
 
 
 class SubImagesDialog:
@@ -37,19 +36,18 @@ class SubImagesDialog:
         # other widgets
         self.pathchooser_output_dir = builder.get_object("pathchooser_output_dir", self.dialog_sub_images)
         self.entry_regexp = builder.get_object("entry_regexp", self.dialog_sub_images)
-        self.entry_output_pattern = builder.get_object("entry_output_pattern", self.dialog_sub_images)
-        self.combobox_output_format = builder.get_object("combobox_output_format", self.dialog_sub_images)
+        self.entry_writer = builder.get_object("entry_writer", self.dialog_sub_images)
         self.button_ok = builder.get_object("button_ok", self.dialog_sub_images)
         self.button_cancel = builder.get_object("button_cancel", self.dialog_sub_images)
 
         # states
         self.state_entry_regexp = None
-        self.state_output_pattern = None
+        self.state_writer = None
         self.state_raw = None
         builder.import_variables(self)
 
         # tooltips
-        self.tooltip_output_pattner = ToolTip(self.entry_output_pattern, text=output_pattern_help(), wraplength=250)
+        self.entry_writer_tooltip = ToolTip(self.entry_writer, text="For more info on writers see:\n" + URL_PLUGINS, wraplength=500, waittime=500)
 
         # others
         self.accepted = None
@@ -66,8 +64,13 @@ class SubImagesDialog:
         if len(params[KEY_OUTPUT_DIR]) == 0:
             return "No output directory selected!"
 
-        if (params[KEY_OUTPUT_FORMAT] is None) or (len(params[KEY_OUTPUT_FORMAT]) == 0):
-            return "No output format selected!"
+        if (params[KEY_WRITER] is None) or (len(params[KEY_WRITER]) == 0):
+            return "No output writer defined!"
+        else:
+            try:
+                HappyDataWriter.parse_writer(params[KEY_WRITER])
+            except:
+                return "Invalid writer command-line!"
 
         if len(params[KEY_LABEL_REGEXP]) > 0:
             try:
@@ -87,9 +90,8 @@ class SubImagesDialog:
         return {
             KEY_OUTPUT_DIR: self.pathchooser_output_dir.cget("path"),
             KEY_LABEL_REGEXP: self.state_entry_regexp.get(),
-            KEY_OUTPUT_FORMAT: self.combobox_output_format.get(),
             KEY_RAW_SPECTRA: self.state_entry_regexp.get() == 1,
-            KEY_OUTPUT_PATTERN: self.state_output_pattern.get(),
+            KEY_WRITER: self.state_writer.get(),
         }
 
     @parameters.setter
@@ -108,18 +110,14 @@ class SubImagesDialog:
             self.state_entry_regexp.set(params[KEY_LABEL_REGEXP])
         else:
             self.entry_regexp.set("")
-        if (KEY_OUTPUT_FORMAT in params) and (params[KEY_OUTPUT_FORMAT] is not None):
-            self.combobox_output_format.set(params[KEY_OUTPUT_FORMAT])
-        else:
-            self.combobox_output_format.set("happy")
         if (KEY_RAW_SPECTRA in params) and (params[KEY_RAW_SPECTRA] is not None):
             self.state_raw.set(1 if params[KEY_RAW_SPECTRA] else 0)
         else:
             self.state_raw.set(0)
-        if (KEY_OUTPUT_PATTERN in params) and (params[KEY_OUTPUT_PATTERN] is not None):
-            self.state_output_pattern.set(params[KEY_OUTPUT_PATTERN])
+        if (KEY_WRITER in params) and (params[KEY_WRITER] is not None):
+            self.state_writer.set(params[KEY_WRITER])
         else:
-            self.state_output_pattern.set("")
+            self.state_writer.set("")
 
     def show(self, params: Optional[Dict]):
         """

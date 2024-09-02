@@ -64,37 +64,13 @@
           </object>
         </child>
         <child>
-          <object class="ttk.Label" id="label_output_format" named="True">
-            <property name="text" translatable="yes">Output format</property>
-            <layout manager="grid">
-              <property name="column">0</property>
-              <property name="padx">10</property>
-              <property name="pady">10</property>
-              <property name="row">2</property>
-              <property name="sticky">ew</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="ttk.Combobox" id="combobox_output_format" named="True">
-            <property name="values">envi happy png jpg csv</property>
-            <layout manager="grid">
-              <property name="column">1</property>
-              <property name="padx">10</property>
-              <property name="pady">10</property>
-              <property name="row">2</property>
-              <property name="sticky">ew</property>
-            </layout>
-          </object>
-        </child>
-        <child>
           <object class="ttk.Label" id="label_raw" named="True">
             <property name="text" translatable="yes">Use raw spectra</property>
             <layout manager="grid">
               <property name="column">0</property>
               <property name="padx">10</property>
               <property name="pady">10</property>
-              <property name="row">4</property>
+              <property name="row">2</property>
               <property name="sticky">ew</property>
             </layout>
           </object>
@@ -106,31 +82,31 @@
               <property name="column">1</property>
               <property name="padx">10</property>
               <property name="pady">10</property>
+              <property name="row">2</property>
+              <property name="sticky">ew</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="label_writer" named="True">
+            <property name="text" translatable="yes">Writer</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="padx">10</property>
+              <property name="pady">10</property>
               <property name="row">4</property>
               <property name="sticky">ew</property>
             </layout>
           </object>
         </child>
         <child>
-          <object class="ttk.Label" id="label_output_pattern" named="True">
-            <property name="text" translatable="yes">Custom output pattern</property>
-            <layout manager="grid">
-              <property name="column">0</property>
-              <property name="padx">10</property>
-              <property name="pady">10</property>
-              <property name="row">5</property>
-              <property name="sticky">ew</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object class="ttk.Entry" id="entry_output_pattern" named="True">
-            <property name="textvariable">string:state_output_pattern</property>
+          <object class="ttk.Entry" id="entry_writer" named="True">
+            <property name="textvariable">string:state_writer</property>
             <layout manager="grid">
               <property name="column">1</property>
               <property name="padx">10</property>
               <property name="pady">10</property>
-              <property name="row">5</property>
+              <property name="row">4</property>
               <property name="sticky">ew</property>
             </layout>
           </object>
@@ -141,7 +117,7 @@
             <property name="width">200</property>
             <layout manager="grid">
               <property name="column">1</property>
-              <property name="row">6</property>
+              <property name="row">5</property>
               <property name="sticky">e</property>
             </layout>
             <child>

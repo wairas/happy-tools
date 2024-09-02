@@ -1,13 +1,13 @@
 import os
 import traceback
-from happy.data import HappyData, DataManager
-from happy.writers import EnviWriter, HappyWriter, HappyDataWriterWithOutputPattern, ImageWriter, CSVWriter
 from typing import Optional, Tuple
+
+from happy.data import HappyData, DataManager
+from happy.writers import HappyDataWriter, HappyDataWriterWithNormalization, ImageWriter
 
 
 def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optional[str], raw: bool,
-                      output_format: str = "happy", output_pattern: str = None,
-                      rgb: Tuple[int, int, int] = None) -> Optional[str]:
+                      writer_cmdline: str = "happy-writer", rgb: Tuple[int, int, int] = None) -> Optional[str]:
     """
     Exports the sub-images defined in the contours as ENVI files.
     Stores them in the specified directory with the specified prefix (and the label as suffix).
@@ -20,10 +20,8 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
     :type label_regexp: str or None
     :param raw: whether to export the raw images or the normalized ones
     :type raw: bool
-    :param output_format: the file format to use (envi|happy|png|jpg|csv)
-    :param output_format: str
-    :param output_pattern: the optional pattern for generating the output
-    :type output_pattern: str or None
+    :param writer_cmdline: the happydata writer command-line to use
+    :param writer_cmdline: str
     :param rgb: the RGB tuple of integers
     :type rgb: tuple
     :return: None if successful, otherwise error message
@@ -53,6 +51,16 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
 
     for i, contour in enumerate(contours, start=1):
         datamanager.log("Exporting %d: %s" % (i, str(contour.label)))
+
+        # configure writer
+        try:
+            writer = HappyDataWriter.parse_writer(writer_cmdline)
+        except:
+            result = "Failed to parse writer command-line: %s" % writer_cmdline
+            datamanager.log(result)
+            return result
+
+        # extract sub-images and export them
         try:
             bbox = contour.bbox()
             data = datamanager.scan_data
@@ -93,30 +101,14 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
                 meta["wavenumbers"] = wavenumbers
             sub_data = data[bbox.top:bbox.bottom + 1, bbox.left:bbox.right + 1, :]
             happy_data = HappyData(sample_id, contour.label, sub_data, meta, dict(), wavenumbers=wavenumbers)
-            if output_format == "envi":
-                writer = EnviWriter(base_dir=path)
-            elif output_format == "happy":
-                writer = HappyWriter(base_dir=path)
-            elif output_format == "png":
-                writer = ImageWriter(base_dir=path)
-                writer.rgb(rgb)
-                writer.update_extension(".png")
+
+            # write sub-image
+            if isinstance(writer, HappyDataWriterWithNormalization):
                 writer.normalization(datamanager.normalization_cmdline)
-            elif output_format == "jpg":
-                writer = ImageWriter(base_dir=path)
+            if isinstance(writer, ImageWriter):
                 writer.rgb(rgb)
-                writer.update_extension(".jpg")
-                writer.normalization(datamanager.normalization_cmdline)
-            elif output_format == "csv":
-                writer = CSVWriter(base_dir=path)
-            else:
-                raise Exception("Unsupported output format: %s" % output_format)
+            writer.update_base_dir(path)
             writer.logging_level = "INFO"
-            if (output_pattern is not None) and (len(output_pattern) > 0):
-                if isinstance(writer, HappyDataWriterWithOutputPattern):
-                    writer.update_output(output_pattern)
-                else:
-                    datamanager.log("Output format '%s' does not support a custom output pattern, ignored!" % output_format)
             writer.write_data(happy_data)
         except:
             result = "Failed to export sub-image #%d to: %s\n%s" % (i, path, traceback.format_exc())

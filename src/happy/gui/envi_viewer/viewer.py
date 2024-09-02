@@ -35,7 +35,7 @@ from happy.gui.envi_viewer import ANNOTATION_MODES, ANNOTATION_MODE_POLYGONS, AN
 from happy.gui.envi_viewer.annotations import AnnotationsDialog
 from happy.gui.envi_viewer.image import ImageDialog
 from happy.gui.envi_viewer.sub_images import show_sub_images_dialog, KEY_OUTPUT_DIR, KEY_LABEL_REGEXP, \
-    KEY_OUTPUT_FORMAT, KEY_RAW_SPECTRA, KEY_OUTPUT_PATTERN
+    KEY_RAW_SPECTRA, KEY_WRITER
 from happy.gui import UndoManager, remove_modifiers, show_busy_cursor, show_normal_cursor
 from opex import ObjectPredictions
 
@@ -79,7 +79,7 @@ def perform_image_update(app, rgb):
 
 def perform_sub_images_export(app, params, rgb):
     msg = export_sub_images(app.data, params[KEY_OUTPUT_DIR], params[KEY_LABEL_REGEXP], params[KEY_RAW_SPECTRA],
-                            output_format=params[KEY_OUTPUT_FORMAT], output_pattern=params[KEY_OUTPUT_PATTERN], rgb=rgb)
+                            writer_cmdline=params[KEY_WRITER], rgb=rgb)
     app.mainwindow.after(100, app.sub_images_export_finished, params, msg)
 
 
@@ -1509,18 +1509,16 @@ class ViewerApp:
         params = {
             KEY_OUTPUT_DIR: self.session.export_sub_images_path,
             KEY_LABEL_REGEXP: self.session.export_sub_images_label_regexp,
-            KEY_OUTPUT_FORMAT: self.session.export_sub_images_output_format,
             KEY_RAW_SPECTRA: self.session.export_sub_images_raw,
-            KEY_OUTPUT_PATTERN: self.session.export_sub_images_output_pattern,
+            KEY_WRITER: self.session.export_sub_images_writer,
         }
         params = show_sub_images_dialog(self.mainwindow, params)
         if params is None:
             return
         self.session.export_sub_images_path = params[KEY_OUTPUT_DIR]
         self.session.export_sub_images_label_regexp = params[KEY_LABEL_REGEXP]
-        self.session.export_sub_images_output_format = params[KEY_OUTPUT_FORMAT]
         self.session.export_sub_images_raw = params[KEY_RAW_SPECTRA]
-        self.session.export_sub_images_output_pattern = params[KEY_OUTPUT_PATTERN]
+        self.session.export_sub_images_writer = params[KEY_WRITER]
 
         # export sub-images
         self.start_busy()
