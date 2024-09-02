@@ -205,7 +205,8 @@ class ViewerApp:
 
         # mouse events
         # https://tkinterexamples.com/events/mouse/
-        self.image_canvas.bind("<Button-1>", self.on_image_click)
+        self.image_canvas.bind("<Button-1>", self.on_image_left_click)
+        self.image_canvas.bind("<Button-3>", self.on_image_right_click)
         self.image_canvas.bind("<B1-Motion>", self.on_image_drag)
         self.label_r_value.bind("<Button-1>", self.on_label_r_click)
         self.label_g_value.bind("<Button-1>", self.on_label_g_click)
@@ -1628,7 +1629,7 @@ class ViewerApp:
     def on_window_resize(self, event):
         self.resize_image_canvas()
 
-    def on_image_click(self, event=None):
+    def on_image_left_click(self, event=None):
         state = remove_modifiers(event.state)
         if self.annotation_mode == ANNOTATION_MODE_POLYGONS:
             # no modifier -> add marker
@@ -1659,6 +1660,17 @@ class ViewerApp:
                 y = int(self.image_canvas.canvasy(event.y) / self.photo_scan.height() * self.data.scan_data.shape[0])
                 self.pixel_points.append((x, y))
                 self.draw_recorded_pixel_points(state, True)
+
+    def on_image_right_click(self, event=None):
+        state = remove_modifiers(event.state)
+        if self.annotation_mode == ANNOTATION_MODE_PIXELS:
+            # SHIFT
+            if state == 0x0001:
+                x = int(self.image_canvas.canvasx(event.x) / self.photo_scan.width() * self.data.scan_data.shape[1])
+                y = int(self.image_canvas.canvasy(event.y) / self.photo_scan.height() * self.data.scan_data.shape[0])
+                self.undo_manager.add_undo("Filling pixels at %d,%d" % (x, y), self.get_undo_state())
+                self.data.pixels.fill((x, y))
+                self.update_image()
 
     def draw_recorded_pixel_points(self, state, add_undo):
         """

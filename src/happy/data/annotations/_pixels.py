@@ -466,6 +466,19 @@ class PixelManager:
             self._draw_indexed.polygon(xy, fill=label, outline=label)
             self._draw_rgba.polygon(xy, fill=rgba, outline=rgba)
 
+    def fill(self, loc):
+        """
+        Performs floodfill at the specified loation.
+
+        :param loc: x/y tuple where to start the flood fill
+        :type loc: tuple
+        """
+        label = self.label
+        r, g, b = self.palette[self.label - 1]
+        rgba = (r, g, b, self.alpha)
+        ImageDraw.floodfill(self._image_indexed, loc, label, thresh=50)
+        ImageDraw.floodfill(self._image_rgba, loc, rgba, thresh=50)
+
     def to_overlay(self, width, height):
         """
         Generates an overlay image.
