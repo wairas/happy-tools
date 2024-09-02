@@ -19,6 +19,7 @@ PROG = "happy-raw-check"
 
 RESULT_FIELD_DIR = "dir"
 RESULT_FIELD_SAMPLE_ID = "sample_id"
+RESULT_FIELD_SCAN = "scan"
 RESULT_FIELD_POLYGON_ANNOTATIONS = "polygon-annotations"
 RESULT_FIELD_PIXEL_ANNOTATIONS = "pixel-annotations"
 RESULT_FIELD_SCREENSHOT = "screenshot"
@@ -28,6 +29,7 @@ RESULT_FIELD_PIXEL_LABELS = "pixel-labels"
 RESULT_FIELDS = [
     RESULT_FIELD_DIR,
     RESULT_FIELD_SAMPLE_ID,
+    RESULT_FIELD_SCAN,
     RESULT_FIELD_POLYGON_ANNOTATIONS,
     RESULT_FIELD_PIXEL_ANNOTATIONS,
     RESULT_FIELD_SCREENSHOT,
@@ -109,6 +111,7 @@ def check_dir(path):
     result = {
         RESULT_FIELD_DIR: path,
         RESULT_FIELD_SAMPLE_ID: False,
+        RESULT_FIELD_SCAN: False,
         RESULT_FIELD_POLYGON_ANNOTATIONS: False,
         RESULT_FIELD_PIXEL_ANNOTATIONS: False,
         RESULT_FIELD_SCREENSHOT: False,
@@ -121,6 +124,11 @@ def check_dir(path):
     sample_id = get_sample_id(path)
     if sample_id is not None:
         result[RESULT_FIELD_SAMPLE_ID] = True
+
+        # scan
+        f = os.path.join(path, sample_id + ".hdr")
+        if os.path.exists(f):
+            result[RESULT_FIELD_SCAN] = True
 
         # polygon annotations
         f = os.path.join(path, sample_id + ".json")
