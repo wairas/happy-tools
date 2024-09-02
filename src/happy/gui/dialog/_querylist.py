@@ -12,7 +12,7 @@ class QueryListDialog(Dialog):
     errormessage = "Not a list item."
 
     def __init__(self, title, prompt, items,
-                 initialvalue=None,
+                 initialvalue=None, strict=True,
                  parent=None):
         """
         Initializes the dialog.
@@ -29,12 +29,14 @@ class QueryListDialog(Dialog):
 
             initialvalue -- the initial value to select from the combobox
 
+            strict -- whether the initial value must be listed in the items
+
             parent -- the parent this dialog belongs to
         """
         if (items is None) or (len(items) == 0):
             raise ValueError("List of items cannot be None or empty!")
         if (items is not None) and (initialvalue is not None):
-            if initialvalue not in items:
+            if (initialvalue not in items) and strict:
                 raise ValueError("Couldn't find '%s' among list items '%s'!" % (initialvalue, "|".join(items)))
 
         if not parent:
