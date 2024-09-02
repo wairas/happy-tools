@@ -1,11 +1,9 @@
-import os
 import json
-from typing import Optional
-from seppl import split_args, split_cmdline, args_to_objects
-from happy.base.registry import REGISTRY
+import os
+
+from happy.data import HappyData
 from happy.writers.base import EnviWriter
 from ._happydata_writer import HappyDataWriter
-from happy.data import HappyData
 
 
 class HappyWriter(HappyDataWriter):
@@ -69,21 +67,3 @@ class HappyWriter(HappyDataWriter):
                 mapping_json_file = os.path.join(region_dir, f"{target_name}.json")
                 with open(mapping_json_file, 'w') as f:
                     json.dump(mapping, f)
-
-    @classmethod
-    def parse_writer(cls, cmdline: str) -> Optional['HappyDataWriter']:
-        """
-        Splits the command-line, parses the arguments, instantiates and returns the writer.
-
-        :param cmdline: the command-line to process
-        :type cmdline: str
-        :return: the writer, None if not exactly one selector parsed
-        :rtype: HappyDataWriter
-        """
-        plugins = REGISTRY.happydata_writers()
-        args = split_args(split_cmdline(cmdline), plugins.keys())
-        l = args_to_objects(args, plugins, allow_global_options=False)
-        if len(l) == 1:
-            return l[0]
-        else:
-            return None

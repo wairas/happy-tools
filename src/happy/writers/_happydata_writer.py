@@ -1,5 +1,8 @@
 import abc
 import argparse
+from typing import Optional
+from seppl import split_args, split_cmdline, args_to_objects
+from happy.base.registry import REGISTRY
 from happy.base.core import PluginWithLogging
 from happy.data import HappyData
 
@@ -77,6 +80,24 @@ class HappyDataWriter(PluginWithLogging, abc.ABC):
             raise ValueError(msg)
 
         self._write_data(happy_data_or_list, datatype_mapping=datatype_mapping)
+
+    @classmethod
+    def parse_writer(cls, cmdline: str) -> Optional['HappyDataWriter']:
+        """
+        Splits the command-line, parses the arguments, instantiates and returns the writer.
+
+        :param cmdline: the command-line to process
+        :type cmdline: str
+        :return: the writer, None if not exactly one selector parsed
+        :rtype: HappyDataWriter
+        """
+        plugins = REGISTRY.happydata_writers()
+        args = split_args(split_cmdline(cmdline), plugins.keys())
+        l = args_to_objects(args, plugins, allow_global_options=False)
+        if len(l) == 1:
+            return l[0]
+        else:
+            return None
 
 
 class HappyDataWriterWithOutputPattern(HappyDataWriter, abc.ABC):
