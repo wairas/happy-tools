@@ -7,3 +7,4 @@ from ._undo import UndoManager, UndoPoint
 URL_PROJECT = "https://hsi.eng.waikato.ac.nz/"
 URL_TOOLS = "https://github.com/wairas/happy-tools"
 URL_PLUGINS = "https://github.com/wairas/happy-tools/tree/main/plugins"
+URL_REGEXP_SEARCH = "https://docs.python.org/3/library/re.html#re.search"

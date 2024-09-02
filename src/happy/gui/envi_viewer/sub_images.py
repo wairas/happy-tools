@@ -4,7 +4,7 @@ import pygubu
 import re
 from tkinter import messagebox
 from typing import Optional, Dict
-from happy.gui import ToolTip, URL_PLUGINS
+from happy.gui import ToolTip, URL_PLUGINS, URL_REGEXP_SEARCH
 from happy.writers import HappyDataWriter
 
 
@@ -47,6 +47,7 @@ class SubImagesDialog:
         builder.import_variables(self)
 
         # tooltips
+        self.entry_regexp_tooltip = ToolTip(self.entry_regexp, text="Leave empty for matching all labels; for more info on regexps see:\n" + URL_REGEXP_SEARCH, wraplength=500, waittime=500)
         self.entry_writer_tooltip = ToolTip(self.entry_writer, text="For more info on writers see:\n" + URL_PLUGINS, wraplength=500, waittime=500)
 
         # others
