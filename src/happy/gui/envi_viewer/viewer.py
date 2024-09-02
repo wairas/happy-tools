@@ -30,6 +30,7 @@ from happy.data import DataManager, export_sub_images
 from happy.data.annotations import Contour, BRUSH_SHAPES, tableau_colors, MASK_PREFIX
 from happy.gui import ToolTip, URL_PROJECT, URL_TOOLS, URL_PLUGINS
 from happy.gui.dialog import asklist
+from happy.gui.dialog.text_dialog import show_text_dialog
 from happy.gui.envi_viewer import SamManager, SessionManager, PROPERTIES
 from happy.gui.envi_viewer import ANNOTATION_MODES, ANNOTATION_MODE_POLYGONS, ANNOTATION_MODE_PIXELS, generate_color_key
 from happy.gui.envi_viewer.annotations import AnnotationsDialog
@@ -1847,7 +1848,7 @@ class ViewerApp:
         for k in d:
             s += "%s:\n  %s\n" % (k, d[k])
         self.log("Meta-data:\n%s" % self.data.metadata.to_json())
-        messagebox.showinfo("Meta-data", "Current meta-data:\n\n%s" % s)
+        show_text_dialog(self.mainwindow, "Current meta-data:\n\n%s" % s)
 
     def on_markers_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing markers", self.get_undo_state())
