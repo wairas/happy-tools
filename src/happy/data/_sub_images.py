@@ -71,12 +71,15 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
                 meta["rgb"] = rgb
             if datamanager.preprocessors_cmdline is not None:
                 meta["preprocessors"] = datamanager.preprocessors_cmdline
+            wavenumbers = datamanager.get_wavelengths_list()
             if not raw:
                 if datamanager.norm_data is None:
                     raw = True
+                    wavenumbers = datamanager.get_wavelengths_list()
                     datamanager.log("No normalized data available, using raw instead!")
                 else:
                     data = datamanager.norm_data
+                    wavenumbers = datamanager.get_wavelengths_norm_list()
                     meta["raw"] = False
                     if datamanager.has_blackref():
                         meta["blackref_locator"] = datamanager.blackref_locator_cmdline
@@ -86,8 +89,10 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
                         meta["whiteref_locator"] = datamanager.whiteref_locator_cmdline
                         meta["whiteref_method"] = datamanager.whiteref_method_cmdline
                         meta["whiteref_file"] = datamanager.whiteref_file
+            if wavenumbers is not None:
+                meta["wavenumbers"] = wavenumbers
             sub_data = data[bbox.top:bbox.bottom + 1, bbox.left:bbox.right + 1, :]
-            happy_data = HappyData(sample_id, contour.label, sub_data, meta, dict())
+            happy_data = HappyData(sample_id, contour.label, sub_data, meta, dict(), wavenumbers=wavenumbers)
             if output_format == "envi":
                 writer = EnviWriter(base_dir=path)
             elif output_format == "happy":
