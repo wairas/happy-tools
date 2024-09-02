@@ -1,9 +1,11 @@
 import abc
 import argparse
+from seppl import split_args, split_cmdline, args_to_objects
 from happy.base.core import PluginWithLogging
 from happy.data import HappyData
+from happy.base.registry import REGISTRY
 
-from typing import List
+from typing import List, Optional
 
 
 class HappyDataReader(PluginWithLogging, abc.ABC):
@@ -59,3 +61,21 @@ class HappyDataReader(PluginWithLogging, abc.ABC):
         if not self._initialized:
             self._initialize()
         return self._load_region(sample_id, region_name)
+
+    @classmethod
+    def parse_reader(cls, cmdline: str) -> Optional['HappyDataReader']:
+        """
+        Splits the command-line, parses the arguments, instantiates and returns the reader.
+
+        :param cmdline: the command-line to process
+        :type cmdline: str
+        :return: the reader, None if not exactly one selector parsed
+        :rtype: HappyDataReader
+        """
+        plugins = REGISTRY.happydata_readers()
+        args = split_args(split_cmdline(cmdline), plugins.keys())
+        l = args_to_objects(args, plugins, allow_global_options=False)
+        if len(l) == 1:
+            return l[0]
+        else:
+            return None
