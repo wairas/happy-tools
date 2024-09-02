@@ -77,6 +77,12 @@ def perform_image_update(app, rgb):
     app.mainwindow.after(50, app.display_updated_image, success)
 
 
+def perform_sub_images_export(app, params, rgb):
+    msg = export_sub_images(app.data, params[KEY_OUTPUT_DIR], params[KEY_LABEL_REGEXP], params[KEY_RAW_SPECTRA],
+                            output_format=params[KEY_OUTPUT_FORMAT], output_pattern=params[KEY_OUTPUT_PATTERN], rgb=rgb)
+    app.mainwindow.after(100, app.sub_images_export_finished, params, msg)
+
+
 class ViewerApp:
     def __init__(self, master=None):
         self.builder = builder = pygubu.Builder()
@@ -1517,9 +1523,21 @@ class ViewerApp:
         self.session.export_sub_images_output_pattern = params[KEY_OUTPUT_PATTERN]
 
         # export sub-images
+        self.start_busy()
         rgb = (int(self.red_scale.get()), int(self.green_scale.get()), int(self.blue_scale.get()))
-        msg = export_sub_images(self.data, params[KEY_OUTPUT_DIR], params[KEY_LABEL_REGEXP], params[KEY_RAW_SPECTRA],
-                                output_format=params[KEY_OUTPUT_FORMAT], output_pattern=params[KEY_OUTPUT_PATTERN], rgb=rgb)
+        thread = Thread(target=perform_sub_images_export, args=(self, params, rgb))
+        thread.start()
+
+    def sub_images_export_finished(self, params, msg):
+        """
+        Gets called after the export has finished.
+
+        :param params: the parameters used in the export
+        :type params: dict
+        :param msg: the error message, None if successful
+        :type msg: str or None
+        """
+        self.stop_busy()
         if msg is not None:
             messagebox.showerror("Error", "Failed to export sub-images to %s:\n%s" % (str(params[KEY_OUTPUT_DIR]), msg))
         else:
