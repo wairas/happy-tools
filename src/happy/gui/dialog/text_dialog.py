@@ -39,13 +39,17 @@ class TextDialog:
         self.dialog_text.destroy()
 
 
-def show_text_dialog(parent, content: Optional[str]):
+def show_text_dialog(parent, content: Optional[str], title: str = None):
     """
     Shows a text dialog with the content.
 
     :param parent: the parent window
     :param content: the text content to display, can be None
     :type content: str or None
+    :param title: the optional title for the dialog
+    :type title: str
     """
     dlg = TextDialog(parent)
+    if title is not None:
+        dlg.dialog_text.toplevel.title(title)
     dlg.show(content)
