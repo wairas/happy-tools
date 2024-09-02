@@ -12,7 +12,7 @@ DEFAULT_ENVI_EXT = ".hdr"
 
 class EnviHappyDataReader(HappyDataReader):
 
-    def __init__(self, base_dir: str = None, extension: str = DEFAULT_ENVI_EXT, exclude: Optional[List[str]] = None):
+    def __init__(self, base_dir: str = ".", extension: str = DEFAULT_ENVI_EXT, exclude: Optional[List[str]] = None):
         super().__init__(base_dir=base_dir)
         self.extension = extension
         self.exclude = exclude

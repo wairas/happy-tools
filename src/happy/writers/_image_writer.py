@@ -5,12 +5,12 @@ from typing import Tuple, Optional
 
 from happy.data import HappyData, DataManager
 from happy.data.normalization import SimpleNormalization
-from ._happydata_writer import HappyDataWriterWithOutputPattern, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
+from ._happydata_writer import HappyDataWriterWithOutputPattern, HappyDataWriterWithNormalization, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
 
 
-class ImageWriter(HappyDataWriterWithOutputPattern):
+class ImageWriter(HappyDataWriterWithOutputPattern, HappyDataWriterWithNormalization):
 
-    def __init__(self, base_dir=None):
+    def __init__(self, base_dir: str = "."):
         super().__init__(base_dir=base_dir)
         self._width = 0
         self._height = 0

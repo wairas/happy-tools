@@ -4,9 +4,6 @@ from ._image_writer import ImageWriter
 
 class PNGWriter(ImageWriter):
 
-    def __init__(self, base_dir=None):
-        super().__init__(base_dir=base_dir)
-
     def name(self) -> str:
         return "png-writer"
 

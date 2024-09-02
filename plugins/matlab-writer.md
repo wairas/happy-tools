@@ -4,7 +4,7 @@ Writes data in HAPPy's Matlab format. 'normcube': spectral data, 'lambda': wave 
 
 ```
 usage: matlab-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                     [-A LOGGER_NAME] -b BASE_DIR [-o OUTPUT]
+                     [-A LOGGER_NAME] [-b BASE_DIR] [-o OUTPUT]
 
 Writes data in HAPPy's Matlab format. 'normcube': spectral data, 'lambda':
 wave numbers, 'FinalMask': the pixel annotation mask, 'FinalMaskLabels': the
@@ -17,7 +17,7 @@ optional arguments:
   -A LOGGER_NAME, --logger_name LOGGER_NAME
                         The custom name to use for the logger (default: None)
   -b BASE_DIR, --base_dir BASE_DIR
-                        The base directory for the data (default: None)
+                        The base directory for the data (default: .)
   -o OUTPUT, --output OUTPUT
                         The pattern for the output files; The following
                         placeholders are available for the output pattern:

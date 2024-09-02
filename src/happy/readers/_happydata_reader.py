@@ -10,14 +10,14 @@ from typing import List, Optional
 
 class HappyDataReader(PluginWithLogging, abc.ABC):
 
-    def __init__(self, base_dir: str = None):
+    def __init__(self, base_dir: str = "."):
         super().__init__()
         self.base_dir = base_dir
         self._initialized = False
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-b", "--base_dir", type=str, help="The base directory for the data", required=True)
+        parser.add_argument("-b", "--base_dir", type=str, help="The base directory for the data", required=False, default=".")
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):

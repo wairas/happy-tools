@@ -4,7 +4,7 @@ Writes data in HAPPy format.
 
 ```
 usage: happy-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                    [-A LOGGER_NAME] -b BASE_DIR
+                    [-A LOGGER_NAME] [-b BASE_DIR]
 
 Writes data in HAPPy format.
 
@@ -15,5 +15,5 @@ optional arguments:
   -A LOGGER_NAME, --logger_name LOGGER_NAME
                         The custom name to use for the logger (default: None)
   -b BASE_DIR, --base_dir BASE_DIR
-                        The base directory for the data (default: None)
+                        The base directory for the data (default: .)
 ```

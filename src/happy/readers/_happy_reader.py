@@ -27,7 +27,7 @@ ENVI_DTYPE_TO_NUMPY = {
 
 class HappyReader(HappyDataReader):
 
-    def __init__(self, base_dir: str = None, restrict_metadata: Optional[List] = None,
+    def __init__(self, base_dir: str = ".", restrict_metadata: Optional[List] = None,
                  wavelength_override: Optional[List[float]] = None, wavelength_override_file: str = None):
         super().__init__(base_dir=base_dir)
         self.restrict_metadata = restrict_metadata

@@ -11,7 +11,7 @@ from ._happydata_reader import HappyDataReader
 
 class MatlabReader(HappyDataReader):
 
-    def __init__(self, base_dir: str = None):
+    def __init__(self, base_dir: str = "."):
         super().__init__(base_dir=base_dir)
 
     def name(self) -> str:

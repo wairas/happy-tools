@@ -4,8 +4,8 @@ Generates images from the data. The type of image is determined by the extension
 
 ```
 usage: image-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                    [-A LOGGER_NAME] -b BASE_DIR [-o OUTPUT] [-R INT] [-G INT]
-                    [-B INT] [-W INT] [-H INT] [-N PLUGIN]
+                    [-A LOGGER_NAME] [-b BASE_DIR] [-o OUTPUT] [-R INT]
+                    [-G INT] [-B INT] [-W INT] [-H INT] [-N PLUGIN]
                     [--suppress_metadata]
 
 Generates images from the data. The type of image is determined by the
@@ -18,7 +18,7 @@ optional arguments:
   -A LOGGER_NAME, --logger_name LOGGER_NAME
                         The custom name to use for the logger (default: None)
   -b BASE_DIR, --base_dir BASE_DIR
-                        The base directory for the data (default: None)
+                        The base directory for the data (default: .)
   -o OUTPUT, --output OUTPUT
                         The pattern for the output files; The following
                         placeholders are available for the output pattern:

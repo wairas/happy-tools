@@ -13,10 +13,10 @@ DEFAULT_WAVE_NUMBER_PREFIX = "wave-"
 
 class CSVWriter(HappyDataWriterWithOutputPattern):
 
-    def __init__(self, base_dir=None):
+    def __init__(self, base_dir: str = "."):
         super().__init__(base_dir=base_dir)
         self._wave_number_prefix = DEFAULT_WAVE_NUMBER_PREFIX
-        self._output_wave_index = False
+        self._output_wave_number_index = False
         self._suppress_metadata = False
         self._combine_repeats = False
 
@@ -41,7 +41,7 @@ class CSVWriter(HappyDataWriterWithOutputPattern):
     def _apply_args(self, ns: argparse.Namespace):
         super()._apply_args(ns)
         self._wave_number_prefix = ns.wave_number_prefix
-        self._output_wave_index = ns.output_wave_index
+        self._output_wave_number_index = ns.output_wave_number_index
         self._suppress_metadata = ns.suppress_metadata
 
     def _initialize(self):
@@ -81,7 +81,7 @@ class CSVWriter(HappyDataWriterWithOutputPattern):
                 elif PH_REPEAT in self._output:
                     row.append("repeat_id")
                 row.extend(["x", "y"])
-                if (happy_data.wavenumbers is None) or self._output_wave_index:
+                if (happy_data.wavenumbers is None) or self._output_wave_number_index:
                     row.extend([self._wave_number_prefix + str(x) for x in range(bands)])
                 else:
                     row.extend([self._wave_number_prefix + str(x) for x in happy_data.wavenumbers])

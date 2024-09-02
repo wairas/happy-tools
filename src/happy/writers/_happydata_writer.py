@@ -32,14 +32,14 @@ def output_pattern_help():
 
 class HappyDataWriter(PluginWithLogging, abc.ABC):
 
-    def __init__(self, base_dir=None):
+    def __init__(self, base_dir: str = "."):
         super().__init__()
         self.base_dir = base_dir
         self._initialized = False
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-b", "--base_dir", type=str, help="The base directory for the data", required=True)
+        parser.add_argument("-b", "--base_dir", type=str, help="The base directory for the data", required=False, default=".")
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):
@@ -105,7 +105,7 @@ class HappyDataWriterWithOutputPattern(HappyDataWriter, abc.ABC):
     Writers that support custom output patterns.
     """
 
-    def __init__(self, base_dir=None):
+    def __init__(self, base_dir: str = "."):
         super().__init__(base_dir=base_dir)
         self._output = self._get_default_output()
 
@@ -139,3 +139,18 @@ class HappyDataWriterWithOutputPattern(HappyDataWriter, abc.ABC):
         :type output: str
         """
         self._output = output
+
+
+class HappyDataWriterWithNormalization:
+    """
+    Mixing for writers that support normalization.
+    """
+
+    def normalization(self, norm: Optional[str]):
+        """
+        Sets the normalization method to use.
+
+        :param norm: the commandline of the normalization plugin
+        :type norm: str or None
+        """
+        raise NotImplementedError()
