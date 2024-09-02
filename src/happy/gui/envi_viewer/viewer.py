@@ -1848,7 +1848,7 @@ class ViewerApp:
         for k in d:
             s += "%s:\n  %s\n" % (k, d[k])
         self.log("Meta-data:\n%s" % self.data.metadata.to_json())
-        show_text_dialog(self.mainwindow, "Current meta-data:\n\n%s" % s)
+        show_text_dialog(self.mainwindow, s, title="Current meta-data")
 
     def on_markers_clear_click(self, event=None):
         self.undo_manager.add_undo("Clearing markers", self.get_undo_state())
