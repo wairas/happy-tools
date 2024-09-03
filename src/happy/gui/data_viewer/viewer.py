@@ -25,6 +25,7 @@ from wai.logging import add_logging_level, set_logging_level
 from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
+from happy.data.normalization import AbstractNormalization, SimpleNormalization
 from happy.gui import URL_PROJECT, URL_TOOLS, show_busy_cursor, show_normal_cursor
 
 PROG = "happy-data-viewer"
@@ -157,6 +158,8 @@ class ViewerApp:
         self.combined_image = None
         self.metadata_values = None
         self.metadata_rgb_colors = None
+        self.normalization = SimpleNormalization()
+        self.normalization_cmdline = SimpleNormalization().name()
 
     def set_listbox_selectbackground(self, color):
         """
@@ -418,22 +421,30 @@ class ViewerApp:
         hyperspectral_data = happy_data[0].data
 
         # Get the values of the R, G, and B channel sliders
-        r_slider_value = self.state_scale_r.get()
-        g_slider_value = self.state_scale_g.get()
-        b_slider_value = self.state_scale_b.get()
+        r = self.state_scale_r.get()
+        g = self.state_scale_g.get()
+        b = self.state_scale_b.get()
 
         # Use the slider values to select the corresponding channels from the data
-        r_band = hyperspectral_data[:, :, r_slider_value]
-        g_band = hyperspectral_data[:, :, g_slider_value]
-        b_band = hyperspectral_data[:, :, b_slider_value]
+        r_band = hyperspectral_data[:, :, r]
+        g_band = hyperspectral_data[:, :, g]
+        b_band = hyperspectral_data[:, :, b]
 
-        # Normalize each band to [0, 255]
-        r_normalized = (r_band - r_band.min()) / (r_band.max() - r_band.min()) * 255
-        g_normalized = (g_band - g_band.min()) / (g_band.max() - g_band.min()) * 255
-        b_normalized = (b_band - b_band.min()) / (b_band.max() - b_band.min()) * 255
+        r_normalized = r_band
+        g_normalized = g_band
+        b_normalized = b_band
+        if self.normalization is not None:
+            self.log("Applying normalization: %s" % self.normalization_cmdline)
+            try:
+                r_normalized = self.normalization.normalize(r_band)
+                g_normalized = self.normalization.normalize(g_band)
+                b_normalized = self.normalization.normalize(b_band)
+            except:
+                self.log("Failed to normalize image using r=%d, g=%d, b=%d:\n%s" % (r, g, b, traceback.format_exc()))
 
         # Create an RGB image using the normalized bands
-        rgb_image = Image.fromarray(np.dstack((r_normalized, g_normalized, b_normalized)).astype(np.uint8))
+        rgb_image = np.dstack((r_normalized, g_normalized, b_normalized))
+        rgb_image = Image.fromarray((rgb_image * 255).astype(np.uint8))
 
         return rgb_image
 
@@ -658,6 +669,22 @@ class ViewerApp:
         if new_channel is not None:
             self.scale_b.set(new_channel)
 
+    def set_normalization(self, cmdline):
+        """
+        Sets the normalization to use.
+
+        :param cmdline: the commandline of the normalization to use
+        :type cmdline: str
+        """
+        try:
+            self.normalization = AbstractNormalization.parse_normalization(cmdline)
+            self.normalization_cmdline = cmdline
+        except:
+            logger.exception("Failed to parse normalization cmdline: %s" % cmdline)
+            self.normalization = SimpleNormalization()
+            self.normalization_cmdline = SimpleNormalization().name()
+
+
 
 def main():
     init_app()
@@ -674,6 +701,7 @@ def main():
     parser.add_argument("-o", "--opacity", metavar="INT", help="the opacity to use (0-100)", default=None, type=int, required=False)
     parser.add_argument("--listbox_selectbackground", type=str, help="The background color to use for selected items in listboxes", default="#4a6984", required=False)
     parser.add_argument("--listbox_selectforeground", type=str, help="The foreground color to use for selected items in listboxes", default="#ffffff", required=False)
+    parser.add_argument("--normalization", metavar="PLUGIN", help="the normalization plugin and its options to use", default=SimpleNormalization().name(), type=str, required=False)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args()
     set_logging_level(logger, parsed.logging_level)
@@ -682,6 +710,7 @@ def main():
     # display settings
     app.set_listbox_selectbackground(parsed.listbox_selectbackground)
     app.set_listbox_selectforeground(parsed.listbox_selectforeground)
+    app.set_normalization(parsed.normalization)
 
     # override session data
     app.session.load()
