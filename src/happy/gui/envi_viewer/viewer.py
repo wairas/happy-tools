@@ -105,6 +105,7 @@ class ViewerApp:
         self.state_keep_aspectratio = None
         self.state_autodetect_channels = None
         self.state_check_scan_dimensions = None
+        self.state_auto_load_annotations = None
         self.state_predefined_labels = None
         self.state_redis_host = None
         self.state_redis_port = None
@@ -495,6 +496,17 @@ class ViewerApp:
             except:
                 pass
 
+        # auto-load annotations?
+        if self.session.auto_load_annotations:
+            # polygons
+            f = os.path.splitext(filename)[0] + ".json"
+            if os.path.exists(f):
+                self.import_polygon_annotations(f, add_undo=False, update=False, interactive=False)
+            # pixels
+            f = os.path.join(os.path.dirname(filename), MASK_PREFIX + os.path.basename(filename))
+            if os.path.exists(f):
+                self.import_pixel_annotations(f, add_undo=False, update=False, interactive=False)
+
         if do_update:
             self.update()
 
@@ -509,11 +521,19 @@ class ViewerApp:
         """
         self.log("Loading black reference: %s" % filename)
         self.start_busy()
+        self.undo_manager.add_undo("Loading black reference", self.get_undo_state())
         error = self.data.load_blackref(filename)
         self.stop_busy()
         if error is not None:
             messagebox.showerror("Error", error)
             return
+
+        # auto-load annotations?
+        if self.session.auto_load_annotations:
+            f = os.path.splitext(filename)[0] + ".json"
+            if os.path.exists(f):
+                self.import_blackref_annotations(f, add_undo=False, update=False, interactive=False)
+
         if do_update:
             self.update()
 
@@ -528,13 +548,184 @@ class ViewerApp:
         """
         self.log("Loading white reference: %s" % filename)
         self.start_busy()
+        self.undo_manager.add_undo("Loading white reference", self.get_undo_state())
         error = self.data.load_whiteref(filename)
         self.stop_busy()
         if error is not None:
             messagebox.showerror("Error", error)
             return
+
+        # auto-load annotations?
+        if self.session.auto_load_annotations:
+            f = os.path.splitext(filename)[0] + ".json"
+            if os.path.exists(f):
+                self.import_whiteref_annotations(f, add_undo=False, update=False, interactive=False)
+
         if do_update:
             self.update()
+
+    def import_pixel_annotations(self, filename, add_undo=False, update=False, interactive=False):
+        """
+        Imports the pixel annotations.
+
+        :param filename: the file to import
+        :type filename: str
+        :param add_undo: whether to add an undo point
+        :type add_undo: bool
+        :param update: whether to trigger an update once imported
+        :type update: bool
+        :param interactive: whether to show warnings/errors interactively or just log them
+        """
+        self.log("Loading ENVI mask annotations: %s" % filename)
+        if add_undo:
+            self.undo_manager.add_undo("Importing pixel annotations", self.get_undo_state())
+        self.data.pixels.load_envi(filename)
+        self.data.pixels.clear_label_map()
+        label_map = os.path.splitext(filename)[0] + ".json"
+        if os.path.exists(label_map):
+            msg = self.data.pixels.load_label_map(label_map)
+            if msg is None:
+                if len(self.state_predefined_labels.get()) > 0:
+                    pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
+                    cur_labels = [x for x in self.data.pixels.label_map.values()]
+                    missing_labels = set()
+                    for cur_label in cur_labels:
+                        if cur_label not in pre_labels:
+                            missing_labels.add(cur_label)
+                    if len(missing_labels) > 0:
+                        missing_labels = sorted(list(missing_labels))
+                        if interactive:
+                            messagebox.showwarning(
+                                "Warning",
+                                "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
+                                    missing_labels))
+                        else:
+                            self.log(
+                                "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
+                                    missing_labels))
+                    if len(self.data.pixels.unique_values()) != len(cur_labels):
+                        if interactive:
+                            messagebox.showwarning(
+                                "Warning",
+                                "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (
+                                    self.state_predefined_labels.get(), ",".join(cur_labels)))
+                        else:
+                            self.log(
+                                "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (
+                                self.state_predefined_labels.get(), ",".join(cur_labels)))
+            else:
+                if interactive:
+                    messagebox.showwarning("Error", msg)
+                else:
+                    self.log(msg)
+        if update:
+            self.update_image()
+
+    def import_polygon_annotations(self, filename, add_undo=False, update=False, interactive=False):
+        """
+        Imports the specified polygon annotations.
+
+        :param filename: the name of the OPEX JSON file to import
+        :type filename: str
+        :param add_undo: whether to add an undo point
+        :type add_undo: bool
+        :param update: whether to trigger an update once imported
+        :type update: bool
+        :param interactive: whether to show warnings/errors interactively or just log them
+        """
+        self.log("Loading OPEX JSON annotations: %s" % filename)
+        preds = ObjectPredictions.load_json_from_file(filename)
+        if len(self.state_predefined_labels.get()) > 0:
+            pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
+            cur_labels = [x.label for x in preds.objects]
+            missing_labels = set()
+            for cur_label in cur_labels:
+                if cur_label not in pre_labels:
+                    missing_labels.add(cur_label)
+            if len(missing_labels) > 0:
+                missing_labels = sorted(list(missing_labels))
+                if interactive:
+                    messagebox.showwarning(
+                        "Warning",
+                        "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
+                else:
+                    self.log("The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(missing_labels))
+        if add_undo:
+            self.undo_manager.add_undo("Importing polygon annotations", self.get_undo_state())
+        self.data.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
+        self.data.reset_norm_data()
+        if update:
+            self.update_image()
+
+    def import_blackref_annotations(self, filename, add_undo=False, update=False, interactive=False):
+        """
+        Imports black ref annotations in OPEX JSON format.
+
+        :param filename: the annotations to import
+        :type filename: str
+        :param update: whether to trigger an update once imported
+        :type update: bool
+        :param interactive: whether to show warnings/errors interactively or just log them
+        :type interactive: bool
+        """
+        self.log("Importing black ref OPEX JSON annotations: %s" % filename)
+        preds = ObjectPredictions.load_json_from_file(filename)
+        if len(self.state_predefined_labels.get()) > 0:
+            blackref_obj = None
+            for obj in preds.objects:
+                if obj.label == LABEL_BLACKREF:
+                    blackref_obj = obj
+                    break
+            if blackref_obj is None:
+                if interactive:
+                    messagebox.showwarning(
+                        "Error",
+                        "Failed to locate label '%s' in black reference annotations:\n%s" % (LABEL_BLACKREF, filename))
+                else:
+                    self.log("Failed to locate label '%s' in black reference annotations:\n%s" % (LABEL_BLACKREF, filename))
+                return
+            ann = (blackref_obj.bbox.top, blackref_obj.bbox.left, blackref_obj.bbox.bottom, blackref_obj.bbox.right)
+            if add_undo:
+                self.undo_manager.add_undo("Setting black ref annotations", self.get_undo_state())
+            self.data.set_blackref_annotation(ann, False)
+            if update:
+                self.update()
+
+    def import_whiteref_annotations(self, filename, add_undo=False, update=False, interactive=False):
+        """
+        Imports white reference annotations from the specified OPEX JSON file.
+
+        :param filename: the file to import
+        :type filename: Str
+        :param add_undo: whether to add an undo point
+        :type add_undo: bool
+        :param update: whether to trigger an update once imported
+        :type update: bool
+        :param interactive: whether to show warnings/errors interactively or just log them
+        :type interactive: bool
+        """
+        self.log("Importing white ref OPEX JSON annotations: %s" % filename)
+        preds = ObjectPredictions.load_json_from_file(filename)
+        if len(self.state_predefined_labels.get()) > 0:
+            whiteref_obj = None
+            for obj in preds.objects:
+                if obj.label == LABEL_WHITEREF:
+                    whiteref_obj = obj
+                    break
+            if whiteref_obj is None:
+                if interactive:
+                    messagebox.showwarning(
+                        "Error",
+                        "Failed to locate label '%s' in white reference annotations:\n%s" % (LABEL_WHITEREF, filename))
+                else:
+                    self.log("Failed to locate label '%s' in white reference annotations:\n%s" % (LABEL_WHITEREF, filename))
+                return
+            ann = (whiteref_obj.bbox.top, whiteref_obj.bbox.left, whiteref_obj.bbox.bottom, whiteref_obj.bbox.right)
+            if add_undo:
+                self.undo_manager.add_undo("Setting white ref annotations", self.get_undo_state())
+            self.data.set_whiteref_annotation(ann, False)
+            if update:
+                self.update()
 
     def set_data_dimensions(self, dimensions, do_update=False):
         """
@@ -804,6 +995,16 @@ class ViewerApp:
         """
         self.session.check_scan_dimensions = value
         self.state_check_scan_dimensions.set(1 if value else 0)
+
+    def set_auto_load_annotations(self, value):
+        """
+        Sets whether to automatically load any annotations (polygon/pixel).
+
+        :param value: whether to automatically load annotations
+        :type value: bool
+        """
+        self.session.auto_load_annotations = value
+        self.state_auto_load_annotations.set(1 if value else 0)
 
     def set_annotation_color(self, color):
         """
@@ -1210,6 +1411,7 @@ class ViewerApp:
     def on_file_clear_blackref(self, event=None):
         if self.data.has_blackref():
             self.log("Clearing black reference")
+            self.undo_manager.add_undo("Clearing black reference", self.get_undo_state())
             self.data.clear_blackref()
             self.update()
 
@@ -1241,26 +1443,12 @@ class ViewerApp:
         filename = self.open_annotation_file('Import ref polygon annotations', "opex", self.session.last_blackref_dir)
         if filename is None:
             return
-        self.log("Importing black ref OPEX JSON annotations: %s" % filename)
-        preds = ObjectPredictions.load_json_from_file(filename)
-        if len(self.state_predefined_labels.get()) > 0:
-            blackref_obj = None
-            for obj in preds.objects:
-                if obj.label == LABEL_BLACKREF:
-                    blackref_obj = obj
-                    break
-            if blackref_obj is None:
-                messagebox.showwarning(
-                    "Error",
-                    "Failed to locate label '%s' in black reference annotations:\n%s" % (LABEL_BLACKREF, filename))
-                return
-            ann = (blackref_obj.bbox.top, blackref_obj.bbox.left, blackref_obj.bbox.bottom, blackref_obj.bbox.right)
-            self.data.set_blackref_annotation(ann, False)
-            self.update()
+        self.import_blackref_annotations(filename, add_undo=True, update=True, interactive=True)
 
     def on_file_clear_whiteref(self, event=None):
         if self.data.has_whiteref():
             self.log("Clearing white reference")
+            self.undo_manager.add_undo("Clearing white reference", self.get_undo_state())
             self.data.clear_whiteref()
             self.update()
 
@@ -1293,22 +1481,7 @@ class ViewerApp:
                                              self.session.last_whiteref_dir)
         if filename is None:
             return
-        self.log("Importing white ref OPEX JSON annotations: %s" % filename)
-        preds = ObjectPredictions.load_json_from_file(filename)
-        if len(self.state_predefined_labels.get()) > 0:
-            whiteref_obj = None
-            for obj in preds.objects:
-                if obj.label == LABEL_WHITEREF:
-                    whiteref_obj = obj
-                    break
-            if whiteref_obj is None:
-                messagebox.showwarning(
-                    "Error",
-                    "Failed to locate label '%s' in white reference annotations:\n%s" % (LABEL_WHITEREF, filename))
-                return
-            ann = (whiteref_obj.bbox.top, whiteref_obj.bbox.left, whiteref_obj.bbox.bottom, whiteref_obj.bbox.right)
-            self.data.set_whiteref_annotation(ann, False)
-            self.update()
+        self.import_whiteref_annotations(filename, add_undo=True, update=True, interactive=True)
 
     def on_file_import_pixel_annotations_click(self, event=None):
         """
@@ -1322,35 +1495,7 @@ class ViewerApp:
         if filename is None:
             return
 
-        self.log("Loading ENVI mask annotations: %s" % filename)
-        self.undo_manager.add_undo("Importing pixel annotations", self.get_undo_state())
-        self.data.pixels.load_envi(filename)
-        self.data.pixels.clear_label_map()
-        label_map = os.path.splitext(filename)[0] + ".json"
-        if os.path.exists(label_map):
-            msg = self.data.pixels.load_label_map(label_map)
-            if msg is None:
-                if len(self.state_predefined_labels.get()) > 0:
-                    pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
-                    cur_labels = [x for x in self.data.pixels.label_map.values()]
-                    missing_labels = set()
-                    for cur_label in cur_labels:
-                        if cur_label not in pre_labels:
-                            missing_labels.add(cur_label)
-                    if len(missing_labels) > 0:
-                        missing_labels = sorted(list(missing_labels))
-                        messagebox.showwarning(
-                            "Warning",
-                            "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
-                                missing_labels))
-                    if len(self.data.pixels.unique_values()) != len(cur_labels):
-                        messagebox.showwarning(
-                            "Warning",
-                            "Number of predefined labels and annotation labels differ:\npredefined: %s\nannotations:%s" % (
-                            self.state_predefined_labels.get(), ",".join(cur_labels)))
-            else:
-                messagebox.showwarning("Error", msg)
-        self.update_image()
+        self.import_pixel_annotations(filename, add_undo=True, update=True, interactive=True)
 
     def on_file_import_polygon_annotations_click(self, event=None):
         """
@@ -1363,25 +1508,7 @@ class ViewerApp:
         filename = self.open_annotation_file('Open polygon annotations', "opex", self.session.last_scan_dir)
         if filename is None:
             return
-        self.log("Loading OPEX JSON annotations: %s" % filename)
-        preds = ObjectPredictions.load_json_from_file(filename)
-        if len(self.state_predefined_labels.get()) > 0:
-            pre_labels = [x.strip() for x in self.state_predefined_labels.get().split(",")]
-            cur_labels = [x.label for x in preds.objects]
-            missing_labels = set()
-            for cur_label in cur_labels:
-                if cur_label not in pre_labels:
-                    missing_labels.add(cur_label)
-            if len(missing_labels) > 0:
-                missing_labels = sorted(list(missing_labels))
-                messagebox.showwarning(
-                    "Warning",
-                    "The following labels from the imported annotations are not listed under the predefined labels:\n" + ",".join(
-                        missing_labels))
-        self.undo_manager.add_undo("Importing polygon annotations", self.get_undo_state())
-        self.data.contours.from_opex(preds, self.data.scan_data.shape[1], self.data.scan_data.shape[0])
-        self.data.reset_norm_data()
-        self.update_image()
+        self.import_polygon_annotations(filename, add_undo=True, update=True, interactive=True)
 
     def on_file_export_image_click(self, event=None):
         """
@@ -1609,6 +1736,9 @@ class ViewerApp:
 
     def on_check_scan_dimensions_click(self):
         self.session.check_scan_dimensions = (self.state_check_scan_dimensions.get() == 1)
+
+    def on_auto_load_annotations_click(self):
+        self.session.auto_load_annotations = (self.state_auto_load_annotations.get() == 1)
 
     def on_scale_r_changed(self, event):
         self.red_scale_value.configure(text=self.scale_to_text(self.state_scale_r.get()))
@@ -2326,82 +2456,40 @@ def main(args=None):
         prog=PROG,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-s", "--scan", type=str, help="Path to the scan file (ENVI format)", required=False)
-    parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)",
-                        required=False)
-    parser.add_argument("-w", "--white_reference", type=str, help="Path to the white reference file (ENVI format)",
-                        required=False)
-    parser.add_argument("-r", "--scale_r", metavar="INT", help="the wave length to use for the red channel",
-                        default=None, type=int, required=False)
-    parser.add_argument("-g", "--scale_g", metavar="INT", help="the wave length to use for the green channel",
-                        default=None, type=int, required=False)
-    parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel",
-                        default=None, type=int, required=False)
-    parser.add_argument("--autodetect_channels", action="store_true",
-                        help="whether to determine the channels from the meta-data (overrides the manually specified channels)",
-                        required=False, default=None)
-    parser.add_argument("--no_autodetect_channels", action="store_true",
-                        help="whether to turn off auto-detection of channels from meta-data", required=False,
-                        default=None)
-    parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio",
-                        required=False, default=None)
-    parser.add_argument("--no_keep_aspectratio", action="store_true", help="whether to not keep the aspect ratio",
-                        required=False, default=None)
-    parser.add_argument("--check_scan_dimensions", action="store_true",
-                        help="whether to compare the dimensions of subsequently loaded scans and output a warning if they differ",
-                        required=False, default=None)
-    parser.add_argument("--no_check_scan_dimensions", action="store_true",
-                        help="whether to not compare the dimensions of subsequently loaded scans and output a warning if they differ",
-                        required=False, default=None)
-    parser.add_argument("--export_to_scan_dir", action="store_true",
-                        help="whether to export images to the scan directory rather than the last one used",
-                        required=False, default=None)
-    parser.add_argument("--annotation_color", metavar="HEXCOLOR",
-                        help="the color to use for the annotations like contours (hex color)", default=None,
-                        required=False)
-    parser.add_argument("--predefined_labels", metavar="LIST", help="the comma-separated list of labels to use",
-                        default=None, required=False)
-    parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)",
-                        default=None, required=False)
-    parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on",
-                        default=None, required=False)
-    parser.add_argument("--redis_pw", metavar="PASSWORD", type=str, help="The password to use with the Redis server",
-                        default=None, required=False)
-    parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on",
-                        default=None, required=False)
-    parser.add_argument("--redis_out", metavar="CHANNEL", type=str,
-                        help="The channel that SAM is broadcasting the detections on", default=None, required=False)
-    parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host",
-                        required=False, default=None)
-    parser.add_argument("--no_redis_connect", action="store_true",
-                        help="whether to not immediately connect to the Redis host", required=False, default=None)
-    parser.add_argument("--marker_size", metavar="INT", help="The size in pixels for the SAM points", default=None,
-                        type=int, required=False)
-    parser.add_argument("--marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)",
-                        default=None, required=False)
-    parser.add_argument("--min_obj_size", metavar="INT",
-                        help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=None,
-                        type=int, required=False)
-    parser.add_argument("--black_ref_locator", metavar="LOCATOR",
-                        help="the reference locator scheme to use for locating black references, eg rl-manual",
-                        default=None, required=False)
-    parser.add_argument("--black_ref_method", metavar="METHOD",
-                        help="the black reference method to use for applying black references, eg br-same-size",
-                        default=None, required=False)
-    parser.add_argument("--white_ref_locator", metavar="LOCATOR",
-                        help="the reference locator scheme to use for locating whites references, eg rl-manual",
-                        default=None, required=False)
-    parser.add_argument("--white_ref_method", metavar="METHOD",
-                        help="the white reference method to use for applying white references, eg wr-same-size",
-                        default=None, required=False)
-    parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan",
-                        default=None, required=False)
-    parser.add_argument("--log_timestamp_format", metavar="FORMAT",
-                        help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes",
-                        default=LOG_TIMESTAMP_FORMAT, required=False)
-    parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%%) or -1 for automatic fit",
-                        default=-1, type=int, required=False)
-    parser.add_argument("--normalization", metavar="PLUGIN", help="the normalization plugin and its options to use",
-                        default=SimpleNormalization().name(), type=str, required=False)
+    parser.add_argument("-f", "--black_reference", type=str, help="Path to the black reference file (ENVI format)", required=False)
+    parser.add_argument("-w", "--white_reference", type=str, help="Path to the white reference file (ENVI format)", required=False)
+    parser.add_argument("-r", "--scale_r", metavar="INT", help="the wave length to use for the red channel", default=None, type=int, required=False)
+    parser.add_argument("-g", "--scale_g", metavar="INT", help="the wave length to use for the green channel", default=None, type=int, required=False)
+    parser.add_argument("-b", "--scale_b", metavar="INT", help="the wave length to use for the blue channel", default=None, type=int, required=False)
+    parser.add_argument("--autodetect_channels", action="store_true", help="whether to determine the channels from the meta-data (overrides the manually specified channels)", required=False, default=None)
+    parser.add_argument("--no_autodetect_channels", action="store_true", help="whether to turn off auto-detection of channels from meta-data", required=False, default=None)
+    parser.add_argument("--keep_aspectratio", action="store_true", help="whether to keep the aspect ratio", required=False, default=None)
+    parser.add_argument("--no_keep_aspectratio", action="store_true", help="whether to not keep the aspect ratio", required=False, default=None)
+    parser.add_argument("--check_scan_dimensions", action="store_true", help="whether to compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
+    parser.add_argument("--no_check_scan_dimensions", action="store_true", help="whether to not compare the dimensions of subsequently loaded scans and output a warning if they differ", required=False, default=None)
+    parser.add_argument("--auto_load_annotations", action="store_true", help="whether to automatically load any annotations when loading a scan, black or white ref", required=False, default=None)
+    parser.add_argument("--no_auto_load_annotations", action="store_true", help="whether to not automatically load any annotations when loading a scan, black or white ref", required=False, default=None)
+    parser.add_argument("--export_to_scan_dir", action="store_true", help="whether to export images to the scan directory rather than the last one used", required=False, default=None)
+    parser.add_argument("--annotation_color", metavar="HEXCOLOR", help="the color to use for the annotations like contours (hex color)", default=None, required=False)
+    parser.add_argument("--predefined_labels", metavar="LIST", help="the comma-separated list of labels to use", default=None, required=False)
+    parser.add_argument("--redis_host", metavar="HOST", type=str, help="The Redis host to connect to (IP or hostname)", default=None, required=False)
+    parser.add_argument("--redis_port", metavar="PORT", type=int, help="The port the Redis server is listening on", default=None, required=False)
+    parser.add_argument("--redis_pw", metavar="PASSWORD", type=str, help="The password to use with the Redis server", default=None, required=False)
+    parser.add_argument("--redis_in", metavar="CHANNEL", type=str, help="The channel that SAM is receiving images on", default=None, required=False)
+    parser.add_argument("--redis_out", metavar="CHANNEL", type=str, help="The channel that SAM is broadcasting the detections on", default=None, required=False)
+    parser.add_argument("--redis_connect", action="store_true", help="whether to immediately connect to the Redis host", required=False, default=None)
+    parser.add_argument("--no_redis_connect", action="store_true", help="whether to not immediately connect to the Redis host", required=False, default=None)
+    parser.add_argument("--marker_size", metavar="INT", help="The size in pixels for the SAM points", default=None, type=int, required=False)
+    parser.add_argument("--marker_color", metavar="HEXCOLOR", help="the color to use for the SAM points (hex color)", default=None, required=False)
+    parser.add_argument("--min_obj_size", metavar="INT", help="The minimum size that SAM contours need to have (<= 0 for no minimum)", default=None, type=int, required=False)
+    parser.add_argument("--black_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating black references, eg rl-manual", default=None, required=False)
+    parser.add_argument("--black_ref_method", metavar="METHOD", help="the black reference method to use for applying black references, eg br-same-size", default=None, required=False)
+    parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual", default=None, required=False)
+    parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
+    parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
+    parser.add_argument("--log_timestamp_format", metavar="FORMAT", help="the format string for the logging timestamp, see: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes", default=LOG_TIMESTAMP_FORMAT, required=False)
+    parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%%) or -1 for automatic fit", default=-1, type=int, required=False)
+    parser.add_argument("--normalization", metavar="PLUGIN", help="the normalization plugin and its options to use", default=SimpleNormalization().name(), type=str, required=False)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)

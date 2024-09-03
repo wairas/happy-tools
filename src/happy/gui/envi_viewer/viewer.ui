@@ -724,7 +724,7 @@
                                 <child>
                                   <object class="ttk.Labelframe" id="labelframe2">
                                     <property name="height">200</property>
-                                    <property name="text" translatable="yes">General	</property>
+                                    <property name="text" translatable="yes">General</property>
                                     <property name="width">200</property>
                                     <layout manager="pack">
                                       <property name="anchor">w</property>
@@ -793,12 +793,29 @@
                                           </object>
                                         </child>
                                         <child>
+                                          <object class="ttk.Checkbutton" id="checkbutton_auto_load_annotations" named="True">
+                                            <property name="command" type="command" cbtype="simple">on_auto_load_annotations_click</property>
+                                            <property name="offvalue">0</property>
+                                            <property name="onvalue">1</property>
+                                            <property name="text" translatable="yes">Auto-load annotations</property>
+                                            <property name="variable">int:state_auto_load_annotations</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="columnspan">2</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">3</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
                                           <object class="ttk.Label" id="label_predefined_labels" named="True">
                                             <property name="text" translatable="yes">Predefined labels</property>
                                             <layout manager="grid">
                                               <property name="padx">10</property>
                                               <property name="pady">10</property>
-                                              <property name="row">5</property>
+                                              <property name="row">4</property>
                                               <property name="sticky">w</property>
                                             </layout>
                                           </object>
@@ -810,7 +827,7 @@
                                               <property name="column">1</property>
                                               <property name="padx">10</property>
                                               <property name="pady">10</property>
-                                              <property name="row">5</property>
+                                              <property name="row">4</property>
                                               <property name="sticky">ew</property>
                                             </layout>
                                           </object>

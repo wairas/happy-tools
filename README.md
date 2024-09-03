@@ -65,7 +65,9 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [--autodetect_channels] [--no_autodetect_channels]
                          [--keep_aspectratio] [--no_keep_aspectratio]
                          [--check_scan_dimensions]
-                         [--no_check_scan_dimensions] [--export_to_scan_dir]
+                         [--no_check_scan_dimensions]
+                         [--auto_load_annotations]
+                         [--no_auto_load_annotations] [--export_to_scan_dir]
                          [--annotation_color HEXCOLOR]
                          [--predefined_labels LIST] [--redis_host HOST]
                          [--redis_port PORT] [--redis_pw PASSWORD]
@@ -121,6 +123,12 @@ optional arguments:
                         whether to not compare the dimensions of subsequently
                         loaded scans and output a warning if they differ
                         (default: None)
+  --auto_load_annotations
+                        whether to automatically load any annotations when
+                        loading a scan, black or white ref (default: None)
+  --no_auto_load_annotations
+                        whether to not automatically load any annotations when
+                        loading a scan, black or white ref (default: None)
   --export_to_scan_dir  whether to export images to the scan directory rather
                         than the last one used (default: None)
   --annotation_color HEXCOLOR
