@@ -50,7 +50,7 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
         contours = [x.to_absolute(dims[0], dims[1]) for x in matches]
 
     for i, contour in enumerate(contours, start=1):
-        datamanager.log("Exporting %d: %s" % (i, str(contour.label)))
+        datamanager.log("Exporting sub-image #%d: label=%s" % (i, str(contour.label)))
 
         # configure writer
         try:
