@@ -479,7 +479,7 @@ class DataManager:
 
         :param ann: the annotation rectangle to use (top,left,bottom,right)
         :return: None if successfully added, otherwise error message
-        :param in_scan: whether the annotation is part of the scan or in the white ref image
+        :param in_scan: whether the annotation is part of the scan or in the black ref image
         :type in_scan: bool
         :rtype: str
         """
