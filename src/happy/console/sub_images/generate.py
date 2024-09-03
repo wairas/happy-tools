@@ -8,9 +8,10 @@ import traceback
 from wai.logging import add_logging_level, set_logging_level
 
 from happy.base.app import init_app
-from happy.data import DataManager
+from happy.data import DataManager, LABEL_WHITEREF
 from happy.data.annotations import locate_annotations
 from happy.data import export_sub_images
+from opex import ObjectPredictions
 
 
 logger = logging.getLogger("sub-images")
@@ -39,7 +40,7 @@ def get_sample_id(path):
 
 def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
              black_ref_locator=None, black_ref_method=None,
-             white_ref_locator=None, white_ref_method=None,
+             white_ref_locator=None, white_ref_method=None, white_ref_annotations=None,
              dry_run=False, resume_from=None, writer="happy-writer"):
     """
     Generates sub-images from ENVI files with OPEX JSON annotations located in the directories.
@@ -62,6 +63,8 @@ def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
     :type white_ref_locator: str
     :param white_ref_method: the white reference method to apply, ignored if None
     :type white_ref_method: str
+    :param white_ref_annotations: the OPEX JSON file with the annotated white ref if it cannot be determined automatically
+    :type white_ref_annotations: str
     :param dry_run: whether to omit saving the PNG images
     :type dry_run: bool
     :param resume_from: the directory to resume the processing from (determined dirs preceding this one will get skipped), ignored if None
@@ -82,12 +85,38 @@ def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
         regexp = None
     if (labels is not None) and (len(labels) == 0):
         labels = None
-        
+
+    # annotations defined for white ref?
+    whiteref_ann = None
+    if white_ref_annotations is not None:
+        if os.path.exists(white_ref_annotations):
+            preds = ObjectPredictions.load_json_from_file(white_ref_annotations)
+            whiteref_obj = None
+            for obj in preds.objects:
+                if obj.label == LABEL_WHITEREF:
+                    whiteref_obj = obj
+                    break
+            if whiteref_obj is None:
+                logger.warning("Failed to locate label %s in OPEX JSON file: %s" % (LABEL_WHITEREF, white_ref_annotations))
+            else:
+                whiteref_ann = (whiteref_obj.bbox.top, whiteref_obj.bbox.left, whiteref_obj.bbox.bottom, whiteref_obj.bbox.right)
+        else:
+            logger.warning("OPEX JSON file not found (white ref annotations): %s" % white_ref_annotations)
+
     datamanager = DataManager(log_method=log)
-    datamanager.set_blackref_locator(black_ref_locator)
-    datamanager.set_blackref_method(black_ref_method)
-    datamanager.set_whiteref_locator(white_ref_locator)
-    datamanager.set_whiteref_method(white_ref_method)
+    if black_ref_locator is not None:
+        logger.info("Black ref locator: %s" % black_ref_locator)
+        datamanager.set_blackref_locator(black_ref_locator)
+        logger.info("Black ref method: %s" % black_ref_method)
+        datamanager.set_blackref_method(black_ref_method)
+    if white_ref_locator is not None:
+        logger.info("White ref locator: %s" % white_ref_locator)
+        datamanager.set_whiteref_locator(white_ref_locator)
+        logger.info("White ref method: %s" % white_ref_method)
+        datamanager.set_whiteref_method(white_ref_method)
+    if whiteref_ann is not None:
+        logger.info("White ref annotations file: %s" % str(white_ref_annotations))
+        logger.info("White ref annotations region: %s" % str(whiteref_ann))
 
     ann_conts = []
     locate_annotations(input_dirs, ann_conts, recursive=recursive,
@@ -128,6 +157,13 @@ def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
             datamanager.load_scan(ann_cont.base)
             datamanager.load_contours(ann_cont.opex)
             datamanager.calc_norm_data()
+            if whiteref_ann is not None:
+                # setting custom white ref annotation must happen after an initial calculation
+                # as the white ref locating resets the annotation...
+                logger.info("Setting custom white ref annotation: %s" % str(whiteref_ann))
+                datamanager.set_whiteref_annotation(whiteref_ann, False)
+                logger.info("Recalculating again with custom white ref annotation...")
+                datamanager.calc_norm_data()
             if labels is not None:
                 matches = datamanager.contours.get_contours_regexp(labels)
                 logger.info("Label matches: %d" % len(matches))
@@ -164,6 +200,7 @@ def main(args=None):
     parser.add_argument("--black_ref_method", metavar="METHOD", help="the black reference method to use for applying black references, eg br-same-size", default=None, required=False)
     parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual", default=None, required=False)
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
+    parser.add_argument("--white_ref_annotations", metavar="FILE", help="the OPEX JSON file with the annotated white reference if it cannot be determined automatically", default=None, required=False)
     parser.add_argument("--writer", metavar="CMDLINE", help="the writer to use for saving the generated sub-images", default="happy-writer", required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
     parser.add_argument("--resume_from", metavar="DIR", type=str, help="The directory to restart the processing with (all determined dirs preceding this one get skipped)", required=False, default=None)
@@ -173,6 +210,7 @@ def main(args=None):
     generate(parsed.input_dir, parsed.output_dir, regexp=parsed.regexp, recursive=parsed.recursive, labels=parsed.labels,
              black_ref_locator=parsed.black_ref_locator, black_ref_method=parsed.black_ref_method,
              white_ref_locator=parsed.white_ref_locator, white_ref_method=parsed.white_ref_method,
+             white_ref_annotations=parsed.white_ref_annotations,
              dry_run=parsed.dry_run, resume_from=parsed.resume_from, writer=parsed.writer)
 
 

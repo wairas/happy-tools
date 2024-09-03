@@ -697,7 +697,8 @@ usage: happy-sub-images [-h] -i DIR [DIR ...] [--regexp REGEXP] [-r] [-o DIR]
                         [-l LABELS] [--black_ref_locator LOCATOR]
                         [--black_ref_method METHOD]
                         [--white_ref_locator LOCATOR]
-                        [--white_ref_method METHOD] [--writer CMDLINE] [-n]
+                        [--white_ref_method METHOD]
+                        [--white_ref_annotations FILE] [--writer CMDLINE] [-n]
                         [--resume_from DIR]
                         [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
@@ -729,6 +730,10 @@ optional arguments:
   --white_ref_method METHOD
                         the white reference method to use for applying white
                         references, eg wr-same-size (default: None)
+  --white_ref_annotations FILE
+                        the OPEX JSON file with the annotated white reference
+                        if it cannot be determined automatically (default:
+                        None)
   --writer CMDLINE      the writer to use for saving the generated sub-images
                         (default: happy-writer)
   -n, --dry_run         whether to omit generating any data or creating
