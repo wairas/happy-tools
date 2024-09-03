@@ -522,6 +522,7 @@ class ViewerApp:
         self.log("Loading black reference: %s" % filename)
         self.start_busy()
         self.undo_manager.add_undo("Loading black reference", self.get_undo_state())
+        self.data.clear_blackref()
         error = self.data.load_blackref(filename)
         self.stop_busy()
         if error is not None:
@@ -549,6 +550,7 @@ class ViewerApp:
         self.log("Loading white reference: %s" % filename)
         self.start_busy()
         self.undo_manager.add_undo("Loading white reference", self.get_undo_state())
+        self.data.clear_whiteref()
         error = self.data.load_whiteref(filename)
         self.stop_busy()
         if error is not None:
