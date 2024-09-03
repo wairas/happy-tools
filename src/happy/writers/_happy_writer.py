@@ -45,6 +45,7 @@ class HappyWriter(HappyDataWriter):
         # Write hyperspectral data
         hyperspec_file_path = os.path.join(region_dir, f"{sample_id}.hdr")
         envi_writer = EnviWriter(region_dir)
+        envi_writer.logging_level = self.logging_level
         envi_writer.write_data(happy_data.data, hyperspec_file_path, datatype=self.get_datatype_mapping_for(datatype_mapping, sample_id), wavelengths=happy_data.wavenumbers)
         self.logger().info(f"data shape: {happy_data.data.shape}")
 

@@ -143,6 +143,7 @@ def main():
         prediction_array = create_prediction_array(prediction)
         file_path = os.path.join(args.output_folder, f"{i}.hdr")
         envi_writer = EnviWriter(os.path.join(args.output_folder))
+        envi_writer.logging_level = args.logging_level
         envi_writer.write_data(prediction_array, file_path)
 
         prediction_image = create_prediction_image(prediction)
