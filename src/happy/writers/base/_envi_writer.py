@@ -9,7 +9,7 @@ class EnviWriter(BaseWriter):
 
     def write_data(self, data, filename, datatype=None, wavelengths=None):
         filepath = os.path.join(self.output_folder, filename)
-        self.logger().info("write "+filename)
+        self.logger().info("write: " + filename)
         self.logger().info(data.shape)
         if datatype is None:
             self.logger().info("data type is none")
