@@ -10,7 +10,7 @@ from happy.data.annotations import ContoursManager, Contour, MetaDataManager, Pi
 from happy.data.black_ref import AbstractBlackReferenceMethod, AbstractAnnotationBasedBlackReferenceMethod
 from happy.data.white_ref import AbstractWhiteReferenceMethod, AbstractAnnotationBasedWhiteReferenceMethod
 from happy.data.ref_locator import AbstractReferenceLocator, AbstractFileBasedReferenceLocator, AbstractOPEXAnnotationBasedReferenceLocator
-from happy.data.normalization import AbstractNormalization, SimpleNormalization, AbstractOPEXAnnotationBasedNormalization
+from happy.data.normalization import AbstractNormalization, SimpleNormalization, AbstractOPEXAnnotationBasedNormalization, CHANNEL_RED, CHANNEL_GREEN, CHANNEL_BLUE
 from happy.preprocessors import MultiPreprocessor, Preprocessor, AbstractOPEXAnnotationsBasedPreprocessor
 from seppl import get_class_name
 from opex import BBox, ObjectPredictions
@@ -868,9 +868,9 @@ class DataManager:
                 if isinstance(self.normalization, AbstractOPEXAnnotationBasedNormalization):
                     self.normalization.annotations = self.contours.to_opex(self.norm_data.shape[1], self.norm_data.shape[0])
                 try:
-                    norm_red = self.normalization.normalize(red_band)
-                    norm_green = self.normalization.normalize(green_band)
-                    norm_blue = self.normalization.normalize(blue_band)
+                    norm_red = self.normalization.normalize(red_band, CHANNEL_RED)
+                    norm_green = self.normalization.normalize(green_band, CHANNEL_GREEN)
+                    norm_blue = self.normalization.normalize(blue_band, CHANNEL_BLUE)
                 except:
                     self.log("Failed to normalize image using r=%d, g=%d, b=%d:\n%s" % (r, g, b, traceback.format_exc()))
 

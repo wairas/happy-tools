@@ -25,7 +25,7 @@ from wai.logging import add_logging_level, set_logging_level
 from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
-from happy.data.normalization import AbstractNormalization, SimpleNormalization
+from happy.data.normalization import AbstractNormalization, SimpleNormalization, CHANNEL_RED, CHANNEL_GREEN, CHANNEL_BLUE
 from happy.gui import URL_PROJECT, URL_TOOLS, show_busy_cursor, show_normal_cursor
 
 PROG = "happy-data-viewer"
@@ -436,9 +436,9 @@ class ViewerApp:
         if self.normalization is not None:
             self.log("Applying normalization: %s" % self.normalization_cmdline)
             try:
-                r_normalized = self.normalization.normalize(r_band)
-                g_normalized = self.normalization.normalize(g_band)
-                b_normalized = self.normalization.normalize(b_band)
+                r_normalized = self.normalization.normalize(r_band, CHANNEL_RED)
+                g_normalized = self.normalization.normalize(g_band, CHANNEL_GREEN)
+                b_normalized = self.normalization.normalize(b_band, CHANNEL_BLUE)
             except:
                 self.log("Failed to normalize image using r=%d, g=%d, b=%d:\n%s" % (r, g, b, traceback.format_exc()))
 

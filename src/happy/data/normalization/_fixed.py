@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 
-from ._core import AbstractNormalization
+from ._core import AbstractNormalization, channel_to_str
 
 
 class FixedNormalization(AbstractNormalization):
@@ -55,15 +55,17 @@ class FixedNormalization(AbstractNormalization):
         self._min = ns.min
         self._max = ns.max
 
-    def _do_normalize(self, data):
+    def _do_normalize(self, data, channel: int):
         """
         Attempts to normalize the data.
 
         :param data: the data to normalize
+        :param channel: the channel to normalize
+        :type channel: int
         :return: the normalized data, None if failed to do so
         """
         data_range = self._max - self._min
-        self.logger().info("min=%f, max=%f, range=%f" % (self._min, self._max, data_range))
+        self.logger().info("channel=%s, min=%f, max=%f, range=%f" % (channel_to_str(channel), self._min, self._max, data_range))
 
         if data_range == 0:  # Handle division by zero
             data = np.zeros_like(data)

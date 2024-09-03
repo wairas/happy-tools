@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 
-from ._core import AbstractNormalization
+from ._core import AbstractNormalization, channel_to_str
 
 
 class RegionNormalization(AbstractNormalization):
@@ -61,11 +61,13 @@ class RegionNormalization(AbstractNormalization):
         self._x1 = ns.x1
         self._y1 = ns.y1
 
-    def _do_normalize(self, data):
+    def _do_normalize(self, data, channel: int):
         """
         Attempts to normalize the data.
 
         :param data: the data to normalize
+        :param channel: the channel to normalize
+        :type channel: int
         :return: the normalized data, None if failed to do so
         """
         x0 = self._x0
@@ -76,7 +78,7 @@ class RegionNormalization(AbstractNormalization):
         min_value = np.min(region)
         max_value = np.max(region)
         data_range = max_value - min_value
-        self.logger().info("min=%f, max=%f, range=%f" % (min_value, max_value, data_range))
+        self.logger().info("channel=%s, min=%f, max=%f, range=%f" % (channel_to_str(channel), min_value, max_value, data_range))
 
         if data_range == 0:  # Handle division by zero
             data = np.zeros_like(data)

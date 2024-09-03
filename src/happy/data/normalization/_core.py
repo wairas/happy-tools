@@ -7,6 +7,30 @@ from seppl import split_args, split_cmdline, args_to_objects, get_class_name
 from opex import ObjectPredictions
 
 
+CHANNEL_RED = 1
+CHANNEL_GREEN = 2
+CHANNEL_BLUE = 3
+
+
+def channel_to_str(channel: int) -> str:
+    """
+    Turns the channel ID into a string representation.
+
+    :param channel: the channel ID
+    :type channel: int
+    :return: the string representation
+    :rtype: str
+    """
+    if channel == CHANNEL_RED:
+        return "red"
+    elif channel == CHANNEL_GREEN:
+        return "green"
+    elif channel == CHANNEL_BLUE:
+        return "blue"
+    else:
+        raise Exception("Unsupported channel: %d" % channel)
+
+
 class AbstractNormalization(PluginWithLogging, abc.ABC):
     """
     Ancestor for schemes that normalize the data for fake RGB images.
@@ -20,47 +44,57 @@ class AbstractNormalization(PluginWithLogging, abc.ABC):
         super().__init__()
         self.parse_args([])
 
-    def _pre_check(self) -> Optional[str]:
+    def _pre_check(self, channel: int) -> Optional[str]:
         """
         Hook method that gets called before attempting to normalize data.
 
+        :param channel: the channel to normalize
+        :type channel: int
         :return: the result of the check, None if successful otherwise error message
         :rtype: str
         """
+        if (channel != CHANNEL_RED) and (channel != CHANNEL_GREEN) and (channel != CHANNEL_BLUE):
+            return "Unknown channel: %d" % channel
         return None
 
-    def _do_normalize(self, data):
+    def _do_normalize(self, data, channel: int):
         """
         Attempts to normalize the data.
 
         :param data: the data to normalize
+        :param channel: the channel to normalize
+        :type channel: int
         :return: the normalized data, None if failed to do so
         """
         raise NotImplementedError()
 
-    def _post_check(self, data) -> Optional[str]:
+    def _post_check(self, data, channel: int) -> Optional[str]:
         """
         For checking the normalized data.
 
         :param data: the normalized data
+        :param channel: the channel to normalize
+        :type channel: int
         :return: None if successful check, otherwise error message
         :rtype: str
         """
         return None
 
-    def normalize(self, data):
+    def normalize(self, data, channel: int):
         """
         Attempts to normalize the data.
 
         :param data: the data to normalize
+        :param channel: the channel to normalize
+        :type channel: int
         :return: the normalized data, None if failed to normalize
         """
-        msg = self._pre_check()
+        msg = self._pre_check(channel)
         if msg is not None:
             raise Exception(msg)
-        result = self._do_normalize(data)
+        result = self._do_normalize(data, channel)
         if result is not None:
-            msg = self._post_check(result)
+            msg = self._post_check(result, channel)
             if msg is not None:
                 raise Exception(msg)
         return result
@@ -114,14 +148,16 @@ class AbstractAnnotationBasedNormalization(AbstractNormalization, abc.ABC):
         """
         self._annotations = ann
 
-    def _pre_check(self) -> Optional[str]:
+    def _pre_check(self, channel: int) -> Optional[str]:
         """
         Hook method that gets called before attempting to normalize the data.
 
+        :param channel: the channel to normalize
+        :type channel: int
         :return: the result of the check, None if successful otherwise error message
         :rtype: str
         """
-        result = super()._pre_check()
+        result = super()._pre_check(channel)
 
         if result is None:
             if self.annotations is None:
@@ -135,14 +171,16 @@ class AbstractOPEXAnnotationBasedNormalization(AbstractAnnotationBasedNormalizat
     Ancestor for normalization schemes that use OPEX annotations to normalize the data.
     """
 
-    def _pre_check(self) -> Optional[str]:
+    def _pre_check(self, channel: int) -> Optional[str]:
         """
         Hook method that gets called before attempting to locate the reference data.
 
+        :param channel: the channel to normalize
+        :type channel: int
         :return: the result of the check, None if successful otherwise error message
         :rtype: str
         """
-        result = super()._pre_check()
+        result = super()._pre_check(channel)
 
         if result is None:
             if not isinstance(self.annotations, ObjectPredictions):

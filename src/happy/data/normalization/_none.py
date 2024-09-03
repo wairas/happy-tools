@@ -24,11 +24,13 @@ class NoneNormalization(AbstractNormalization):
         """
         return "Performs no normalization."
 
-    def _do_normalize(self, data):
+    def _do_normalize(self, data, channel: int):
         """
         Attempts to normalize the data.
 
         :param data: the data to normalize
+        :param channel: the channel to normalize
+        :type channel: int
         :return: the normalized data, None if failed to do so
         """
         return data
