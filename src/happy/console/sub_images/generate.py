@@ -156,14 +156,10 @@ def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
             logger.info("Base ENVI file: %s" % ann_cont.base)
             datamanager.load_scan(ann_cont.base)
             datamanager.load_contours(ann_cont.opex)
-            datamanager.calc_norm_data()
             if whiteref_ann is not None:
-                # setting custom white ref annotation must happen after an initial calculation
-                # as the white ref locating resets the annotation...
-                logger.info("Setting custom white ref annotation: %s" % str(whiteref_ann))
+                logger.info("Setting white ref annotation: %s" % str(whiteref_ann))
                 datamanager.set_whiteref_annotation(whiteref_ann, False)
-                logger.info("Recalculating again with custom white ref annotation...")
-                datamanager.calc_norm_data()
+            datamanager.calc_norm_data()
             if labels is not None:
                 matches = datamanager.contours.get_contours_regexp(labels)
                 logger.info("Label matches: %d" % len(matches))
