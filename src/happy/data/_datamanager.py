@@ -946,6 +946,14 @@ class DataManager:
         result["contours"] = self.contours.to_json()
         result["pixels"] = self.pixels.to_dict()
         result["metadata"] = self.metadata.to_json()
+        result["blackref_annotation"] = {
+            "annotation": self.blackref_annotation,
+            "in_scan": self.blackref_annotation_in_scan,
+        }
+        result["whiteref_annotation"] = {
+            "annotation": self.whiteref_annotation,
+            "in_scan": self.whiteref_annotation_in_scan,
+        }
         return result
 
     def restore_state(self, d):
@@ -959,6 +967,10 @@ class DataManager:
         self.contours.from_json(d["contours"])
         self.pixels.from_dict(d["pixels"])
         self.metadata.from_json(d["metadata"])
+        self.blackref_annotation = d["blackref_annotation"]["annotation"]
+        self.blackref_annotation_in_scan = d["blackref_annotation"]["in_scan"]
+        self.whiteref_annotation = d["whiteref_annotation"]["annotation"]
+        self.whiteref_annotation_in_scan = d["whiteref_annotation"]["in_scan"]
 
     def info(self):
         """
