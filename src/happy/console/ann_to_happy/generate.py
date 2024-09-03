@@ -3,6 +3,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import shutil
 import traceback
 
@@ -228,19 +229,19 @@ def apply_envi(cont_ann: AnnotationFiles, img: np.ndarray, label_map: dict) -> n
     :return: the updated image
     :rtype: np.ndarray
     """
-    if cont_ann.envi is not None:
+    if cont_ann.envi_mask is not None:
         logger.info("Applying ENVI pixel annotations...")
-        envi_ann = envi.open(cont_ann.envi).load()
+        envi_ann = envi.open(cont_ann.envi_mask).load()
         envi_ann = envi_ann.squeeze().astype(np.uint8)
         envi_label_map = None
-        envi_label_map_path = os.path.splitext(cont_ann.envi)[0] + ".json"
+        envi_label_map_path = os.path.splitext(cont_ann.envi_mask)[0] + ".json"
         if os.path.exists(envi_label_map_path):
             envi_label_map, msg = load_label_map(envi_label_map_path)
             if msg is not None:
                 logger.error(msg)
         # remap indices, if necessary
         if envi_label_map is None:
-            logger.warning("No label map available for: %s" % cont_ann.envi)
+            logger.warning("No label map available for: %s" % cont_ann.envi_mask)
         else:
             envi_ann = remap_pixel_annotations(envi_ann, label_map, envi_label_map)
         np.copyto(img, envi_ann, where=(envi_ann > 0) & (envi_ann < 255))
@@ -395,8 +396,8 @@ def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager
             logger.info("Copying JSON/PNG/ENVI")
             shutil.copy(cont_ann.opex, output_opex)
             shutil.copy(cont_ann.png, output_png)
-            if cont_ann.envi is not None:
-                shutil.copy(cont_ann.envi, output_envi)
+            if cont_ann.envi_mask is not None:
+                shutil.copy(cont_ann.envi_mask, output_envi)
 
         # label map/wavelengths
         wavelengths = [0]
@@ -417,7 +418,7 @@ def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager
                         metadata={'wavelength': wavelengths})
 
 
-def generate(input_dirs, output_dir, conversion=CONVERSION_PIXELS_THEN_POLYGONS, recursive=False,
+def generate(input_dirs, output_dir, regexp=None, conversion=CONVERSION_PIXELS_THEN_POLYGONS, recursive=False,
              output_format=OUTPUT_FORMAT_FLAT, labels=None, black_ref_locator=None, black_ref_method=None,
              white_ref_locator=None, white_ref_method=None, pattern_mask="mask.hdr", pattern_labels="mask.json",
              pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_opex=FILENAME_PH_SAMPLEID + ".json",
@@ -430,6 +431,8 @@ def generate(input_dirs, output_dir, conversion=CONVERSION_PIXELS_THEN_POLYGONS,
     :type input_dirs: str or list
     :param output_dir: the (optional) output directory to place the generated PNG images in instead of alongside HSI images
     :type output_dir: str
+    :param regexp: the regular expression to match against the ENVI base name, e.g., for processing subset
+    :type regexp: str or None
     :param conversion: what annotations and in what order to apply
     :type conversion: str
     :param recursive: whether to look for OPEX files recursively
@@ -496,22 +499,33 @@ def generate(input_dirs, output_dir, conversion=CONVERSION_PIXELS_THEN_POLYGONS,
     ann_conts = []
     locate_annotations(input_dirs, ann_conts, recursive=recursive, require_png=True, require_opex_or_envi=True, logger=logger)
     ann_conts = sorted(ann_conts)
+    logger.info("# files located: %d" % len(ann_conts))
+
+    # subset?
+    if (regexp is not None) and (len(regexp) > 0):
+        _ann_conts = []
+        for ann_cont in ann_conts:
+            if re.search(regexp, ann_cont.base) is not None:
+                _ann_conts.append(ann_cont)
+        ann_conts = _ann_conts
+        logger.info("# files that match %s: %d" % (regexp, len(ann_conts)))
 
     # process only subset?
     if resume_from is not None:
-        _ann_paths = []
+        _ann_conts = []
         found = False
         for ann_path in ann_conts:
             ann_dir = os.path.dirname(ann_path)
             if ann_dir.startswith(resume_from):
                 found = True
             if found:
-                _ann_paths.append(ann_path)
-        if len(_ann_paths) == 0:
+                _ann_conts.append(ann_path)
+        if len(_ann_conts) == 0:
             raise Exception("Resuming from dir '%s' resulted in an empty set of annotations to process!" % resume_from)
         else:
-            logger.info("Resume from dir '%s' changed number of annotations to process from %d to %d." % (resume_from, len(ann_conts), len(_ann_paths)))
-        ann_conts = _ann_paths
+            logger.info("Resume from dir '%s' changed number of annotations to process from %d to %d." % (resume_from, len(ann_conts), len(_ann_conts)))
+        ann_conts = _ann_conts
+        logger.info("# files to resume from %s: %d" % (resume_from, len(ann_conts)))
 
     for i, ann_path in enumerate(ann_conts, start=1):
         logger.info("Converting %d/%d..." % (i, len(ann_conts)))
@@ -536,6 +550,7 @@ def main(args=None):
         prog="happy-ann2happy",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-i", "--input_dir", nargs="+", metavar="DIR", type=str, help="Path to the PNG/OPEX/ENVI files", required=True)
+    parser.add_argument("--regexp", type=str, metavar="REGEXP", help="The regexp for matching the ENVI base files (name only), e.g., for selecting a subset.", required=False, default=None)
     parser.add_argument("-c", "--conversion", choices=CONVERSIONS, default=CONVERSION_PIXELS_THEN_POLYGONS, help="What annotations and in what order to apply (subsequent overlays can overwrite annotations).", required=False)
     parser.add_argument("-r", "--recursive", action="store_true", help="whether to look for OPEX/ENVI files recursively", required=False)
     parser.add_argument("-o", "--output_dir", type=str, metavar="DIR", help="The directory to store the fake RGB PNG images instead of alongside the HSI images.", required=False)
@@ -558,7 +573,7 @@ def main(args=None):
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
-    generate(parsed.input_dir, parsed.output_dir, conversion=parsed.conversion,
+    generate(parsed.input_dir, parsed.output_dir, regexp=parsed.regexp, conversion=parsed.conversion,
              recursive=parsed.recursive, output_format=parsed.output_format, labels=parsed.labels.split(","),
              black_ref_locator=parsed.black_ref_locator, black_ref_method=parsed.black_ref_method,
              white_ref_locator=parsed.white_ref_locator, white_ref_method=parsed.white_ref_method,
