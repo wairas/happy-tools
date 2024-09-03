@@ -94,7 +94,7 @@ class DataManager:
         :param data: the numpy array to output stats for
         """
         if data is None:
-            self.log(msg + ": None")
+            self.log(msg + ": -no data-")
         else:
             dmin = np.min(data)
             dmax = np.max(data)
