@@ -77,6 +77,7 @@ setup(
             "happy-scikit-segmentation-build=happy.console.builders.segmentation_build:sys_main",
             "happy-scikit-unsupervised-build=happy.console.builders.unsupervised_build:sys_main",
             "happy-splitter=happy.console.happy_splitter.split:sys_main",
+            "happy-sub-images=happy.console.sub_images.generate:sys_main",
         ],
         "class_lister": [
             "happy=happy.base.class_lister",
