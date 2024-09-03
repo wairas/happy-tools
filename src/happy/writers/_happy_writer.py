@@ -15,7 +15,7 @@ class HappyWriter(HappyDataWriter):
         return "Writes data in HAPPy format."
 
     def _write_data(self, happy_data_or_list, datatype_mapping=None):
-        self.logger().info(f"write_data {datatype_mapping}")
+        self.logger().info(f"write_data: datatype_mapping={datatype_mapping}")
         if isinstance(happy_data_or_list, list):
             for happy_data in happy_data_or_list:
                 self._write_data(happy_data, datatype_mapping)
