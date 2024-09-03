@@ -126,6 +126,7 @@ def main():
     model.fit(train_ids, force=True, keep_training_data=False)
     
     csv_writer = CSVTrainingDataWriter(args.output_folder)
+    csv_writer.logging_level = args.logging_level
     csv_writer.write_data(model.get_training_data(), "training_data")
 
     logger.info("Predicting...")
