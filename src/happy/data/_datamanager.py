@@ -296,6 +296,7 @@ class DataManager:
         self.whiteref_img = None
         self.whiteref_data = None
         self.whiteref_annotation = None
+        self.whiteref_annotation_in_scan = None
         self.reset_norm_data()
 
     def set_whiteref_method(self, method):
@@ -343,8 +344,7 @@ class DataManager:
         self.whiteref_file = path
         self.whiteref_img = img
         self.whiteref_data = data
-        self.whiteref_annotation = None
-        self.whiteref_annotation_in_scan = None
+        # white ref annotation/in_scan get reset via clear_whiteref()
         self.reset_norm_data()
         return None
 
@@ -402,6 +402,7 @@ class DataManager:
         self.blackref_img = None
         self.blackref_data = None
         self.blackref_annotation = None
+        self.blackref_annotation_in_scan = None
         self.reset_norm_data()
 
     def set_blackref_locator(self, locator):
@@ -449,8 +450,7 @@ class DataManager:
         self.blackref_file = path
         self.blackref_img = img
         self.blackref_data = data
-        self.blackref_annotation = None
-        self.blackref_annotation_in_scan = None
+        # black ref annotation/in_scan get reset via clear_blackref()
         self.reset_norm_data()
         return None
 
