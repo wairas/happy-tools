@@ -158,6 +158,12 @@
                     <property name="label" translatable="yes">Tools</property>
                   </object>
                 </child>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_help_plugins" named="True">
+                    <property name="command" type="command" cbtype="simple">on_help_plugins_click</property>
+                    <property name="label" translatable="yes">Plugins</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

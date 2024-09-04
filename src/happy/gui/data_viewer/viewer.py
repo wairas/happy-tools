@@ -26,7 +26,7 @@ from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
 from happy.data.normalization import AbstractNormalization, SimpleNormalization, CHANNEL_RED, CHANNEL_GREEN, CHANNEL_BLUE
-from happy.gui import URL_PROJECT, URL_TOOLS, show_busy_cursor, show_normal_cursor, ToolTip
+from happy.gui import URL_PROJECT, URL_TOOLS, URL_PLUGINS, show_busy_cursor, show_normal_cursor, ToolTip
 
 PROG = "happy-data-viewer"
 
@@ -670,6 +670,9 @@ class ViewerApp:
 
     def on_help_tools_click(self, event=None):
         webbrowser.open(URL_TOOLS)
+
+    def on_help_plugins_click(self, event=None):
+        webbrowser.open(URL_PLUGINS)
 
     def on_scale_opacity_changed(self, scale_value):
         self.combined_image = None
