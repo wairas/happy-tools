@@ -338,10 +338,10 @@ class ViewerApp:
         # all numeric?
         if all_numeric:
             regions = [int(x) for x in regions]
-            regions.sort(reverse=True)
+            regions.sort()
             regions = [str(x) for x in regions]
         else:
-            regions.sort(reverse=True)
+            regions.sort()
         self.var_listbox_regions.set(regions)
         if not self.updating:
             self.clear_plot()
