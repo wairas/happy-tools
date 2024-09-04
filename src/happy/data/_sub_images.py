@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 
 from happy.data import HappyData, DataManager
 from happy.writers import HappyDataWriter, HappyDataWriterWithNormalization, ImageWriter
+from happy.data.normalization import SimpleNormalization
 
 
 def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optional[str], raw: bool,
@@ -104,7 +105,8 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
 
             # write sub-image
             if isinstance(writer, HappyDataWriterWithNormalization):
-                writer.normalization(datamanager.normalization_cmdline)
+                if datamanager.normalization_cmdline != SimpleNormalization().name():
+                    writer.normalization(datamanager.normalization_cmdline)
             if isinstance(writer, ImageWriter):
                 if rgb is not None:
                     writer.rgb(rgb)
