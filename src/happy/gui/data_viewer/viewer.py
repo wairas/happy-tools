@@ -26,7 +26,7 @@ from happy.gui.data_viewer import SessionManager
 from happy.readers import HappyReader
 from happy.base.app import init_app
 from happy.data.normalization import AbstractNormalization, SimpleNormalization, CHANNEL_RED, CHANNEL_GREEN, CHANNEL_BLUE
-from happy.gui import URL_PROJECT, URL_TOOLS, show_busy_cursor, show_normal_cursor
+from happy.gui import URL_PROJECT, URL_TOOLS, show_busy_cursor, show_normal_cursor, ToolTip
 
 PROG = "happy-data-viewer"
 
@@ -155,6 +155,11 @@ class ViewerApp:
         self.var_listbox_samples = None
         self.var_listbox_regions = None
         builder.import_variables(self)
+
+        # tooltips
+        self.label_r_value_tooltip = ToolTip(self.label_r_value, "Click to select channel")
+        self.label_g_value_tooltip = ToolTip(self.label_g_value, "Click to select channel")
+        self.label_b_value_tooltip = ToolTip(self.label_b_value, "Click to select channel")
 
         # other variables
         self.session = SessionManager(log_method=self.log)
@@ -691,31 +696,52 @@ class ViewerApp:
         self.update_plot(show_busy=False)
 
     def on_label_r_click(self, event=None):
+        channel_range = ""
+        if self.get_num_bands() > 0:
+            channel_range = " (0-%d)" % (self.get_num_bands() - 1)
         new_channel = ttkSimpleDialog.askinteger(
             title="Red channel",
-            prompt="Please enter the channel to use as Red:",
+            prompt="Please enter the channel to use as Red%s:" % channel_range,
             initialvalue=self.state_scale_r.get(),
             parent=self.mainwindow)
         if new_channel is not None:
             self.scale_r.set(new_channel)
 
     def on_label_g_click(self, event=None):
+        channel_range = ""
+        if self.get_num_bands() > 0:
+            channel_range = " (0-%d)" % (self.get_num_bands() - 1)
         new_channel = ttkSimpleDialog.askinteger(
             title="Green channel",
-            prompt="Please enter the channel to use as Green:",
+            prompt="Please enter the channel to use as Green%s:" % channel_range,
             initialvalue=self.state_scale_g.get(),
             parent=self.mainwindow)
         if new_channel is not None:
             self.scale_g.set(new_channel)
 
     def on_label_b_click(self, event=None):
+        channel_range = ""
+        if self.get_num_bands() > 0:
+            channel_range = " (0-%d)" % (self.get_num_bands() - 1)
         new_channel = ttkSimpleDialog.askinteger(
             title="Blue channel",
-            prompt="Please enter the channel to use as Blue:",
+            prompt="Please enter the channel to use as Blue%s:" % channel_range,
             initialvalue=self.state_scale_b.get(),
             parent=self.mainwindow)
         if new_channel is not None:
             self.scale_b.set(new_channel)
+
+    def get_num_bands(self):
+        """
+        Returns the number of bands available.
+
+        :return: the number of bands, 0 if no data present
+        :rtype: int
+        """
+        if self.stored_happy_data is None:
+            return 0
+        else:
+            return self.stored_happy_data[0].data.shape[2]
 
     def set_normalization(self, cmdline):
         """
