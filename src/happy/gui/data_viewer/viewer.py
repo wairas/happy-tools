@@ -558,7 +558,7 @@ class ViewerApp:
                 self.metadata_values = np.squeeze(metadata_values)
                 self.metadata_rgb_colors = self.map_metadata_to_rgb(self.metadata_values)
             else:
-                print(self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key])
+                self.log(str(self.stored_happy_data[0].metadata_dict[self.session.selected_metadata_key]))
         self.update_plot()
 
     def on_window_resize(self, event):
