@@ -106,7 +106,8 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
             if isinstance(writer, HappyDataWriterWithNormalization):
                 writer.normalization(datamanager.normalization_cmdline)
             if isinstance(writer, ImageWriter):
-                writer.rgb(rgb)
+                if rgb is not None:
+                    writer.rgb(rgb)
             writer.update_base_dir(path)
             writer.logging_level = "INFO"
             writer.write_data(happy_data)
