@@ -14,13 +14,11 @@
               <object class="tk.Menuitem.Submenu" id="submenu_file" named="True">
                 <property name="label" translatable="yes">File</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_dir" named="True">
                     <property name="accelerator">Ctrl+O</property>
                     <property name="command" type="command" cbtype="simple">on_file_open_dir_click</property>
                     <property name="label" translatable="yes">Open dir...</property>
-                    <property name="underline">0</property>
                   </object>
                 </child>
                 <child>
@@ -28,7 +26,6 @@
                     <property name="accelerator">Ctrl+E</property>
                     <property name="command" type="command" cbtype="simple">on_file_export_image_click</property>
                     <property name="label" translatable="yes">Export image...</property>
-                    <property name="underline">0</property>
                   </object>
                 </child>
                 <child>
@@ -39,16 +36,26 @@
                     <property name="accelerator">Alt+X</property>
                     <property name="command" type="command" cbtype="simple">on_file_close_click</property>
                     <property name="label" translatable="yes">Close</property>
-                    <property name="underline">0</property>
                   </object>
                 </child>
               </object>
             </child>
             <child>
-              <object class="tk.Menuitem.Submenu" id="submenu10">
+              <object class="tk.Menuitem.Submenu" id="submenu_view" named="True">
+                <property name="label" translatable="yes">View</property>
+                <property name="tearoff">false</property>
+                <child>
+                  <object class="tk.Menuitem.Command" id="command_view_normalization" named="True">
+                    <property name="command" type="command" cbtype="simple">on_view_normalization_click</property>
+                    <property name="label" translatable="yes">Normalization...</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="tk.Menuitem.Submenu" id="submenu_window" named="True">
                 <property name="label" translatable="yes">Window</property>
                 <property name="tearoff">false</property>
-                <property name="underline">0</property>
                 <child>
                   <object class="tk.Menuitem.Command" id="command_window_new_window" named="True">
                     <property name="command" type="command" cbtype="simple">on_window_new_window_click</property>
@@ -73,7 +80,7 @@
               </object>
             </child>
             <child>
-              <object class="tk.Menuitem.Submenu" id="submenu_help">
+              <object class="tk.Menuitem.Submenu" id="submenu_hlp" named="True">
                 <property name="label" translatable="yes">Help</property>
                 <property name="tearoff">false</property>
                 <child>

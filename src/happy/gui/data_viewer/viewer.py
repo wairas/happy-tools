@@ -12,6 +12,7 @@ import webbrowser
 from threading import Thread
 from tkinter import filedialog as fd
 from tkinter import messagebox
+from ttkSimpleDialog import ttkSimpleDialog
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -557,7 +558,7 @@ class ViewerApp:
     def on_window_resize(self, event):
         self.update_plot(show_busy=False)
 
-    def on_file_open_dir_click(self):
+    def on_file_open_dir_click(self, event=None):
         sel_dir = fd.askdirectory(
             title="Select base directory",
             initialdir=self.session.current_dir,
@@ -567,7 +568,7 @@ class ViewerApp:
 
         self.load_dir(sel_dir)
 
-    def on_file_export_image_click(self):
+    def on_file_export_image_click(self, event=None):
         if self.rgb_image is None:
             messagebox.showerror("Error", "No image to export!")
             return
@@ -593,10 +594,21 @@ class ViewerApp:
         else:
             messagebox.showerror("Error", "No image to save?")
 
-    def on_file_close_click(self):
+    def on_file_close_click(self, event=None):
         self.state_to_session()
         self.session.save()
         self.mainwindow.quit()
+
+    def on_view_normalization_click(self, event=None):
+        norm = ttkSimpleDialog.askstring("Normalization", "Please enter command-line for new normalization:",
+                                         initialvalue=self.normalization_cmdline, parent=self.mainwindow)
+        if (norm is None) or (len(norm) == 0):
+            return
+        try:
+            AbstractNormalization.parse_normalization(norm)
+            self.set_normalization(norm)
+        except:
+            messagebox.showerror("Error", "Failed to parse normalization: %s\n%s" % (norm, traceback.format_exc()))
 
     def on_window_new_window_click(self, event=None):
         cmd = [sys.executable]
