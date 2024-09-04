@@ -709,7 +709,7 @@ usage: happy-sub-images [-h] -i DIR [DIR ...] [--regexp REGEXP] [-r] [-o DIR]
                         [--white_ref_locator LOCATOR]
                         [--white_ref_method METHOD]
                         [--white_ref_annotations FILE] [--writer CMDLINE] [-n]
-                        [--resume_from DIR]
+                        [--resume_from DIR] [--run_info FILE]
                         [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Exports sub-images from ENVI files annotated with OPEX JSON files. Used for
@@ -750,6 +750,8 @@ optional arguments:
                         directories (default: False)
   --resume_from DIR     The directory to restart the processing with (all
                         determined dirs preceding this one get skipped)
+                        (default: None)
+  --run_info FILE       The JSON file to store some run information in.
                         (default: None)
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

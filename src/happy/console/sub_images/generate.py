@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import argparse
+import json
 import logging
 import os
 import re
@@ -41,7 +42,7 @@ def get_sample_id(path):
 def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
              black_ref_locator=None, black_ref_method=None,
              white_ref_locator=None, white_ref_method=None, white_ref_annotations=None,
-             dry_run=False, resume_from=None, writer="happy-writer"):
+             dry_run=False, resume_from=None, writer="happy-writer", run_info=None):
     """
     Generates sub-images from ENVI files with OPEX JSON annotations located in the directories.
 
@@ -71,7 +72,26 @@ def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
     :type resume_from: str
     :param writer: the writer command-line to use for outputting the sub-images
     :type writer: str
+    :param run_info: optional path to JSON file for storing run info in
+    :type run_info: str or None
     """
+    info = {
+        "options": {
+            "input_dirs": input_dirs,
+            "output_dir": output_dir,
+            "regexp": regexp,
+            "recursive": recursive,
+            "labels": labels,
+            "black_ref_locator": black_ref_locator,
+            "black_ref_method": black_ref_method,
+            "white_ref_locator": white_ref_locator,
+            "white_ref_method": white_ref_method,
+            "white_ref_annotations": white_ref_annotations,
+            "resume_from": resume_from,
+            "writer": writer,
+        }
+    }
+
     if black_ref_locator is None:
         black_ref_method = None
     if black_ref_method is None:
@@ -150,6 +170,7 @@ def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
         ann_conts = _ann_conts
         logger.info("# files to resume from %s: %d" % (resume_from, len(ann_conts)))
 
+    info["files"] = list()
     for i, ann_cont in enumerate(ann_conts, start=1):
         logger.info("Processing %d/%d..." % (i, len(ann_conts)))
         try:
@@ -166,13 +187,22 @@ def generate(input_dirs, output_dir, regexp=None, recursive=False, labels=None,
                 if len(matches) == 0:
                     continue
 
+            info_file = {"file": ann_cont.base}
             if not dry_run:
                 msg = export_sub_images(datamanager, output_dir, labels, False, writer_cmdline=writer)
                 if msg is not None:
                     logger.error(msg)
+                    info_file["error"] = msg
+            info["files"].append(info_file)
 
         except:
             logger.exception("Failed to process: %s" % ann_cont.base)
+
+    # output run info?
+    if (not dry_run) and (run_info is not None):
+        logger.info("Writing run info to: %s" % run_info)
+        with open(run_info, "w") as fp:
+            json.dump(info, fp, indent=2)
 
 
 def main(args=None):
@@ -200,6 +230,7 @@ def main(args=None):
     parser.add_argument("--writer", metavar="CMDLINE", help="the writer to use for saving the generated sub-images", default="happy-writer", required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
     parser.add_argument("--resume_from", metavar="DIR", type=str, help="The directory to restart the processing with (all determined dirs preceding this one get skipped)", required=False, default=None)
+    parser.add_argument("--run_info", metavar="FILE", type=str, help="The JSON file to store some run information in.", required=False, default=None)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args(args=args)
     set_logging_level(logger, parsed.logging_level)
@@ -207,7 +238,8 @@ def main(args=None):
              black_ref_locator=parsed.black_ref_locator, black_ref_method=parsed.black_ref_method,
              white_ref_locator=parsed.white_ref_locator, white_ref_method=parsed.white_ref_method,
              white_ref_annotations=parsed.white_ref_annotations,
-             dry_run=parsed.dry_run, resume_from=parsed.resume_from, writer=parsed.writer)
+             dry_run=parsed.dry_run, resume_from=parsed.resume_from, writer=parsed.writer,
+             run_info=parsed.run_info)
 
 
 def sys_main() -> int:
