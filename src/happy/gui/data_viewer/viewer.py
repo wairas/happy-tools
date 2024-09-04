@@ -12,7 +12,6 @@ import webbrowser
 from threading import Thread
 from tkinter import filedialog as fd
 from tkinter import messagebox
-from ttkSimpleDialog import ttkSimpleDialog
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,7 +53,7 @@ def perform_plot_update(app, canvas_width, canvas_height, show_busy):
 
     rgb_image = app.rgb_image
 
-    if app.session.selected_metadata_key is not None:
+    if (app.session.selected_metadata_key is not None) and (app.metadata_rgb_colors is not None):
         if app.combined_image is None:
             # Convert metadata RGB colors to a NumPy array
             overlay_image = app.metadata_rgb_colors
