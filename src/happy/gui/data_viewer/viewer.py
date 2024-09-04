@@ -549,14 +549,12 @@ class ViewerApp:
     def on_listbox_samples_select(self, event=None):
         if len(self.listbox_samples.curselection()) == 1:
             sample = self.listbox_samples.get([self.listbox_samples.curselection()[0]])
-            if (self.session.current_sample is None) or (self.session.current_sample != sample):
-                self.load_sample(sample)
+            self.load_sample(sample)
 
     def on_listbox_regions_select(self, event=None):
         if len(self.listbox_regions.curselection()) == 1:
             region = self.listbox_regions.get([self.listbox_regions.curselection()[0]])
-            if (self.session.current_region is None) or (self.session.current_region != region):
-                self.load_region(region)
+            self.load_region(region)
 
     def on_metadata_select(self, event):
         self.combined_image = None
