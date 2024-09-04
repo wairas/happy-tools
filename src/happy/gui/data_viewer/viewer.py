@@ -241,7 +241,7 @@ class ViewerApp:
         for i in range(self.listbox_samples.size()):
             s = self.listbox_samples.get(i)
             if s == sample:
-                self.listbox_samples.selection_clear(0, 'end')
+                self.listbox_samples.selection_clear(0, "end")
                 self.listbox_samples.selection_set(i)
                 found = True
                 break
@@ -258,7 +258,7 @@ class ViewerApp:
         for i in range(self.listbox_regions.size()):
             s = self.listbox_regions.get(i)
             if s == region:
-                self.listbox_regions.selection_clear(0, 'end')
+                self.listbox_regions.selection_clear(0, "end")
                 self.listbox_regions.selection_set(i)
                 found = True
                 break
@@ -310,6 +310,7 @@ class ViewerApp:
         if not self.updating:
             self.clear_plot()
             if len(samples) > 0:
+                self.listbox_regions.selection_clear(0, "end")
                 self.listbox_samples.selection_set(0)
                 self.on_listbox_samples_select()
 
@@ -345,6 +346,7 @@ class ViewerApp:
         if not self.updating:
             self.clear_plot()
             if len(regions) > 0:
+                self.listbox_regions.selection_clear(0, "end")
                 self.listbox_regions.selection_set(0)
                 self.on_listbox_regions_select()
 
