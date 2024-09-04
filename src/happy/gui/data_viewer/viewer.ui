@@ -50,6 +50,69 @@
                     <property name="label" translatable="yes">Normalization...</property>
                   </object>
                 </child>
+                <child>
+                  <object class="tk.Menuitem.Separator" id="separator38" />
+                </child>
+                <child>
+                  <object class="tk.Menuitem.Submenu" id="submenu7">
+                    <property name="label" translatable="yes">Zoom</property>
+                    <property name="tearoff">false</property>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_fit" named="True">
+                        <property name="command" type="command" cbtype="simple">on_view_zoom_fit</property>
+                        <property name="label" translatable="yes">Best fit</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_25" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
+                        <property name="label" translatable="yes">25%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_50" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
+                        <property name="label" translatable="yes">50%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_75" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
+                        <property name="label" translatable="yes">75%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_100" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
+                        <property name="label" translatable="yes">100%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_150" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
+                        <property name="label" translatable="yes">150%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_200" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
+                        <property name="label" translatable="yes">200%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_400" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_click</property>
+                        <property name="label" translatable="yes">400%</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="tk.Menuitem.Command" id="command_view_zoom_custom" named="True">
+                        <property name="command" type="command" cbtype="with_wid">on_view_zoom_custom</property>
+                        <property name="label" translatable="yes">Custom...</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>

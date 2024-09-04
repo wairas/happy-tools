@@ -21,7 +21,7 @@ usage: happy-data-viewer [-h] [--base_folder BASE_FOLDER] [--sample SAMPLE]
                          [--region REGION] [-r INT] [-g INT] [-b INT] [-o INT]
                          [--listbox_selectbackground LISTBOX_SELECTBACKGROUND]
                          [--listbox_selectforeground LISTBOX_SELECTFOREGROUND]
-                         [--normalization PLUGIN]
+                         [--normalization PLUGIN] [--zoom PERCENT]
                          [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Viewer for HAPPy data folder structures.
@@ -52,6 +52,8 @@ optional arguments:
   --normalization PLUGIN
                         the normalization plugin and its options to use
                         (default: norm-simple)
+  --zoom PERCENT        the initial zoom to use (%) or -1 for automatic fit
+                        (default: -1)
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
 ```

@@ -35,6 +35,7 @@ class SessionManager(AbstractSessionManager):
         self.scale_b = 0
         self.opacity = 0
         self.selected_metadata_key = None
+        self.zoom = -1
 
     def get_default_config_name(self):
         """

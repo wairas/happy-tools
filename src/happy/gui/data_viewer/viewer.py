@@ -79,12 +79,16 @@ def perform_plot_update(app, canvas_width, canvas_height, show_busy):
     aspect_ratio = width / height
 
     # Calculate new dimensions while maintaining aspect ratio
-    if canvas_width / aspect_ratio < canvas_height:
-        new_width = canvas_width
-        new_height = int(new_width / aspect_ratio)
+    if app.session.zoom == -1:
+        if canvas_width / aspect_ratio < canvas_height:
+            new_width = canvas_width
+            new_height = int(new_width / aspect_ratio)
+        else:
+            new_height = canvas_height
+            new_width = int(new_height * aspect_ratio)
     else:
-        new_height = canvas_height
-        new_width = int(new_height * aspect_ratio)
+        new_width = int(width * app.session.zoom / 100)
+        new_height = int(height * app.session.zoom / 100)
 
     # Resize the image using PIL
     rgb_image = rgb_image.resize((new_width, new_height), Image.LANCZOS)
@@ -616,6 +620,32 @@ class ViewerApp:
         except:
             messagebox.showerror("Error", "Failed to parse normalization: %s\n%s" % (norm, traceback.format_exc()))
 
+    def on_view_zoom_click(self, event=None):
+        if (event is not None) and (event.startswith("command_view_zoom_")):
+            try:
+                zoom = int(event.replace("command_view_zoom_", ""))
+                self.session.zoom = zoom
+                self.update_plot(show_busy=False)
+            except:
+                self.log("Failed to extract zoom from: %s" % event)
+
+    def on_view_zoom_fit(self, event=None):
+        self.session.zoom = -1
+        self.update_plot(show_busy=False)
+
+    def on_view_zoom_custom(self, event=None):
+        curr_zoom = self.session.zoom
+        if curr_zoom <= 0:
+            curr_zoom = -1
+        new_zoom = ttkSimpleDialog.askinteger("Zoom", "Please enter new zoom (in %; -1 for best fit):",
+                                              initialvalue=curr_zoom,
+                                              parent=self.mainwindow)
+        if new_zoom is not None:
+            if new_zoom <= 0:
+                new_zoom = -1
+            self.session.zoom = new_zoom
+            self.update_plot(show_busy=False)
+
     def on_window_new_window_click(self, event=None):
         cmd = [sys.executable]
         cmd.extend(sys.argv[:])
@@ -720,6 +750,7 @@ def main():
     parser.add_argument("--listbox_selectbackground", type=str, help="The background color to use for selected items in listboxes", default="#4a6984", required=False)
     parser.add_argument("--listbox_selectforeground", type=str, help="The foreground color to use for selected items in listboxes", default="#ffffff", required=False)
     parser.add_argument("--normalization", metavar="PLUGIN", help="the normalization plugin and its options to use", default=SimpleNormalization().name(), type=str, required=False)
+    parser.add_argument("--zoom", metavar="PERCENT", help="the initial zoom to use (%%) or -1 for automatic fit", default=-1, type=int, required=False)
     add_logging_level(parser, short_opt="-V")
     parsed = parser.parse_args()
     set_logging_level(logger, parsed.logging_level)
@@ -746,6 +777,8 @@ def main():
         app.session.scale_r = parsed.scale_b
     if parsed.opacity is not None:
         app.session.opacity = parsed.opacity
+    if parsed.zoom is not None:
+        app.session.zoom = parsed.zoom
     app.session_to_state()
     try:
         app.load(app.session.current_dir, app.session.current_sample,
