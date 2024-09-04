@@ -53,23 +53,26 @@ def perform_plot_update(app, canvas_width, canvas_height, show_busy):
 
     rgb_image = app.rgb_image
 
-    if (app.session.selected_metadata_key is not None) and (app.metadata_rgb_colors is not None):
-        if app.combined_image is None:
-            # Convert metadata RGB colors to a NumPy array
-            overlay_image = app.metadata_rgb_colors
-            # Apply transparency based on opacity slider value
-            overlay_alpha = float(app.scale_opacity.get() / 100)  # Scale to 0-255
-            # Convert hyperspectral RGB image to float
-            rgb_image_float = np.array(rgb_image).astype(float) / 255.0
-            # Combine hyperspectral image with the overlay image
-            combined_image = (1.0 - overlay_alpha) * rgb_image_float + (overlay_image * overlay_alpha)
-            # Clip values to ensure they are within [0, 1]
-            combined_image = np.clip(combined_image, 0, 1)
-            # Convert the combined image to uint8
-            combined_image_uint8 = (combined_image * 255).astype(np.uint8)
-            # Create an Image object from the combined image
-            app.combined_image = Image.fromarray(combined_image_uint8)
-        rgb_image = app.combined_image
+    try:
+        if (app.session.selected_metadata_key is not None) and (app.metadata_rgb_colors is not None):
+            if app.combined_image is None:
+                # Convert metadata RGB colors to a NumPy array
+                overlay_image = app.metadata_rgb_colors
+                # Apply transparency based on opacity slider value
+                overlay_alpha = float(app.scale_opacity.get() / 100)  # Scale to 0-255
+                # Convert hyperspectral RGB image to float
+                rgb_image_float = np.array(rgb_image).astype(float) / 255.0
+                # Combine hyperspectral image with the overlay image
+                combined_image = (1.0 - overlay_alpha) * rgb_image_float + (overlay_image * overlay_alpha)
+                # Clip values to ensure they are within [0, 1]
+                combined_image = np.clip(combined_image, 0, 1)
+                # Convert the combined image to uint8
+                combined_image_uint8 = (combined_image * 255).astype(np.uint8)
+                # Create an Image object from the combined image
+                app.combined_image = Image.fromarray(combined_image_uint8)
+            rgb_image = app.combined_image
+    except:
+        app.log("Failed to compute combined image:\n%s" % traceback.format_exc())
 
     # Calculate aspect ratio of the image
     width, height = rgb_image.size
@@ -537,12 +540,14 @@ class ViewerApp:
     def on_listbox_samples_select(self, event=None):
         if len(self.listbox_samples.curselection()) == 1:
             sample = self.listbox_samples.get([self.listbox_samples.curselection()[0]])
-            self.load_sample(sample)
+            if (self.session.current_sample is None) or (self.session.current_sample != sample):
+                self.load_sample(sample)
 
     def on_listbox_regions_select(self, event=None):
         if len(self.listbox_regions.curselection()) == 1:
             region = self.listbox_regions.get([self.listbox_regions.curselection()[0]])
-            self.load_region(region)
+            if (self.session.current_region is None) or (self.session.current_region != region):
+                self.load_region(region)
 
     def on_metadata_select(self, event):
         self.combined_image = None
