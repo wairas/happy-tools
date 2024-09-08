@@ -41,6 +41,7 @@ class WhiteReferenceAnnotationAverage(AbstractAnnotationBasedWhiteReferenceMetho
         :return: the updated scan
         """
         top, left, bottom, right = self._annotation
+        self.logger().info("using annotation: top=%d, left=%d, bottom=%d, right=%d" % (top, left, bottom, right))
         whiteref = scan[top:bottom, left:right, :]
         num_bands = scan.shape[2]
         whiteref_annotation = []
