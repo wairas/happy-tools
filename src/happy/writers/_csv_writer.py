@@ -75,12 +75,7 @@ class CSVWriter(HappyDataWriterWithOutputPattern):
 
             # header
             if not append:
-                row = ["sample_id"]
-                if PH_REGION in self._output:
-                    row.append("region_id")
-                elif PH_REPEAT in self._output:
-                    row.append("repeat_id")
-                row.extend(["x", "y"])
+                row = ["sample_id", "region_id""x", "y"]
                 if (happy_data.wavenumbers is None) or self._output_wave_number_index:
                     row.extend([self._wave_number_prefix + str(x) for x in range(bands)])
                 else:
