@@ -75,7 +75,7 @@ class CSVWriter(HappyDataWriterWithOutputPattern):
 
             # header
             if not append:
-                row = ["sample_id", "region_id""x", "y"]
+                row = ["sample_id", "region_id", "x", "y"]
                 if (happy_data.wavenumbers is None) or self._output_wave_number_index:
                     row.extend([self._wave_number_prefix + str(x) for x in range(bands)])
                 else:
