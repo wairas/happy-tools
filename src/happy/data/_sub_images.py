@@ -82,6 +82,7 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
                 meta["preprocessors"] = datamanager.preprocessors_cmdline
             wavenumbers = datamanager.get_wavelengths_list()
             if not raw:
+                datamanager.calc_norm_data()
                 if datamanager.norm_data is None:
                     raw = True
                     wavenumbers = datamanager.get_wavelengths_list()
@@ -98,6 +99,10 @@ def export_sub_images(datamanager: DataManager, path: str, label_regexp: Optiona
                         meta["whiteref_locator"] = datamanager.whiteref_locator_cmdline
                         meta["whiteref_method"] = datamanager.whiteref_method_cmdline
                         meta["whiteref_file"] = datamanager.whiteref_file
+                        meta["whiteref_annotation"] = datamanager.whiteref_annotation
+                        meta["whiteref_annotation_in_scan"] = datamanager.whiteref_annotation_in_scan
+                        meta["blackref_locator_for_whiteref"] = datamanager.blackref_locator_for_whiteref_cmdline
+                        meta["blackref_method_for_whiteref"] = datamanager.blackref_method_for_whiteref_cmdline
             if wavenumbers is not None:
                 meta["wavenumbers"] = wavenumbers
             sub_data = data[bbox.top:bbox.bottom + 1, bbox.left:bbox.right + 1, :]
