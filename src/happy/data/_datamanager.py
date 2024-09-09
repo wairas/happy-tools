@@ -66,6 +66,7 @@ class DataManager:
         self.blackref_file_for_whiteref = None
         self.blackref_img_for_whiteref = None
         self.blackref_data_for_whiteref = None
+        self.whiteref_initialized = False
         self.norm_data = None
         self.display_image = None
         self.wavelengths = None
@@ -320,6 +321,7 @@ class DataManager:
         self.blackref_file_for_whiteref = None
         self.blackref_img_for_whiteref = None
         self.blackref_data_for_whiteref = None
+        self.reset_whiteref_initialized()
         self.reset_norm_data()
 
     def set_whiteref_method(self, method):
@@ -334,6 +336,7 @@ class DataManager:
         else:
             self.whiteref_method = AbstractWhiteReferenceMethod.parse_method(method)
         self.whiteref_method_cmdline = method
+        self.reset_whiteref_initialized()
         self.reset_norm_data()
 
     def set_whiteref_locator(self, locator):
@@ -348,6 +351,7 @@ class DataManager:
         else:
             self.whiteref_locator = AbstractReferenceLocator.parse_locator(locator)
         self.whiteref_locator_cmdline = locator
+        self.reset_whiteref_initialized()
         self.reset_norm_data()
 
     def load_whiteref(self, path):
@@ -363,6 +367,7 @@ class DataManager:
             return "Please load a scan first!"
 
         self.whiteref_file, self.whiteref_img, self.whiteref_data = self._load_envi(path, reset_norm=True)
+        self.reset_whiteref_initialized()
         return None
 
     def set_whiteref_data(self, data):
@@ -381,6 +386,7 @@ class DataManager:
         self.whiteref_data = data
         self.whiteref_annotation = None
         self.whiteref_annotation_in_scan = None
+        self.reset_whiteref_initialized()
         self.reset_norm_data()
         return None
 
@@ -397,6 +403,7 @@ class DataManager:
             return "Please load a white reference scan first!"
 
         self.blackref_file_for_whiteref, self.blackref_img_for_whiteref, self.blackref_data_for_whiteref = self._load_envi(path, reset_norm=True)
+        self.reset_whiteref_initialized()
         return None
 
     def set_whiteref_annotation(self, ann, in_scan):
@@ -414,6 +421,7 @@ class DataManager:
 
         self.whiteref_annotation = ann
         self.whiteref_annotation_in_scan = in_scan
+        self.reset_whiteref_initialized()
         self.reset_norm_data()
         return None
 
@@ -429,6 +437,7 @@ class DataManager:
         else:
             self.blackref_locator_for_whiteref = AbstractReferenceLocator.parse_locator(locator)
         self.blackref_locator_for_whiteref_cmdline = locator
+        self.reset_whiteref_initialized()
         self.reset_norm_data()
 
     def set_blackref_method_for_whiteref(self, method):
@@ -443,6 +452,7 @@ class DataManager:
         else:
             self.blackref_method_for_whiteref = AbstractBlackReferenceMethod.parse_method(method)
         self.blackref_method_for_whiteref_cmdline = method
+        self.reset_whiteref_initialized()
         self.reset_norm_data()
 
     def has_blackref(self):
@@ -567,6 +577,12 @@ class DataManager:
         self.norm_data = None
         self.wavelengths_norm = None
 
+    def reset_whiteref_initialized(self):
+        """
+        Sets the white ref initialized flag to False.
+        """
+        self.whiteref_initialized = False
+
     def can_init_blackref_data(self):
         """
         Whether blackref data can be initialized
@@ -582,10 +598,8 @@ class DataManager:
 
     def init_blackref_data(self):
         """
-        Initializes the black reference data, if necessary.
+        Initializes the black reference data.
         """
-        if not self.can_init_blackref_data():
-            return
         if isinstance(self.blackref_locator, AbstractFileBasedReferenceLocator):
             if self.scan_file is not None:
                 self.blackref_locator.base_file = self.scan_file
@@ -620,21 +634,12 @@ class DataManager:
         :return: True if it can be initialized
         :rtype: bool
         """
-        # force initialization when applying blackref to whiteref scan (TODO: use flag?)
-        if (self.blackref_locator_for_whiteref is not None) and (self.blackref_method_for_whiteref is not None):
-            return True
-        if self.whiteref_data is not None:
-            return False
-        if self.whiteref_locator is None:
-            return False
-        return True
+        return not self.whiteref_initialized
 
     def init_whiteref_data(self):
         """
-        Initializes the white reference data, if necessary.
+        Initializes the white reference data.
         """
-        if not self.can_init_whiteref_data():
-            return
         if isinstance(self.whiteref_locator, AbstractFileBasedReferenceLocator):
             if self.scan_file is not None:
                 self.whiteref_locator.base_file = self.scan_file
@@ -688,6 +693,7 @@ class DataManager:
                 self.whiteref_data = self.blackref_method_for_whiteref.apply(self.whiteref_data)
                 self.log_data("- after", self.whiteref_data)
 
+        self.whiteref_initialized = True
         self.log_data("White reference initialized", self.whiteref_data)
 
     def dims(self):
