@@ -42,6 +42,7 @@ def get_sample_id(path):
 def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, labels=None,
              black_ref_locator=None, black_ref_method=None,
              white_ref_locator=None, white_ref_method=None, white_ref_annotations=None,
+             black_ref_locator_for_white_ref=None, black_ref_method_for_white_ref=None,
              dry_run=False, resume_from=None, run_info=None):
     """
     Generates sub-images from ENVI files with OPEX JSON annotations located in the directories.
@@ -68,6 +69,10 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
     :type white_ref_method: str
     :param white_ref_annotations: the OPEX JSON file with the annotated white ref if it cannot be determined automatically
     :type white_ref_annotations: str
+    :param black_ref_locator_for_white_ref: the black reference locator to use for finding the black ref data to apply to the white reference scan
+    :type black_ref_locator_for_white_ref: str
+    :param black_ref_method_for_white_ref: the black reference method to use for applying the black ref data to the white reference scan
+    :type black_ref_method_for_white_ref: str
     :param dry_run: whether to omit saving the PNG images
     :type dry_run: bool
     :param resume_from: the directory to resume the processing from (determined dirs preceding this one will get skipped), ignored if None
@@ -87,6 +92,8 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
             "white_ref_locator": white_ref_locator,
             "white_ref_method": white_ref_method,
             "white_ref_annotations": white_ref_annotations,
+            "black_ref_locator_for_white_ref": black_ref_locator_for_white_ref,
+            "black_ref_method_for_white_ref": black_ref_method_for_white_ref,
             "resume_from": resume_from,
             "writer": writers,
         }
@@ -100,6 +107,8 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
         white_ref_method = None
     if white_ref_method is None:
         white_ref_locator = None
+    if black_ref_method_for_white_ref is None:
+        black_ref_locator_for_white_ref = None
         
     if (regexp is not None) and (len(regexp) == 0):
         regexp = None
@@ -137,6 +146,11 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
     if whiteref_ann is not None:
         logger.info("White ref annotations file: %s" % str(white_ref_annotations))
         logger.info("White ref annotations region: %s" % str(whiteref_ann))
+    if black_ref_locator_for_white_ref is not None:
+        logger.info("Black ref locator used for white ref scans: %s" % black_ref_locator_for_white_ref)
+        datamanager.set_blackref_locator_for_whiteref(black_ref_locator_for_white_ref)
+        logger.info("Black ref method use for white ref scans: %s" % black_ref_method_for_white_ref)
+        datamanager.set_blackref_method_for_whiteref(black_ref_method_for_white_ref)
 
     ann_conts = []
     locate_annotations(input_dirs, ann_conts, recursive=recursive,
@@ -231,6 +245,8 @@ def main(args=None):
     parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual", default=None, required=False)
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size", default=None, required=False)
     parser.add_argument("--white_ref_annotations", metavar="FILE", help="the OPEX JSON file with the annotated white reference if it cannot be determined automatically", default=None, required=False)
+    parser.add_argument("--black_ref_locator_for_white_ref", metavar="LOCATOR", help="the reference locator scheme to use for locating black references that get applied to the white reference, eg rl-manual", default=None, required=False)
+    parser.add_argument("--black_ref_method_for_white_ref", metavar="METHOD", help="the black reference method to use for applying black references to the white reference, eg br-same-size", default=None, required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
     parser.add_argument("-R" ,"--resume_from", metavar="DIR", type=str, help="The directory to restart the processing with (all determined dirs preceding this one get skipped)", required=False, default=None)
     parser.add_argument("-I", "--run_info", metavar="FILE", type=str, help="The JSON file to store some run information in.", required=False, default=None)
@@ -242,6 +258,8 @@ def main(args=None):
              black_ref_locator=parsed.black_ref_locator, black_ref_method=parsed.black_ref_method,
              white_ref_locator=parsed.white_ref_locator, white_ref_method=parsed.white_ref_method,
              white_ref_annotations=parsed.white_ref_annotations,
+             black_ref_locator_for_white_ref=parsed.black_ref_locator_for_white_ref,
+             black_ref_method_for_white_ref=parsed.black_ref_method_for_white_ref,
              dry_run=parsed.dry_run, resume_from=parsed.resume_from,
              run_info=parsed.run_info)
 

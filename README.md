@@ -709,7 +709,10 @@ usage: happy-sub-images [-h] -i DIR [DIR ...] [-e REGEXP] [-r]
                         [--black_ref_method METHOD]
                         [--white_ref_locator LOCATOR]
                         [--white_ref_method METHOD]
-                        [--white_ref_annotations FILE] [-n] [-R DIR] [-I FILE]
+                        [--white_ref_annotations FILE]
+                        [--black_ref_locator_for_white_ref LOCATOR]
+                        [--black_ref_method_for_white_ref METHOD] [-n]
+                        [-R DIR] [-I FILE]
                         [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Exports sub-images from ENVI files annotated with OPEX JSON files. Used for
@@ -749,6 +752,14 @@ optional arguments:
                         the OPEX JSON file with the annotated white reference
                         if it cannot be determined automatically (default:
                         None)
+  --black_ref_locator_for_white_ref LOCATOR
+                        the reference locator scheme to use for locating black
+                        references that get applied to the white reference, eg
+                        rl-manual (default: None)
+  --black_ref_method_for_white_ref METHOD
+                        the black reference method to use for applying black
+                        references to the white reference, eg br-same-size
+                        (default: None)
   -n, --dry_run         whether to omit generating any data or creating
                         directories (default: False)
   -R DIR, --resume_from DIR
