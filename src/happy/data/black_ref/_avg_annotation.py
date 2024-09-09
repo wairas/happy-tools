@@ -41,12 +41,17 @@ class BlackReferenceAnnotationAverage(AbstractAnnotationBasedBlackReferenceMetho
         :return: the updated scan
         """
         top, left, bottom, right = self._annotation
-        blackref = scan[top:bottom, left:right, :]
-        num_bands = scan.shape[2]
+        self.logger().info("using annotation: top=%d, left=%d, bottom=%d, right=%d" % (top, left, bottom, right))
+
+        blackref = self.reference[top:bottom, left:right, :]
+        if self.reference.shape[2] != scan.shape[2]:
+            raise Exception("Reference and scan have differing number of bands: %d != %d" % (self.reference.shape[2], scan.shape[2]))
+
         blackref_annotation = []
-        for i in range(num_bands):
+        for i in range(self.reference):
             blackref_annotation.append(np.average(blackref[:, :, i]))
         self.logger().info(f"blackref_annotation: {blackref_annotation}")
+
         result = scan.copy()
         for i in range(len(blackref_annotation)):
             if blackref_annotation[i] != 1.0:

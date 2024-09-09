@@ -42,12 +42,16 @@ class WhiteReferenceAnnotationAverage(AbstractAnnotationBasedWhiteReferenceMetho
         """
         top, left, bottom, right = self._annotation
         self.logger().info("using annotation: top=%d, left=%d, bottom=%d, right=%d" % (top, left, bottom, right))
-        whiteref = scan[top:bottom, left:right, :]
-        num_bands = scan.shape[2]
+
+        whiteref = self.reference[top:bottom, left:right, :]
+        if self.reference.shape[2] != scan.shape[2]:
+            raise Exception("Reference and scan have differing number of bands: %d != %d" % (self.reference.shape[2], scan.shape[2]))
+
         whiteref_annotation = []
-        for i in range(num_bands):
+        for i in range(self.reference.shape[2]):
             whiteref_annotation.append(np.average(whiteref[:, :, i]))
         self.logger().info(f"whiteref_annotation: {whiteref_annotation}")
+
         result = scan.copy()
         for i in range(len(whiteref_annotation)):
             if whiteref_annotation[i] != 1.0:
