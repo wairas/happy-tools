@@ -16,6 +16,7 @@ class BlackReferenceColumnAverage(AbstractFileBasedBlackReferenceMethod):
         """
         super().__init__()
         self._avg = None
+        self._average_file = None
 
     def name(self) -> str:
         """
