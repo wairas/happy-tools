@@ -80,6 +80,8 @@ usage: happy-envi-viewer [-h] [-s SCAN] [-f BLACK_REFERENCE]
                          [--black_ref_method METHOD]
                          [--white_ref_locator LOCATOR]
                          [--white_ref_method METHOD]
+                         [--black_ref_locator_for_white_ref LOCATOR]
+                         [--black_ref_method_for_white_ref METHOD]
                          [--preprocessing PIPELINE]
                          [--log_timestamp_format FORMAT] [--zoom PERCENT]
                          [--normalization PLUGIN]
@@ -171,6 +173,14 @@ optional arguments:
   --white_ref_method METHOD
                         the white reference method to use for applying white
                         references, eg wr-same-size (default: None)
+  --black_ref_locator_for_white_ref LOCATOR
+                        the reference locator scheme to use for locating black
+                        references to apply to the white reference scans, eg
+                        rl-manual (default: None)
+  --black_ref_method_for_white_ref METHOD
+                        the black reference method to use for applying the
+                        black reference to the white reference scans, eg br-
+                        same-size (default: None)
   --preprocessing PIPELINE
                         the preprocessors to apply to the scan (default: None)
   --log_timestamp_format FORMAT
