@@ -616,7 +616,7 @@ class DataManager:
                 if ref is not None:
                     self.log("Using black reference annotation: %s" % str(ref.bbox))
                     self.set_blackref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right), True)
-        else:
+        elif self.blackref_locator is not None:
             ref = self.blackref_locator.locate()
             if ref is not None:
                 if isinstance(ref, str):
@@ -656,7 +656,7 @@ class DataManager:
                 if ref is not None:
                     self.log("Using white reference annotation: %s" % str(ref.bbox))
                     self.set_whiteref_annotation((ref.bbox.top, ref.bbox.left, ref.bbox.bottom, ref.bbox.right), True)
-        else:
+        elif self.whiteref_locator is not None:
             ref = self.whiteref_locator.locate()
             if ref is not None:
                 if isinstance(ref, str):
