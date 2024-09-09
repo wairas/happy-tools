@@ -123,6 +123,8 @@ class ViewerApp:
         self.state_black_ref_method = None
         self.state_white_ref_locator = None
         self.state_white_ref_method = None
+        self.state_black_ref_locator_for_white_ref = None
+        self.state_black_ref_method_for_white_ref = None
         self.state_normalization = None
         self.state_annotation_mode = None
         self.state_pixels_brush_shape = None
@@ -562,6 +564,27 @@ class ViewerApp:
             f = os.path.splitext(filename)[0] + ".json"
             if os.path.exists(f):
                 self.import_whiteref_annotations(f, add_undo=False, update=False, interactive=False)
+
+        if do_update:
+            self.update()
+
+    def load_blackref_for_whiteref_scan(self, filename, do_update=True):
+        """
+        Loads the specified ENVI black reference file to be used for the white ref scan and updates the display.
+
+        :param filename: the black reference to load
+        :type filename: str
+        :param do_update: whether to update the display
+        :type do_update: bool
+        """
+        self.log("Loading black reference for white reference scan: %s" % filename)
+        self.start_busy()
+        self.undo_manager.add_undo("Loading black reference for white reference scan", self.get_undo_state())
+        error = self.data.load_blackref_for_whiteref(filename)
+        self.stop_busy()
+        if error is not None:
+            messagebox.showerror("Error", error)
+            return
 
         if do_update:
             self.update()
@@ -1181,6 +1204,8 @@ class ViewerApp:
         self.session.black_ref_method = self.state_black_ref_method.get()
         self.session.white_ref_locator = self.state_white_ref_locator.get()
         self.session.white_ref_method = self.state_white_ref_method.get()
+        self.session.black_ref_locator_for_white_ref = self.state_black_ref_locator_for_white_ref.get()
+        self.session.black_ref_method_for_white_ref = self.state_black_ref_method_for_white_ref.get()
         self.session.preprocessing = self.text_preprocessing.get("1.0", "end-1c")
         self.session.export_to_scan_dir = (self.state_export_to_scan_dir.get() == 1)
         self.session.export_overlay_annotations = self.state_export_overlay_annotations.get() == 1
@@ -1222,6 +1247,8 @@ class ViewerApp:
         self.state_black_ref_method.set(self.session.black_ref_method)
         self.state_white_ref_locator.set(self.session.white_ref_locator)
         self.state_white_ref_method.set(self.session.white_ref_method)
+        self.state_black_ref_locator_for_white_ref.set(self.session.black_ref_locator_for_white_ref)
+        self.state_black_ref_method_for_white_ref.set(self.session.black_ref_method_for_white_ref)
         self.text_preprocessing.delete(1.0, tk.END)
         self.text_preprocessing.insert(tk.END, self.session.preprocessing)
         self.state_export_to_scan_dir.set(1 if self.session.export_to_scan_dir else 0)
@@ -1332,6 +1359,36 @@ class ViewerApp:
             self.data.set_whiteref_method(None)
             self.session.white_ref_method = ""
             self.log("Removing white ref method")
+
+        # locator for black ref
+        cmdline = self.state_black_ref_locator_for_white_ref.get()
+        if len(cmdline.strip()) > 0:
+            try:
+                self.data.set_blackref_locator_for_whiteref(cmdline)
+                self.session.black_ref_locator_for_white_ref = cmdline
+                self.log("Setting black ref locator for white ref scan: %s" % cmdline)
+            except:
+                messagebox.showerror("Error", "Failed to parse reference locator for white ref scan: %s" % cmdline)
+                return False
+        else:
+            self.data.set_blackref_locator_for_whiteref(None)
+            self.session.black_ref_locator_for_white_ref = ""
+            self.log("Removing black ref locator for white ref scan")
+
+        # method for black ref
+        cmdline = self.state_black_ref_method_for_white_ref.get()
+        if len(cmdline.strip()) > 0:
+            try:
+                self.data.set_blackref_method_for_whiteref(cmdline)
+                self.session.black_ref_method_for_white_ref = cmdline
+                self.log("Setting black ref method for white ref scan: %s" % cmdline)
+            except:
+                messagebox.showerror("Error", "Failed to parse black reference method for white ref scan: %s" % cmdline)
+                return False
+        else:
+            self.data.set_blackref_method_for_whiteref(None)
+            self.session.black_ref_method_for_white_ref = ""
+            self.log("Removing black ref method for white ref scan")
 
         if do_update:
             self.update_image()
@@ -1467,6 +1524,23 @@ class ViewerApp:
         if filename is not None:
             self.session.last_whiteref_dir = os.path.dirname(filename)
             self.load_whiteref(filename, do_update=True)
+
+    def on_file_open_blackref_for_whiteref(self, event=None):
+        """
+        Allows the user to select a black reference ENVI file for the white ref scan.
+        """
+        if not self.data.has_scan():
+            messagebox.showerror("Error", "Please load a scan file first!")
+            return
+        if not self.data.has_whiteref():
+            messagebox.showerror("Error", "Please load a white reference file first!")
+            return
+
+        filename = self.open_envi_file('Open black reference for white ref scan', self.session.last_whiteref_dir)
+
+        if filename is not None:
+            self.session.last_whiteref_dir = os.path.dirname(filename)
+            self.load_blackref_for_whiteref_scan(filename, do_update=True)
 
     def on_file_import_whiteref_annotations(self, event=None):
         """

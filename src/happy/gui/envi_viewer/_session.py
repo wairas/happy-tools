@@ -32,6 +32,8 @@ PROPERTIES = [
     "black_ref_method",
     "white_ref_locator",
     "white_ref_method",
+    "black_ref_locator_for_white_ref",
+    "black_ref_method_for_white_ref",
     "preprocessing",
     "export_to_scan_dir",
     "export_overlay_annotations",
@@ -93,6 +95,8 @@ class SessionManager(AbstractSessionManager):
         self.black_ref_method = "br-same-size"
         self.white_ref_locator = "rl-manual"
         self.white_ref_method = "wr-same-size"
+        self.black_ref_locator_for_white_ref = ""
+        self.black_ref_method_for_white_ref = ""
         self.preprocessing = ""
         self.export_to_scan_dir = False
         self.export_overlay_annotations = False

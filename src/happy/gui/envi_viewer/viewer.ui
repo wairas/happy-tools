@@ -84,6 +84,12 @@
                   </object>
                 </child>
                 <child>
+                  <object class="tk.Menuitem.Command" id="command_file_open_blackref_for_whiteref" named="True">
+                    <property name="command" type="command" cbtype="simple">on_file_open_blackref_for_whiteref</property>
+                    <property name="label" translatable="yes">Open black ref for white ref scan...</property>
+                  </object>
+                </child>
+                <child>
                   <object class="tk.Menuitem.Command" id="command_file_open_whiteref_annotations" named="True">
                     <property name="command" type="command" cbtype="simple">on_file_import_whiteref_annotations</property>
                     <property name="label" translatable="yes">Import white ref annotations...</property>
@@ -1174,6 +1180,56 @@
                                           </object>
                                         </child>
                                         <child>
+                                          <object class="ttk.Label" id="label20" named="True">
+                                            <property name="text" translatable="yes">Black ref locator</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">2</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_black_ref_locator_for_white_ref" named="True">
+                                            <property name="text" translatable="yes">rl-manual</property>
+                                            <property name="textvariable">string:state_black_ref_locator_for_white_ref</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">2</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Label" id="label21">
+                                            <property name="text" translatable="yes">Black ref method</property>
+                                            <layout manager="grid">
+                                              <property name="column">0</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">3</property>
+                                              <property name="sticky">w</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="ttk.Entry" id="entry_black_ref_method_for_white_ref" named="True">
+                                            <property name="text" translatable="yes">br-none</property>
+                                            <property name="textvariable">string:state_black_ref_method_for_white_ref</property>
+                                            <layout manager="grid">
+                                              <property name="column">1</property>
+                                              <property name="padx">10</property>
+                                              <property name="pady">10</property>
+                                              <property name="row">3</property>
+                                              <property name="sticky">ew</property>
+                                            </layout>
+                                          </object>
+                                        </child>
+                                        <child>
                                           <object class="ttk.Button" id="button_white_ref_apply" named="True">
                                             <property name="command" type="command" cbtype="simple">on_button_white_ref_apply</property>
                                             <property name="text" translatable="yes">Apply</property>
@@ -1181,7 +1237,7 @@
                                               <property name="column">1</property>
                                               <property name="padx">10</property>
                                               <property name="pady">10</property>
-                                              <property name="row">2</property>
+                                              <property name="row">4</property>
                                               <property name="sticky">e</property>
                                             </layout>
                                           </object>
@@ -1190,6 +1246,17 @@
                                     </child>
                                   </object>
                                 </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="ttk.Frame" id="frame_options_col3" named="True">
+                                <property name="height">200</property>
+                                <property name="width">200</property>
+                                <layout manager="grid">
+                                  <property name="column">2</property>
+                                  <property name="row">0</property>
+                                  <property name="sticky">nw</property>
+                                </layout>
                                 <child>
                                   <object class="ttk.Labelframe" id="labelframe9">
                                     <property name="height">200</property>
@@ -1240,17 +1307,6 @@
                                     </child>
                                   </object>
                                 </child>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="ttk.Frame" id="frame_options_col3" named="True">
-                                <property name="height">200</property>
-                                <property name="width">200</property>
-                                <layout manager="grid">
-                                  <property name="column">2</property>
-                                  <property name="row">0</property>
-                                  <property name="sticky">nw</property>
-                                </layout>
                                 <child>
                                   <object class="ttk.Labelframe" id="labelframe3">
                                     <property name="height">200</property>

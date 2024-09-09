@@ -2,7 +2,7 @@ import numpy as np
 import spectral.io.envi as envi
 import traceback
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 from PIL import Image
 from happy.data import HappyData, LABEL_WHITEREF, LABEL_BLACKREF
@@ -59,6 +59,13 @@ class DataManager:
         self.whiteref_data = None
         self.whiteref_annotation = None
         self.whiteref_annotation_in_scan = None
+        self.blackref_locator_for_whiteref = None
+        self.blackref_locator_for_whiteref_cmdline = None
+        self.blackref_method_for_whiteref = None
+        self.blackref_method_for_whiteref_cmdline = None
+        self.blackref_file_for_whiteref = None
+        self.blackref_img_for_whiteref = None
+        self.blackref_data_for_whiteref = None
         self.norm_data = None
         self.display_image = None
         self.wavelengths = None
@@ -100,6 +107,23 @@ class DataManager:
             dmax = np.max(data)
             self.log(msg + ": min=%f, max=%f, shape=%s" % (float(dmin), float(dmax), str(data.shape)))
 
+    def _load_envi(self, path, reset_norm: bool = False) -> Tuple:
+        """
+        Loads the envi file.
+
+        :param path: the filename of the ENVI file
+        :type path: str
+        :param reset_norm: whether to reset the normalized data
+        :type reset_norm: bool
+        :return: tuple of file, image, data
+        :rtype: Tuple
+        """
+        img = envi.open(path)
+        data = img.load()
+        if reset_norm:
+            self.reset_norm_data()
+        return path, img, data
+
     def clear_all(self):
         """
         Clears all scans/annotations.
@@ -140,11 +164,7 @@ class DataManager:
         :return: None if successfully loaded, otherwise an error/warning message
         :rtype: str or None
         """
-        img = envi.open(path)
-        self.scan_file = path
-        self.scan_img = img
-        self.scan_data = img.load()
-        self.reset_norm_data()
+        self.scan_file, self.scan_img, self.scan_data = self._load_envi(path, reset_norm=True)
         if len(self.get_wavelengths()) > 0:
             if len(self.get_wavelengths()) != self.get_num_bands_scan():
                 return "Number of defined wavelengths and number of bands in data differ: %d != %d" % (len(self.get_wavelengths()), self.get_num_bands_scan())
@@ -297,6 +317,9 @@ class DataManager:
         self.whiteref_data = None
         self.whiteref_annotation = None
         self.whiteref_annotation_in_scan = None
+        self.blackref_file_for_whiteref = None
+        self.blackref_img_for_whiteref = None
+        self.blackref_data_for_whiteref = None
         self.reset_norm_data()
 
     def set_whiteref_method(self, method):
@@ -339,13 +362,7 @@ class DataManager:
         if not self.has_scan():
             return "Please load a scan first!"
 
-        img = envi.open(path)
-        data = img.load()
-        self.whiteref_file = path
-        self.whiteref_img = img
-        self.whiteref_data = data
-        # white ref annotation/in_scan get reset via clear_whiteref()
-        self.reset_norm_data()
+        self.whiteref_file, self.whiteref_img, self.whiteref_data = self._load_envi(path, reset_norm=True)
         return None
 
     def set_whiteref_data(self, data):
@@ -367,6 +384,21 @@ class DataManager:
         self.reset_norm_data()
         return None
 
+    def load_blackref_for_whiteref(self, path):
+        """
+        Loads the black reference for the white reference scan.
+
+        :param path: the filename
+        :type path: str
+        :return: None if successfully added, otherwise error message
+        :rtype: str or None
+        """
+        if not self.has_whiteref():
+            return "Please load a white reference scan first!"
+
+        self.blackref_file_for_whiteref, self.blackref_img_for_whiteref, self.blackref_data_for_whiteref = self._load_envi(path, reset_norm=True)
+        return None
+
     def set_whiteref_annotation(self, ann, in_scan):
         """
         Sets the white reference annotation tuple.
@@ -384,6 +416,34 @@ class DataManager:
         self.whiteref_annotation_in_scan = in_scan
         self.reset_norm_data()
         return None
+
+    def set_blackref_locator_for_whiteref(self, locator):
+        """
+        Sets the locator commandline for the black reference to be applied to the white reference scan.
+
+        :param locator: the locator to use
+        :type locator: str or None
+        """
+        if locator is None:
+            self.blackref_locator_for_whiteref = None
+        else:
+            self.blackref_locator_for_whiteref = AbstractReferenceLocator.parse_locator(locator)
+        self.blackref_locator_for_whiteref_cmdline = locator
+        self.reset_norm_data()
+
+    def set_blackref_method_for_whiteref(self, method):
+        """
+        Sets the method commandline for applying the black reference to the white reference scan.
+
+        :param method: the method
+        :type method: str or None
+        """
+        if method is None:
+            self.blackref_method_for_whiteref = None
+        else:
+            self.blackref_method_for_whiteref = AbstractBlackReferenceMethod.parse_method(method)
+        self.blackref_method_for_whiteref_cmdline = method
+        self.reset_norm_data()
 
     def has_blackref(self):
         """
@@ -445,13 +505,7 @@ class DataManager:
         if not self.has_scan():
             return "Please load a scan first!"
 
-        img = envi.open(path)
-        data = img.load()
-        self.blackref_file = path
-        self.blackref_img = img
-        self.blackref_data = data
-        # black ref annotation/in_scan get reset via clear_blackref()
-        self.reset_norm_data()
+        self.blackref_file, self.blackref_img, self.blackref_data = self._load_envi(path, reset_norm=True)
         return None
 
     def set_blackref_data(self, data):
@@ -566,6 +620,9 @@ class DataManager:
         :return: True if it can be initialized
         :rtype: bool
         """
+        # force initialization when applying blackref to whiteref scan (TODO: use flag?)
+        if (self.blackref_locator_for_whiteref is not None) and (self.blackref_method_for_whiteref is not None):
+            return True
         if self.whiteref_data is not None:
             return False
         if self.whiteref_locator is None:
@@ -602,6 +659,34 @@ class DataManager:
                     self.load_whiteref(ref)
                 else:
                     raise Exception("Unhandled output of white reference locator %s: %s" % (self.whiteref_locator.name(), get_class_name(ref)))
+
+        # apply black ref to whiteref scan? -> locate blackref
+        if (self.blackref_locator_for_whiteref is not None) \
+                and (self.blackref_method_for_whiteref is not None) \
+                and (self.whiteref_data is not None):
+            if isinstance(self.blackref_locator_for_whiteref, AbstractFileBasedReferenceLocator):
+                if self.whiteref_file is not None:
+                    self.blackref_locator_for_whiteref.base_file = self.whiteref_file
+                    ref = self.blackref_locator_for_whiteref.locate()
+                    if ref is not None:
+                        self.log("Using black reference file for white reference scan: %s" % ref)
+                        self.blackref_file_for_whiteref, self.blackref_img_for_whiteref, self.blackref_data_for_whiteref = self._load_envi(ref, reset_norm=False)
+            else:
+                ref = self.blackref_locator_for_whiteref.locate()
+                if ref is not None:
+                    if isinstance(ref, str):
+                        self.log("Using black reference file for white reference scan: %s" % ref)
+                        self.blackref_file_for_whiteref, self.blackref_img_for_whiteref, self.blackref_data_for_whiteref = self._load_envi(ref, reset_norm=False)
+                    else:
+                        raise Exception("Unhandled output of black reference locator for white reference scan %s: %s" % (self.whiteref_locator.name(), get_class_name(ref)))
+
+            # apply black ref first?
+            if (self.blackref_method_for_whiteref is not None) and (self.blackref_data_for_whiteref is not None):
+                self.log("Applying black ref method to white ref scan: %s" % self.blackref_method_for_whiteref_cmdline)
+                self.log_data("- before", self.whiteref_data)
+                self.blackref_method_for_whiteref.reference = self.blackref_data_for_whiteref
+                self.whiteref_data = self.blackref_method_for_whiteref.apply(self.whiteref_data)
+                self.log_data("- after", self.whiteref_data)
 
         self.log_data("White reference initialized", self.whiteref_data)
 
@@ -702,9 +787,12 @@ class DataManager:
                             self.log("Applying white reference method: %s" % self.whiteref_method_cmdline)
                             result[CALC_WHITEREF_APPLIED] = False
                             if self.whiteref_annotation_in_scan:
+                                self.log("White annotation in scan")
                                 self.whiteref_method.reference = self.scan_data
                             else:
+                                self.log("White annotation in white ref scan")
                                 self.whiteref_method.reference = self.whiteref_data
+                            self.log_data("White ref method reference data", self.whiteref_method.reference)
                             self.whiteref_method.annotation = self.whiteref_annotation
                             self.norm_data = self.whiteref_method.apply(self.norm_data)
                             self.update_wavelengths_norm(self.get_wavelengths_list())
@@ -758,7 +846,7 @@ class DataManager:
                 self.log(traceback.format_exc())
 
             if success:
-                self.log("Calculation: done!")
+                self.log_data("Calculation: done!", self.norm_data)
 
             if self.norm_data is not None:
                 result[CALC_DIMENSIONS_DIFFER] = (self.scan_data.shape != self.norm_data.shape)
