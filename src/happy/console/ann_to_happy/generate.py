@@ -14,7 +14,7 @@ from spectral import envi
 
 from wai.logging import add_logging_level, set_logging_level
 from happy.base.app import init_app
-from happy.data import DataManager, HappyData
+from happy.data import DataManager, HappyData, LABEL_WHITEREF
 from happy.data.annotations import locate_annotations, AnnotationFiles, load_label_map, MASK_PREFIX
 from happy.writers import HappyWriter
 
@@ -420,7 +420,9 @@ def convert(cont_ann: AnnotationFiles, output_dir: str, datamanager: DataManager
 
 def generate(input_dirs, output_dir, regexp=None, conversion=CONVERSION_PIXELS_THEN_POLYGONS, recursive=False,
              output_format=OUTPUT_FORMAT_FLAT, labels=None, black_ref_locator=None, black_ref_method=None,
-             white_ref_locator=None, white_ref_method=None, pattern_mask="mask.hdr", pattern_labels="mask.json",
+             white_ref_locator=None, white_ref_method=None, white_ref_annotations=None,
+             black_ref_locator_for_white_ref=None, black_ref_method_for_white_ref=None,
+             pattern_mask="mask.hdr", pattern_labels="mask.json",
              pattern_png=FILENAME_PH_SAMPLEID + ".png", pattern_opex=FILENAME_PH_SAMPLEID + ".json",
              pattern_envi=MASK_PREFIX + FILENAME_PH_SAMPLEID + ".hdr", no_implicit_background=False, unlabelled=0,
              include_input=False, dry_run=False, resume_from=None):
@@ -449,6 +451,12 @@ def generate(input_dirs, output_dir, regexp=None, conversion=CONVERSION_PIXELS_T
     :type white_ref_locator: str
     :param white_ref_method: the white reference method to apply, ignored if None
     :type white_ref_method: str
+    :param white_ref_annotations: the OPEX JSON file with the annotated white ref if it cannot be determined automatically
+    :type white_ref_annotations: str
+    :param black_ref_locator_for_white_ref: the black reference locator to use for finding the black ref data to apply to the white reference scan
+    :type black_ref_locator_for_white_ref: str
+    :param black_ref_method_for_white_ref: the black reference method to use for applying the black ref data to the white reference scan
+    :type black_ref_method_for_white_ref: str
     :param pattern_mask: the file name pattern for the mask (output)
     :type pattern_mask: str
     :param pattern_labels: the file name pattern for the mask label map (output)
@@ -484,17 +492,43 @@ def generate(input_dirs, output_dir, regexp=None, conversion=CONVERSION_PIXELS_T
             white_ref_method = None
         if white_ref_method is None:
             white_ref_locator = None
+        if black_ref_method_for_white_ref is None:
+            black_ref_locator_for_white_ref = None
+        # annotations defined for white ref?
+        whiteref_ann = None
+        if white_ref_annotations is not None:
+            if os.path.exists(white_ref_annotations):
+                preds = ObjectPredictions.load_json_from_file(white_ref_annotations)
+                whiteref_obj = None
+                for obj in preds.objects:
+                    if obj.label == LABEL_WHITEREF:
+                        whiteref_obj = obj
+                        break
+                if whiteref_obj is None:
+                    logger.warning(
+                        "Failed to locate label %s in OPEX JSON file: %s" % (LABEL_WHITEREF, white_ref_annotations))
+                else:
+                    whiteref_ann = (whiteref_obj.bbox.top, whiteref_obj.bbox.left, whiteref_obj.bbox.bottom,
+                                    whiteref_obj.bbox.right)
+            else:
+                logger.warning("OPEX JSON file not found (white ref annotations): %s" % white_ref_annotations)
     else:
         black_ref_locator = None
         black_ref_method = None
         white_ref_method = None
         white_ref_locator = None
+        black_ref_locator_for_white_ref = None
+        whiteref_ann = None
 
     datamanager = DataManager(log_method=log)
     datamanager.set_blackref_locator(black_ref_locator)
     datamanager.set_blackref_method(black_ref_method)
     datamanager.set_whiteref_locator(white_ref_locator)
     datamanager.set_whiteref_method(white_ref_method)
+    datamanager.set_blackref_locator_for_whiteref(black_ref_locator_for_white_ref)
+    datamanager.set_blackref_method_for_whiteref(black_ref_method_for_white_ref)
+    if whiteref_ann is not None:
+        datamanager.set_whiteref_annotation(whiteref_ann, False)
 
     ann_conts = []
     locate_annotations(input_dirs, ann_conts, recursive=recursive, require_png=True, require_opex_or_envi=True, logger=logger)
@@ -562,6 +596,9 @@ def main(args=None):
     parser.add_argument("--black_ref_method", metavar="METHOD", help="the black reference method to use for applying black references, eg br-same-size; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
     parser.add_argument("--white_ref_locator", metavar="LOCATOR", help="the reference locator scheme to use for locating whites references, eg rl-manual; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
     parser.add_argument("--white_ref_method", metavar="METHOD", help="the white reference method to use for applying white references, eg wr-same-size; requires: " + OUTPUT_FORMAT_DIRTREE_WITH_DATA, default=None, required=False)
+    parser.add_argument("--white_ref_annotations", metavar="FILE", help="the OPEX JSON file with the annotated white reference if it cannot be determined automatically", default=None, required=False)
+    parser.add_argument("--black_ref_locator_for_white_ref", metavar="LOCATOR", help="the reference locator scheme to use for locating black references that get applied to the white reference, eg rl-manual", default=None, required=False)
+    parser.add_argument("--black_ref_method_for_white_ref", metavar="METHOD", help="the black reference method to use for applying black references to the white reference, eg br-same-size", default=None, required=False)
     parser.add_argument("--pattern_mask", metavar="PATTERN", help="the pattern to use for saving the mask ENVI file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default="mask.hdr", required=False)
     parser.add_argument("--pattern_labels", metavar="PATTERN", help="the pattern to use for saving the label map for the mask ENVI file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default="mask.json", required=False)
     parser.add_argument("--pattern_png", metavar="PATTERN", help="the pattern to use for saving the mask PNG file, available placeholders: " + ",".join(FILENAME_PLACEHOLDERS), default=FILENAME_PH_SAMPLEID + ".png", required=False)
@@ -577,6 +614,9 @@ def main(args=None):
              recursive=parsed.recursive, output_format=parsed.output_format, labels=parsed.labels.split(","),
              black_ref_locator=parsed.black_ref_locator, black_ref_method=parsed.black_ref_method,
              white_ref_locator=parsed.white_ref_locator, white_ref_method=parsed.white_ref_method,
+             white_ref_annotations=parsed.white_ref_annotations,
+             black_ref_locator_for_white_ref=parsed.black_ref_locator_for_white_ref,
+             black_ref_method_for_white_ref=parsed.black_ref_method_for_white_ref,
              pattern_mask=parsed.pattern_mask, pattern_labels=parsed.pattern_labels,
              pattern_png=parsed.pattern_png, pattern_opex=parsed.pattern_opex, pattern_envi=parsed.pattern_envi,
              no_implicit_background=parsed.no_implicit_background, unlabelled=parsed.unlabelled,
