@@ -738,8 +738,8 @@ usage: happy-sub-images [-h] -i DIR [DIR ...] [-e REGEXP] [-r]
                         [--white_ref_method METHOD]
                         [--white_ref_annotations FILE]
                         [--black_ref_locator_for_white_ref LOCATOR]
-                        [--black_ref_method_for_white_ref METHOD] [-n]
-                        [-R DIR] [-I FILE]
+                        [--black_ref_method_for_white_ref METHOD]
+                        [--preprocessing PIPELINE] [-n] [-R DIR] [-I FILE]
                         [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Exports sub-images from ENVI files annotated with OPEX JSON files. Used for
@@ -787,6 +787,8 @@ optional arguments:
                         the black reference method to use for applying black
                         references to the white reference, eg br-same-size
                         (default: None)
+  --preprocessing PIPELINE
+                        the preprocessors to apply to the scan (default: None)
   -n, --dry_run         whether to omit generating any data or creating
                         directories (default: False)
   -R DIR, --resume_from DIR

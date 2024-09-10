@@ -43,7 +43,7 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
              black_ref_locator=None, black_ref_method=None,
              white_ref_locator=None, white_ref_method=None, white_ref_annotations=None,
              black_ref_locator_for_white_ref=None, black_ref_method_for_white_ref=None,
-             dry_run=False, resume_from=None, run_info=None):
+             preprocessing=None, dry_run=False, resume_from=None, run_info=None):
     """
     Generates sub-images from ENVI files with OPEX JSON annotations located in the directories.
 
@@ -73,6 +73,8 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
     :type black_ref_locator_for_white_ref: str
     :param black_ref_method_for_white_ref: the black reference method to use for applying the black ref data to the white reference scan
     :type black_ref_method_for_white_ref: str
+    :param preprocessing: the preprocessing pipeline to apply to the scan
+    :type preprocessing: str or None
     :param dry_run: whether to omit saving the PNG images
     :type dry_run: bool
     :param resume_from: the directory to resume the processing from (determined dirs preceding this one will get skipped), ignored if None
@@ -95,6 +97,7 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
             "black_ref_locator_for_white_ref": black_ref_locator_for_white_ref,
             "black_ref_method_for_white_ref": black_ref_method_for_white_ref,
             "resume_from": resume_from,
+            "preprocessing": preprocessing,
             "writers": writers,
         }
     }
@@ -109,6 +112,8 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
         white_ref_locator = None
     if black_ref_method_for_white_ref is None:
         black_ref_locator_for_white_ref = None
+    if (preprocessing is not None) and (len(preprocessing.strip()) == 0):
+        preprocessing = None
         
     if (regexp is not None) and (len(regexp) == 0):
         regexp = None
@@ -151,6 +156,9 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
         datamanager.set_blackref_locator_for_whiteref(black_ref_locator_for_white_ref)
         logger.info("Black ref method use for white ref scans: %s" % black_ref_method_for_white_ref)
         datamanager.set_blackref_method_for_whiteref(black_ref_method_for_white_ref)
+    if preprocessing is not None:
+        logger.info("Preprocessing: %s" % preprocessing)
+        datamanager.set_preprocessors(preprocessing)
 
     ann_conts = []
     locate_annotations(input_dirs, ann_conts, recursive=recursive,
@@ -247,6 +255,7 @@ def main(args=None):
     parser.add_argument("--white_ref_annotations", metavar="FILE", help="the OPEX JSON file with the annotated white reference if it cannot be determined automatically", default=None, required=False)
     parser.add_argument("--black_ref_locator_for_white_ref", metavar="LOCATOR", help="the reference locator scheme to use for locating black references that get applied to the white reference, eg rl-manual", default=None, required=False)
     parser.add_argument("--black_ref_method_for_white_ref", metavar="METHOD", help="the black reference method to use for applying black references to the white reference, eg br-same-size", default=None, required=False)
+    parser.add_argument("--preprocessing", metavar="PIPELINE", help="the preprocessors to apply to the scan", default=None, required=False)
     parser.add_argument("-n", "--dry_run", action="store_true", help="whether to omit generating any data or creating directories", required=False)
     parser.add_argument("-R" ,"--resume_from", metavar="DIR", type=str, help="The directory to restart the processing with (all determined dirs preceding this one get skipped)", required=False, default=None)
     parser.add_argument("-I", "--run_info", metavar="FILE", type=str, help="The JSON file to store some run information in.", required=False, default=None)
@@ -260,6 +269,7 @@ def main(args=None):
              white_ref_annotations=parsed.white_ref_annotations,
              black_ref_locator_for_white_ref=parsed.black_ref_locator_for_white_ref,
              black_ref_method_for_white_ref=parsed.black_ref_method_for_white_ref,
+             preprocessing=parsed.preprocessing,
              dry_run=parsed.dry_run, resume_from=parsed.resume_from,
              run_info=parsed.run_info)
 
