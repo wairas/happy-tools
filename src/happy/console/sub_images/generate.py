@@ -83,7 +83,7 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
     info = {
         "options": {
             "input_dirs": input_dirs,
-            "output_dir": output_dirs,
+            "output_dirs": output_dirs,
             "regexp": regexp,
             "recursive": recursive,
             "labels": labels,
@@ -95,7 +95,7 @@ def generate(input_dirs, output_dirs, writers, regexp=None, recursive=False, lab
             "black_ref_locator_for_white_ref": black_ref_locator_for_white_ref,
             "black_ref_method_for_white_ref": black_ref_method_for_white_ref,
             "resume_from": resume_from,
-            "writer": writers,
+            "writers": writers,
         }
     }
 
