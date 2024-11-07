@@ -596,6 +596,9 @@ class ViewerApp:
             initialdir=self.session.last_export_dir,
             initialfile=fname,
             filetypes=filetypes)
+        # when canceling the dialog, an emtpy tuple is returned
+        if isinstance(filename, tuple):
+            filename = None
         if (filename is None) or (filename == ""):
             return
 

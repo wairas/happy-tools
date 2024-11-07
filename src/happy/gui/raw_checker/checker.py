@@ -144,6 +144,9 @@ class CheckerApp:
             initialdir=self.session.last_save_dir,
             initialfile=initial_file,
             filetypes=filetypes)
+        # when canceling the dialog, an emtpy tuple is returned
+        if isinstance(filename, tuple):
+            filename = None
         if (filename is None) or (len(filename) == 0):
             return
 

@@ -436,6 +436,7 @@ class ViewerApp:
             initialdir=initial_dir,
             initialfile=initial_file,
             filetypes=filetypes)
+        # when canceling the dialog, an emtpy tuple is returned
         if isinstance(filename, tuple):
             filename = None
         if filename == "":
@@ -1794,6 +1795,9 @@ class ViewerApp:
             initialfile=initial_file,
             filetypes=filetypes)
         if filename == "":
+            filename = None
+        # when canceling the dialog, an emtpy tuple is returned
+        if isinstance(filename, tuple):
             filename = None
         if filename is not None:
             self.state_to_session()
