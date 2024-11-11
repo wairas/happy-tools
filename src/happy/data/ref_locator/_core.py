@@ -2,7 +2,7 @@ import abc
 import argparse
 import os
 
-from typing import Optional
+from typing import Optional, Tuple
 from happy.base.registry import REGISTRY
 from happy.base.core import PluginWithLogging
 from seppl import split_args, split_cmdline, args_to_objects, get_class_name
@@ -38,15 +38,15 @@ class AbstractReferenceLocator(PluginWithLogging, abc.ABC):
         """
         raise NotImplementedError()
 
-    def _post_check(self, ref) -> Optional[str]:
+    def _post_check(self, ref) -> Tuple[Optional[str], Optional[str]]:
         """
         For checking the located reference.
 
         :param ref: the reference to object
-        :return: None if successful check, otherwise error message
-        :rtype: str
+        :return: the tuple of reference and message; the message is None if successful check, otherwise an error message
+        :rtype: tuple
         """
-        return None
+        return ref, None
 
     def locate(self):
         """
@@ -57,12 +57,12 @@ class AbstractReferenceLocator(PluginWithLogging, abc.ABC):
         msg = self._pre_check()
         if msg is not None:
             raise Exception(msg)
-        result = self._do_locate()
-        if result is not None:
-            msg = self._post_check(result)
+        ref = self._do_locate()
+        if ref is not None:
+            ref, msg = self._post_check(ref)
             if msg is not None:
                 raise Exception(msg)
-        return result
+        return ref
 
     @classmethod
     def parse_locator(cls, cmdline: str) -> 'AbstractReferenceLocator':
@@ -160,13 +160,16 @@ class AbstractFileBasedReferenceLocator(AbstractReferenceLocator, abc.ABC):
         :return: None if successful check, otherwise error message
         :rtype: str
         """
-        result = super()._post_check(ref)
+        ref, msg = super()._post_check(ref)
 
-        if result is None:
-            if self._must_exist and not os.path.exists(ref):
-                result = "Reference file does not exist: %s" % ref
+        if msg is None:
+            if not os.path.exists(ref):
+                if self._must_exist:
+                    msg = "Reference file does not exist: %s" % ref
+                else:
+                    ref = None
 
-        return result
+        return ref, msg
 
 
 class AbstractAnnotationBasedReferenceLocator(AbstractReferenceLocator, abc.ABC):
