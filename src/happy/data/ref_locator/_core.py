@@ -152,13 +152,13 @@ class AbstractFileBasedReferenceLocator(AbstractReferenceLocator, abc.ABC):
 
         return result
 
-    def _post_check(self, ref) -> Optional[str]:
+    def _post_check(self, ref) -> Tuple[Optional[str], Optional[str]]:
         """
         For checking the located reference.
 
         :param ref: the reference to object
-        :return: None if successful check, otherwise error message
-        :rtype: str
+        :return: the tuple of reference and message; the message is None if successful check, otherwise an error message
+        :rtype: tuple
         """
         ref, msg = super()._post_check(ref)
 
@@ -167,6 +167,7 @@ class AbstractFileBasedReferenceLocator(AbstractReferenceLocator, abc.ABC):
                 if self._must_exist:
                     msg = "Reference file does not exist: %s" % ref
                 else:
+                    self.logger().warning("Reference file does not exist: %s" % ref)
                     ref = None
 
         return ref, msg
