@@ -13,7 +13,7 @@ def _read(f):
 
 
 setup(
-    name="happy-tools",
+    name="happy_tools",
     description="Tools for dealing with hyperspectral images.",
     long_description=(
         _read('DESCRIPTION.rst') + b'\n' +
