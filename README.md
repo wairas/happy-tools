@@ -1,5 +1,5 @@
 # happy-tools
-Python tools for dealing with hyperspectral images.
+Python tools for dealing with hyperspectral images (core library).
 
 ## Installation
 
