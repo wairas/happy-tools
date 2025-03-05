@@ -84,6 +84,6 @@ setup(
         ],
     },
     version="0.0.1",
-    author='Dale Fletcher',
-    author_email='dale@waikato.ac.nz',
+    author='Dale Fletcher and Peter Reutemann',
+    author_email='fracpete@waikato.ac.nz',
 )
