@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.0.4 (????-??-??)
+------------------
+
+- removed `pygubu` as dependency
+- removed `ttkSimpleDialog` as dependency
+
+
 0.0.3 (2025-03-07)
 ------------------
 
