@@ -49,17 +49,10 @@ setup(
     },
     package_data={
         "happy": ["*.png"],
-        "happy.gui.envi_viewer": ["*.ui"],
-        "happy.gui.data_viewer": ["*.ui"],
-        "happy.gui.raw_checker": ["*.ui"],
     },
     packages=find_namespace_packages(where='src'),
     entry_points={
         "console_scripts": [
-            "envi-viewer=happy.gui.envi_viewer.viewer:sys_main",  # deprecated
-            "happy-envi-viewer=happy.gui.envi_viewer.viewer:sys_main",
-            "happy-data-viewer=happy.gui.data_viewer.viewer:sys_main",
-            "happy-raw-checker=happy.gui.raw_checker.checker:sys_main",
             "happy-generate-image-regions-objects=happy.console.image_regions_objects.generate:sys_main",
             "happy-generic-regression-build=happy.console.builders.generic_regression_build:sys_main",
             "happy-generic-unsupervised-build=happy.console.builders.generic_unsupervised_build:sys_main",
@@ -83,7 +76,7 @@ setup(
             "happy=happy.base.class_lister",
         ],
     },
-    version="0.0.1",
+    version="0.0.2",
     author='Dale Fletcher and Peter Reutemann',
     author_email='fracpete@waikato.ac.nz',
 )

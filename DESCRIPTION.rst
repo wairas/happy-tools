@@ -1,1 +1,1 @@
-Python tools for dealing with hyper-spectral images.
+Python tools for dealing with hyperspectral images.
