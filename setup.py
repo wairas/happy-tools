@@ -41,7 +41,7 @@ setup(
         "scikit-learn",
         "matplotlib",
         "seppl>=0.2.7",
-        "wai.logging",
+        "wai_logging",
         "tabulate",
     ],
     package_dir={
@@ -76,7 +76,7 @@ setup(
             "happy=happy.base.class_lister",
         ],
     },
-    version="0.0.2",
+    version="0.0.3",
     author='Dale Fletcher and Peter Reutemann',
     author_email='fracpete@waikato.ac.nz',
 )
