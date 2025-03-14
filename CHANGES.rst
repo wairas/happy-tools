@@ -6,6 +6,8 @@ Changelog
 
 - removed `pygubu` as dependency
 - removed `ttkSimpleDialog` as dependency
+- requiring seppl>=0.2.13 now
+- added basic placeholder support (readers/writers)
 
 
 0.0.3 (2025-03-07)

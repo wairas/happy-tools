@@ -9,7 +9,7 @@ usage: wr-col-avg [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 White reference method that computes the average per band, per column.
 Requires the scan and reference to have the same number of columns.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

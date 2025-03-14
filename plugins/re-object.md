@@ -6,12 +6,12 @@ Extracts a region around objects with the specified object-data key in the meta-
 usage: re-object [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                  [-A LOGGER_NAME] [-t TARGET_NAME]
                  [-r REGION_SIZE REGION_SIZE] [-k OBJECT_KEY] [-o OBJ_VALUES]
-                 [-c [BASE_CRITERIA [BASE_CRITERIA ...]]]
+                 [-c [BASE_CRITERIA ...]]
 
 Extracts a region around objects with the specified object-data key in the
 meta-data.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
@@ -27,7 +27,7 @@ optional arguments:
   -o OBJ_VALUES, --obj_values OBJ_VALUES
                         The object values to look for (supplied as JSON array
                         string) (default: [])
-  -c [BASE_CRITERIA [BASE_CRITERIA ...]], --base_criteria [BASE_CRITERIA [BASE_CRITERIA ...]]
+  -c [BASE_CRITERIA ...], --base_criteria [BASE_CRITERIA ...]
                         The criteria (JSON string or filename) to apply
                         (default: [])
 ```

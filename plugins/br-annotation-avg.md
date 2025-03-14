@@ -10,7 +10,7 @@ usage: br-annotation-avg [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 Black reference method that computes the average per band in the annotation
 rectangle. Does not require scan and reference to have the same size.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

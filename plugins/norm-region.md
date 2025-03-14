@@ -10,7 +10,7 @@ usage: norm-region [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 Uses the min/max values determined from the specified region to normalize the
 data. Values below or above get clipped.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

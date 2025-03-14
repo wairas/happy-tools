@@ -8,7 +8,7 @@ usage: happy-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Writes data in HAPPy format.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
@@ -17,3 +17,9 @@ optional arguments:
   -b BASE_DIR, --base_dir BASE_DIR
                         The base directory for the data (default: .)
 ```
+
+Available placeholders:
+
+* `{HOME}`: The home directory of the current user.
+* `{CWD}`: The current working directory.
+* `{TMP}`: The temp directory.

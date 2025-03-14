@@ -9,7 +9,7 @@ usage: br-same-size [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 Black reference method that simply subtracts the black reference from the
 scan. Requires scan and reference to have the same size.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

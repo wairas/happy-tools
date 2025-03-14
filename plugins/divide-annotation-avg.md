@@ -9,7 +9,7 @@ usage: divide-annotation-avg [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 Calculates the average spectrum from the specified annotation (uses outer
 bbox) and the data passing through is divided by it.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

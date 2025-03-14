@@ -9,7 +9,7 @@ usage: down-sample [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 Data reduction preprocessor that takes every x-th pixel on the x-axis and y-th
 pixel on the y-axis.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

@@ -10,7 +10,7 @@ Writes data in HAPPy's Matlab format. 'normcube': spectral data, 'lambda':
 wave numbers, 'FinalMask': the pixel annotation mask, 'FinalMaskLabels': the
 mask pixel index -> label relation table
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
@@ -24,3 +24,9 @@ optional arguments:
                         {BASEDIR}, {SAMPLEID}, {REPEAT}, {REGION} (default:
                         {BASEDIR}/{SAMPLEID}.{REPEAT}.mat)
 ```
+
+Available placeholders:
+
+* `{HOME}`: The home directory of the current user.
+* `{CWD}`: The current working directory.
+* `{TMP}`: The temp directory.

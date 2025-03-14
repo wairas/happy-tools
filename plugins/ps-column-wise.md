@@ -9,7 +9,7 @@ usage: ps-column-wise [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Calculates the average of randomly selected pixels per column.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

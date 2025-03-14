@@ -9,7 +9,7 @@ usage: rl-file-pattern [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 Reference locator that uses the supplied pattern and applies that to the
 incoming scan file name to generate the reference file name.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

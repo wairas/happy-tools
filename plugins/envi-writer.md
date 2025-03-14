@@ -8,7 +8,7 @@ usage: envi-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Exports the data in ENVI format and the meta-data as JSON alongside.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
@@ -22,3 +22,9 @@ optional arguments:
                         {BASEDIR}, {SAMPLEID}, {REPEAT}, {REGION} (default:
                         {BASEDIR}/{SAMPLEID}.{REPEAT}.hdr)
 ```
+
+Available placeholders:
+
+* `{HOME}`: The home directory of the current user.
+* `{CWD}`: The current working directory.
+* `{TMP}`: The temp directory.

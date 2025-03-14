@@ -11,7 +11,7 @@ usage: image-writer [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 Generates images from the data. The type of image is determined by the
 extension of the output files pattern.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
@@ -43,3 +43,9 @@ optional arguments:
   --suppress_metadata   Whether to suppress the output of the meta-data
                         (default: False)
 ```
+
+Available placeholders:
+
+* `{HOME}`: The home directory of the current user.
+* `{CWD}`: The current working directory.
+* `{TMP}`: The temp directory.

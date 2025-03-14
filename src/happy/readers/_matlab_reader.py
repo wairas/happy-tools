@@ -7,6 +7,7 @@ import scipy.io as sio
 
 from happy.data import HappyData
 from ._happydata_reader import HappyDataReader
+from seppl.placeholders import expand_placeholders
 
 
 class MatlabReader(HappyDataReader):
@@ -25,9 +26,10 @@ class MatlabReader(HappyDataReader):
 
     def _get_sample_ids(self) -> List[str]:
         sample_ids = []
-        for f in os.listdir(self.base_dir):
+        base_dir = expand_placeholders(self.base_dir)
+        for f in os.listdir(base_dir):
             if f.endswith(".mat"):
-                sample_path = os.path.join(self.base_dir, f)
+                sample_path = os.path.join(base_dir, f)
                 if os.path.isfile(sample_path):
                     sample_id = os.path.splitext(f)[0]
                     sample_ids.append(sample_id)
@@ -55,7 +57,7 @@ class MatlabReader(HappyDataReader):
         metadata_dict = {}
 
         # read matlab
-        filename = os.path.join(self.base_dir, "%s.%s.mat" % (sample_id, region_name))
+        filename = os.path.join(expand_placeholders(self.base_dir), "%s.%s.mat" % (sample_id, region_name))
         mat_file = sio.loadmat(filename)
 
         # data

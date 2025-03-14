@@ -9,7 +9,7 @@ usage: wr-same-size [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 White reference method that simply divides the scan by the white reference.
 Requires scan and reference to have the same size.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

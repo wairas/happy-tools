@@ -5,6 +5,7 @@ import spectral.io.envi as envi
 
 from happy.data import HappyData
 from ._happydata_writer import HappyDataWriterWithOutputPattern, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
+from seppl.placeholders import expand_placeholders
 
 
 class EnviWriter(HappyDataWriterWithOutputPattern):
@@ -21,8 +22,9 @@ class EnviWriter(HappyDataWriterWithOutputPattern):
     def _write_item(self, happy_data, datatype_mapping=None):
         sample_id = happy_data.sample_id
         region_id = happy_data.region_id
-        self.logger().info("Creating dir: %s" % self.base_dir)
-        os.makedirs(self.base_dir, exist_ok=True)
+        base_dir = expand_placeholders(self.base_dir)
+        self.logger().info("Creating dir: %s" % base_dir)
+        os.makedirs(base_dir, exist_ok=True)
         path_envi = self._expand_output(self._output, sample_id, region_id)
         path_meta = os.path.splitext(path_envi)[0] + "-meta.json"
         self.logger().info("Writing: %s" % path_envi)

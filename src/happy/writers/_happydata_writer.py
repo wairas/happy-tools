@@ -5,6 +5,7 @@ from seppl import split_args, split_cmdline, args_to_objects
 from happy.base.registry import REGISTRY
 from happy.base.core import PluginWithLogging
 from happy.data import HappyData
+from seppl.placeholders import PlaceholderSupporter, placeholder_list, expand_placeholders
 
 
 PH_BASEDIR = "{BASEDIR}"
@@ -30,7 +31,7 @@ def output_pattern_help():
     return "The following placeholders are available for the output pattern: %s" % ", ".join(PLACEHOLDERS_OUTPUT)
 
 
-class HappyDataWriter(PluginWithLogging, abc.ABC):
+class HappyDataWriter(PluginWithLogging, abc.ABC, PlaceholderSupporter):
 
     def __init__(self, base_dir: str = "."):
         super().__init__()
@@ -125,7 +126,7 @@ class HappyDataWriterWithOutputPattern(HappyDataWriter, abc.ABC):
         self._output = ns.output
 
     def _expand_output(self, output, sample_id, region_id):
-        result = output.replace(PH_BASEDIR, self.base_dir)
+        result = output.replace(PH_BASEDIR, expand_placeholders(self.base_dir))
         result = result.replace(PH_SAMPLEID, sample_id)
         result = result.replace(PH_REPEAT, region_id)
         result = result.replace(PH_REGION, region_id)

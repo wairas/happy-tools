@@ -11,7 +11,7 @@ wavelengths and compares it against the average gradient of surrounding
 pixels. If that difference is larger than the specified threshold (= noisy)
 then interpolate this wavelength.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

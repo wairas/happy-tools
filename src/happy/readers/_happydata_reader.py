@@ -1,6 +1,7 @@
 import abc
 import argparse
 from seppl import split_args, split_cmdline, args_to_objects
+from seppl.placeholders import PlaceholderSupporter, placeholder_list
 from happy.base.core import PluginWithLogging
 from happy.data import HappyData
 from happy.base.registry import REGISTRY
@@ -8,7 +9,7 @@ from happy.base.registry import REGISTRY
 from typing import List, Optional
 
 
-class HappyDataReader(PluginWithLogging, abc.ABC):
+class HappyDataReader(PluginWithLogging, abc.ABC, PlaceholderSupporter):
 
     def __init__(self, base_dir: str = "."):
         super().__init__()
@@ -17,7 +18,7 @@ class HappyDataReader(PluginWithLogging, abc.ABC):
 
     def _create_argparser(self) -> argparse.ArgumentParser:
         parser = super()._create_argparser()
-        parser.add_argument("-b", "--base_dir", type=str, help="The base directory for the data", required=False, default=".")
+        parser.add_argument("-b", "--base_dir", type=str, help="The base directory for the data; " + placeholder_list(obj=self), required=False, default=".")
         return parser
 
     def _apply_args(self, ns: argparse.Namespace):

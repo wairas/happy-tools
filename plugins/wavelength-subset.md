@@ -10,7 +10,7 @@ usage: wavelength-subset [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Returns the specified subset of wavelengths.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

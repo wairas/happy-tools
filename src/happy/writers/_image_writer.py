@@ -6,6 +6,7 @@ from typing import Tuple, Optional
 from happy.data import HappyData, DataManager
 from happy.data.normalization import SimpleNormalization
 from ._happydata_writer import HappyDataWriterWithOutputPattern, HappyDataWriterWithNormalization, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
+from seppl.placeholders import expand_placeholders
 
 
 class ImageWriter(HappyDataWriterWithOutputPattern, HappyDataWriterWithNormalization):
@@ -84,8 +85,9 @@ class ImageWriter(HappyDataWriterWithOutputPattern, HappyDataWriterWithNormaliza
             self.logger().info(msg)
         sample_id = happy_data.sample_id
         region_id = happy_data.region_id
-        self.logger().info("Creating dir: %s" % self.base_dir)
-        os.makedirs(self.base_dir, exist_ok=True)
+        base_dir = expand_placeholders(self.base_dir)
+        self.logger().info("Creating dir: %s" % base_dir)
+        os.makedirs(base_dir, exist_ok=True)
         # output image
         path_png = self._expand_output(self._output, sample_id, region_id)
         self.logger().info("Writing: %s" % path_png)

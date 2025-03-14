@@ -4,6 +4,7 @@ import os
 from happy.data import HappyData
 from happy.writers.base import EnviWriter
 from ._happydata_writer import HappyDataWriter
+from seppl.placeholders import expand_placeholders
 
 
 class HappyWriter(HappyDataWriter):
@@ -34,7 +35,7 @@ class HappyWriter(HappyDataWriter):
         region_id = happy_data.region_id
 
         # Create a folder for the sample if it doesn't exist
-        sample_dir = os.path.join(self.base_dir, sample_id)
+        sample_dir = os.path.join(expand_placeholders(self.base_dir), sample_id)
         os.makedirs(sample_dir, exist_ok=True)
 
         # Create a folder for the region if it doesn't exist

@@ -9,7 +9,7 @@ usage: extract-regions [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 Applies the specified region extractor to extract (sub-)regions from the
 incoming data.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)

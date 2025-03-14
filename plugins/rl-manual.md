@@ -8,7 +8,7 @@ usage: rl-manual [-h] [-V {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
 Reference locator where the user has to manually locate the reference file.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
