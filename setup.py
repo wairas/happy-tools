@@ -33,7 +33,7 @@ setup(
         "spectral==0.23.1",
         "pillow<10.0",
         "redis",
-        "fast-opex>=0.0.4",
+        "fast_opex>=0.0.4",
         "orjson",
         "shapely",
         "scikit-learn",
