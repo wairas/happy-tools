@@ -13,7 +13,7 @@ options:
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
   -A LOGGER_NAME, --logger_name LOGGER_NAME
-                        The custom name to use for the logger (default: None)
+                        The custom name to use for the logger. (default: None)
   -n COMPONENTS, --components COMPONENTS
                         The number of PCA components (default: 5)
   -p PERCENT_PIXELS, --percent_pixels PERCENT_PIXELS

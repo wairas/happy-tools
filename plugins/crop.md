@@ -13,7 +13,7 @@ options:
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
   -A LOGGER_NAME, --logger_name LOGGER_NAME
-                        The custom name to use for the logger (default: None)
+                        The custom name to use for the logger. (default: None)
   -x X, --x X           The left of the cropping rectangle (default: 0)
   -y Y, --y Y           The top of the cropping rectangle (default: 0)
   -W WIDTH, --width WIDTH

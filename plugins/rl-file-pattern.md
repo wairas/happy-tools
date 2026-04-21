@@ -14,7 +14,7 @@ options:
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
   -A LOGGER_NAME, --logger_name LOGGER_NAME
-                        The custom name to use for the logger (default: None)
+                        The custom name to use for the logger. (default: None)
   -m, --must_exist      Whether the determined reference file must exist
                         (default: False)
   -p PATTERN, --pattern PATTERN

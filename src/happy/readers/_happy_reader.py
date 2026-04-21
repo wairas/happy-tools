@@ -6,7 +6,7 @@ from ._happydata_reader import HappyDataReader
 from happy.readers.spectra import EnviReader
 from happy.data import HappyData, MASK_MAP
 import spectral.io.envi as envi
-from seppl.placeholders import expand_placeholders
+from seppl.variables import expand_variables
 
 from typing import List, Optional, Tuple, Dict
 
@@ -117,7 +117,7 @@ class HappyReader(HappyDataReader):
 
     def _get_sample_ids(self) -> List[str]:
         sample_ids = []
-        base_dir = expand_placeholders(self.base_dir)
+        base_dir = expand_variables(self.base_dir)
         for sample_id in os.listdir(base_dir):
             sample_path = os.path.join(base_dir, sample_id)
             if os.path.isdir(sample_path):
@@ -151,7 +151,7 @@ class HappyReader(HappyDataReader):
         return happy_data_list
 
     def _load_region(self, sample_id: str, region_name: str) -> HappyData:
-        base_dir = expand_placeholders(self.base_dir)
+        base_dir = expand_variables(self.base_dir)
         hyperspec_file_path = os.path.join(base_dir, sample_id, region_name, f'{sample_id}'+".hdr")
         self.logger().info(f"{sample_id}:{region_name}")
         base_path = os.path.join(base_dir, sample_id, region_name)
@@ -218,7 +218,7 @@ class HappyReader(HappyDataReader):
         return metadata_file_paths
 
     def _get_regions(self, sample_id: str) -> List[str]:
-        sample_dir = os.path.join(expand_placeholders(self.base_dir), sample_id)
+        sample_dir = os.path.join(expand_variables(self.base_dir), sample_id)
         if os.path.isdir(sample_dir):
             region_dirs = [name for name in os.listdir(sample_dir) if os.path.isdir(os.path.join(sample_dir, name))]
         else:

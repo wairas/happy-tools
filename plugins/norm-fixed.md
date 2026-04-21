@@ -15,7 +15,7 @@ options:
   -V {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         The logging level to use. (default: WARN)
   -A LOGGER_NAME, --logger_name LOGGER_NAME
-                        The custom name to use for the logger (default: None)
+                        The custom name to use for the logger. (default: None)
   -m NUM, --min NUM     The minimum value to use, default for all channels
                         (default: 0.0)
   -M NUM, --max NUM     The maximum value to use, default for all channels

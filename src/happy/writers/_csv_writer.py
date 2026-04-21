@@ -7,7 +7,7 @@ import numpy as np
 
 from happy.data import HappyData
 from ._happydata_writer import HappyDataWriterWithOutputPattern, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT, PH_REGION
-from seppl.placeholders import expand_placeholders
+from seppl.variables import expand_variables
 
 DEFAULT_WAVE_NUMBER_PREFIX = "wave-"
 
@@ -57,7 +57,7 @@ class CSVWriter(HappyDataWriterWithOutputPattern):
         rows, cols, bands = happy_data.data.shape
         sample_id = happy_data.sample_id
         region_id = happy_data.region_id
-        base_dir = expand_placeholders(self.base_dir)
+        base_dir = expand_variables(self.base_dir)
         if not os.path.exists(base_dir):
             self.logger().info("Creating dir: %s" % base_dir)
             os.makedirs(base_dir, exist_ok=True)

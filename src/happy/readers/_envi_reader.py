@@ -4,7 +4,7 @@ import re
 from ._happydata_reader import HappyDataReader
 from happy.readers.spectra import EnviReader
 from happy.data import HappyData
-from seppl.placeholders import expand_placeholders
+from seppl.variables import expand_variables
 
 from typing import List, Optional
 
@@ -37,7 +37,7 @@ class EnviHappyDataReader(HappyDataReader):
 
     def _get_sample_ids(self) -> List[str]:
         sample_ids = []
-        base_dir = expand_placeholders(self.base_dir)
+        base_dir = expand_variables(self.base_dir)
         for sample_id in os.listdir(base_dir):
             sample_path = os.path.join(base_dir, sample_id)
             if sample_id.endswith(self.extension) and os.path.isfile(sample_path):
@@ -61,7 +61,7 @@ class EnviHappyDataReader(HappyDataReader):
         def filename_func(base_dir, sample_id):
             return os.path.join(base_dir, sample_id + self.extension)
 
-        base_dir = expand_placeholders(self.base_dir)
+        base_dir = expand_variables(self.base_dir)
         hyperspec_file_path = os.path.join(base_dir, sample_id + region_name + self.extension)
         self.logger().info(f"{sample_id}{region_name}{self.extension}")
 

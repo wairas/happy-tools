@@ -5,7 +5,7 @@ import scipy.io as sio
 
 from happy.data import HappyData
 from ._happydata_writer import HappyDataWriterWithOutputPattern, PH_BASEDIR, PH_SAMPLEID, PH_REPEAT
-from seppl.placeholders import expand_placeholders
+from seppl.variables import expand_variables
 
 
 class MatlabWriter(HappyDataWriterWithOutputPattern):
@@ -25,7 +25,7 @@ class MatlabWriter(HappyDataWriterWithOutputPattern):
     def _write_item(self, happy_data, datatype_mapping=None):
         sample_id = happy_data.sample_id
         region_id = happy_data.region_id
-        base_dir = expand_placeholders(self.base_dir)
+        base_dir = expand_variables(self.base_dir)
         if not os.path.exists(base_dir):
             self.logger().info("Creating dir: %s" % base_dir)
             os.makedirs(base_dir, exist_ok=True)
