@@ -1,7 +1,7 @@
 ARG DOCKER_REGISTRY=public.aml-repo.cms.waikato.ac.nz:443/
-FROM ${DOCKER_REGISTRY}python:3.8-bullseye
+FROM ${DOCKER_REGISTRY}python:3.10-bookworm
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
